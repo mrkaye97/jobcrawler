@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy.sql import text
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urljoin, urlparse
@@ -10,10 +11,10 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
-app = Flask(__name__)
+template_dir = os.path.abspath('templates')
+print(template_dir)
+app = Flask(__name__, template_folder=template_dir)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jobcrawler'
 
@@ -36,7 +37,18 @@ class Boards(db.Model):
     def __repr__(self):
         return f"Company : {self.company}, URL: {self.url}, search: {self.search_text}"
 
-# function to add profiles
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/getjobs")
+def getjobs():
+    result = Boards.query.all()
+    out = [{key: b.__dict__[key] for key in ["company", "url", "search_text"]} for b in result]
+    print(out)
+    return jsonify(out)
+
 @app.route('/create', methods=["POST"])
 def create():
     company = request.form.get("company")
@@ -118,7 +130,7 @@ def get_links_soup(url, query, company):
 
     return results
 
-@sched.scheduled_job(trigger = 'interval', seconds = 3, id='crawl')
+@sched.scheduled_job(trigger = 'interval', hours = 3, id='crawl')
 def crawl():
     """ Function for test purposes. """
     print("Scheduler is alive!")

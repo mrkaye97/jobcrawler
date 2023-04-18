@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board Manager</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Board Manager</h1>
+    <table id="board-table">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Search Text</th>
+                <th>URL</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button id="add-row-btn">Add Row</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('http://127.0.0.1:5000/getjobs')
+                .then(response => response.json())
+                .then(boards => {
+                    const tableBody = document.querySelector('#board-table tbody');
+
+                    boards.forEach(board => {
+                        const row = createBoardRow(board);
+                        tableBody.appendChild(row);
+                    });
+                });
+
+            const addRowBtn = document.getElementById('add-row-btn');
+            addRowBtn.addEventListener('click', function () {
+                const board = {
+                    company: '',
+                    search_text: '',
+                    url: ''
+                };
+
+                fetch('http://127.0.0.1:5000/boards', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(board)
+                }).then(response => response.json())
+                    .then(newBoard => {
+                        const tableBody = document.querySelector('#board-table tbody');
+                        const row = createBoardRow(newBoard);
+                        tableBody.appendChild(row);
+                    });
+            });
+        });
+
+        function createBoardRow(board) {
+            const row = document.createElement('tr');
+
+            const companyCell = document.createElement('td');
+            const searchCell = document.createElement('td');
+            const urlCell = document.createElement('td');
+
+            companyCell.contentEditable = true;
+            searchCell.contentEditable = true;
+            urlCell.contentEditable = true;
+
+            companyCell.innerText = board.company;
+            searchCell.innerText = board.search_text;
+            urlCell.innerText = board.url;
+
+            row.appendChild(companyCell);
+            row.appendChild(searchCell);
+            row.appendChild(urlCell);
+
+            const actionsCell = document.createElement('td');
+            const deleteBtn = document.createElement('button');
+            const updateBtn = document.createElement('button');
+
+            deleteBtn.innerText = 'Delete';
+            deleteBtn.addEventListener('click', function () {
+                fetch(`http://127.0.0.1:5000/delete/${board.id}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    row.remove();
+                });
+            });
+
+            updateBtn.innerText = 'Update';
+            updateBtn.addEventListener('click', function () {
+                const updatedBoard = {
+                    id: board.id,
+                    company: companyCell.innerText,
+                    search_text: searchCell.innerText,
+                    url: urlCell.innerText
+                };
+
+                fetch(`http://127.0.0.1:5000/boards/${board.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedBoard)
+                });
+            });
+
+            actionsCell.appendChild(deleteBtn);
+            actionsCell.appendChild(updateBtn);
+            row.appendChild(actionsCell);
+
+            return row;
+        }
+    </script>
+</body>
+
+</html>
