@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "job-posting-notifications"
+version = "0.1.0"
+description = ""
+authors = ["mrkaye97 <mrkaye97@gmail.com>"]
+readme = "README.md"
+packages = [{include = "job_posting_notifications"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+flask = "^2.2.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
