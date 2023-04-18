@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 import requests
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 import sib_api_v3_sdk
 import os
 
@@ -83,31 +83,35 @@ def crawl():
             r = requests.get(search.url)
             soup = BeautifulSoup(r.content, features="html.parser")
 
-            print(search.search_text.lower())
-            links = lambda tag: (getattr(tag, 'name', None) == 'a' and
-                                    'href' in tag.attrs and
-                                    search.search_text.lower() in tag.get_text().lower())
+            links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs and search.search_text.lower() in tag.get_text().lower())
 
             links = soup.find_all(links)
-            links = [urljoin(search.url, tag['href']) for tag in links]
 
-            if links:
-                links = ", ".join(links)
-                links = [f"{search.company} -- {search.search_text}: {links}"]
-                results = results + links
+            for link in links:
+                href_parsed = urlparse(link.get("href"))
+                search_parsed = urlparse(search.url)
+                if search_parsed.path in href_parsed.path:
+                    job_title = link.string
+                    if 'lever' in search.url:
+                        job_title = link.contents[0].text
+                    results = results + [f"{job_title} @ {search.company}: {urljoin(search.url, link['href'])}"]
 
     result_txt = "\n".join(results)
-    send_email(
-        sender_email = "mrkaye97@gmail.com",
-        sender_name = "Matt Kaye",
-        recipient = "matt.kaye@collegevine.com",
-        subject = "Your daily job feed digest",
-        body = f"""
-            Here are your links for the day!
 
-            {result_txt}
-        """
-    )
+    if os.environ.get("PRODUCTION"):
+        send_email(
+            sender_email = "mrkaye97@gmail.com",
+            sender_name = "Matt Kaye",
+            recipient = "matt.kaye@collegevine.com",
+            subject = "Your daily job feed digest",
+            body = f"""
+                Here are your links for the day!
+
+                {result_txt}
+            """
+        )
+    else:
+        print(result_txt)
 
 sched.start()
 
