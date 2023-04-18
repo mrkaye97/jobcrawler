@@ -7,6 +7,11 @@ import requests
 from urllib.parse import urljoin, urlparse
 import sib_api_v3_sdk
 import os
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
 
@@ -71,34 +76,66 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     print(response)
 
+def get_links_selenium(url, query, company):
+    results = []
+    DRIVER="geckodriver"
+    service = Service(executable_path=DRIVER)
+    driver = webdriver.Firefox(service=service)
+    delay = 3
+
+    driver.implicitly_wait(delay)
+    driver.get(url)
+    links =  driver.find_elements(By.XPATH, "//a[@href]")
+
+    for link in links:
+        text = link.get_attribute("text")
+        href = link.get_attribute("href")
+
+        if query.lower() in text.lower():
+            results = results + [f"{text} @ {company}: {href}"]
+
+    driver.quit()
+
+    return results
+
+def get_links_soup(url, query, company):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, features="html.parser")
+
+    links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs and query.lower() in tag.get_text().lower())
+
+    links = soup.find_all(links)
+
+    results = []
+    for link in links:
+        href_parsed = urlparse(link.get("href"))
+        search_parsed = urlparse(url)
+        if search_parsed.path in href_parsed.path:
+            job_title = link.string
+            if 'lever' in url:
+                job_title = link.contents[0].text
+            results = results + [f"{job_title} @ {company}: {urljoin(url, link['href'])}"]
+
+    return results
+
 @sched.scheduled_job(trigger = 'interval', seconds = 3, id='crawl')
 def crawl():
     """ Function for test purposes. """
     print("Scheduler is alive!")
     results = []
+
     with app.app_context():
         searches = db.session.query(Boards.company, Boards.url, Boards.search_text)
 
         for search in searches:
-            r = requests.get(search.url)
-            soup = BeautifulSoup(r.content, features="html.parser")
-
-            links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs and search.search_text.lower() in tag.get_text().lower())
-
-            links = soup.find_all(links)
-
-            for link in links:
-                href_parsed = urlparse(link.get("href"))
-                search_parsed = urlparse(search.url)
-                if search_parsed.path in href_parsed.path:
-                    job_title = link.string
-                    if 'lever' in search.url:
-                        job_title = link.contents[0].text
-                    results = results + [f"{job_title} @ {search.company}: {urljoin(search.url, link['href'])}"]
+            if search.company in ['Headspace']:
+                results = results + get_links_selenium(url = search.url, query = search.search_text, company = search.company)
+            else:
+                results = results + get_links_soup(url = search.url, query = search.search_text, company = search.company)
 
     result_txt = "\n".join(results)
 
-    if os.environ.get("PRODUCTION"):
+    if os.environ.get("PRODUCTION") == True:
         send_email(
             sender_email = "mrkaye97@gmail.com",
             sender_name = "Matt Kaye",
@@ -117,5 +154,3 @@ sched.start()
 
 if __name__ == '__main__':
     app.run()
-
-
