@@ -11,11 +11,15 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
-template_dir = os.path.abspath('templates')
-print(template_dir)
-app = Flask(__name__, template_folder=template_dir)
+def create_app(config_filename):
+    template_dir = os.path.abspath('templates')
+    app = Flask(__name__, template_folder=template_dir)
+    app.config.from_pyfile(config_filename)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jobcrawler'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/jobcrawler'
+    from src.models import db
+    db.init_app(app)
+
 
 db = SQLAlchemy(app)
 
