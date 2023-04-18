@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
+from bs4 import BeautifulSoup
+import requests
+from urllib.parse import urljoin
 
 app = Flask(__name__)
 
@@ -26,7 +29,6 @@ class Boards(db.Model):
     def __repr__(self):
         return f"Company : {self.company}, URL: {self.url}, search: {self.search_text}"
 
-
 # function to add profiles
 @app.route('/create', methods=["POST"])
 def create():
@@ -49,14 +51,39 @@ def erase(id):
     db.session.commit()
     return jsonify(f"Successfully deleted {id}")
 
-def sensor():
+cron_time = '0 * * * *'
+
+sched = BackgroundScheduler()
+
+@sched.scheduled_job(trigger = 'interval', seconds = 10, id='crawl')
+def crawl():
     """ Function for test purposes. """
     print("Scheduler is alive!")
+    results = []
+    with app.app_context():
+        searches = db.session.query(Boards.company, Boards.url, Boards.search_text)
 
-sched = BackgroundScheduler(daemon=True)
-sched.add_job(sensor,'interval',minutes=1)
+        for search in searches:
+            print("Company: ", search.company)
+            print("URL: ", search.url)
+            print("Text: ", search.search_text)
+
+            r = requests.get(search.url)
+            soup = BeautifulSoup(r.content, features="html.parser")
+
+            links = lambda tag: (getattr(tag, 'name', None) == 'a' and
+                                    'href' in tag.attrs and
+                                    search.search_text.lower() in tag.get_text().lower())
+
+            links = soup.find_all(links)
+            links = [urljoin(search.url, tag['href']) for tag in links]
+            results = results + links
+
+    print(results)
+
 sched.start()
-
 
 if __name__ == '__main__':
     app.run()
+
+
