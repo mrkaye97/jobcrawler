@@ -119,8 +119,13 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`http://127.0.0.1:5000/delete/${board.id}`, {
-                    method: 'DELETE'
+                const formData = new FormData();
+                formData.append('company', board.company);
+                formData.append('url', board.url);
+                formData.append('search_text', board.search_text);
+                fetch(`http://127.0.0.1:5000/delete`, {
+                    method: 'DELETE',
+                    body: formData
                 }).then(() => {
                     row.remove();
                 });

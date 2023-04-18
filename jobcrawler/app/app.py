@@ -45,7 +45,7 @@ def index():
 @app.route("/getjobs")
 def getjobs():
     result = Boards.query.all()
-    out = [{key: b.__dict__[key] for key in ["company", "url", "search_text"]} for b in result]
+    out = [{key: b.__dict__[key] for key in ["id", "company", "url", "search_text"]} for b in result]
     print(out)
     return jsonify(out)
 
@@ -65,10 +65,24 @@ def create():
 
 @app.route('/delete/<int:id>')
 def erase(id):
+    print("Deleting: ", id)
     data = Boards.query.get(id)
     db.session.delete(data)
     db.session.commit()
     return jsonify(f"Successfully deleted {id}")
+
+@app.route('/delete', methods=["DELETE"])
+def erase_by_name():
+    company = request.form.get("company")
+    url = request.form.get("url")
+    search_text = request.form.get("search_text")
+
+    print("Deleting: ", company, url, search_text)
+    data = Boards.query.filter_by(company = company, url = url, search_text = search_text).first()
+    print(data)
+    db.session.delete(data)
+    db.session.commit()
+    return jsonify(f"Successfully deleted")
 
 sched = BackgroundScheduler()
 
