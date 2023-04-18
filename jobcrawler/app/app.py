@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
-from sqlalchemy.sql import text
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urljoin, urlparse
