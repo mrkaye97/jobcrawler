@@ -12,6 +12,7 @@ greenlet = "2.0.0"
 flask-sqlalchemy = "^3.0.3"
 psycopg2-binary = "^2.9.6"
 flask-migrate = "^4.0.4"
+apscheduler = "^3.10.1"
 
 
 [build-system]

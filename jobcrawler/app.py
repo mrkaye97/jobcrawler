@@ -1,6 +1,7 @@
-from flask import Flask, request, redirect, jsonify
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate, migrate
+from flask_migrate import Migrate
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 
@@ -47,6 +48,15 @@ def erase(id):
     db.session.delete(data)
     db.session.commit()
     return jsonify(f"Successfully deleted {id}")
+
+def sensor():
+    """ Function for test purposes. """
+    print("Scheduler is alive!")
+
+sched = BackgroundScheduler(daemon=True)
+sched.add_job(sensor,'interval',minutes=1)
+sched.start()
+
 
 if __name__ == '__main__':
     app.run()
