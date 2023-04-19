@@ -40,6 +40,40 @@
         button:hover {
             background-color: #45a049;
         }
+
+        /* Make both tables the same width */
+        #company-table,
+        #board-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        /* Set the fixed width of the name/company name columns */
+        #company-table th:nth-child(1),
+        #board-table th:nth-child(1) {
+            width: 15%;
+        }
+
+        /* Set the fixed width of the board URL column */
+        #company-table th:nth-child(2) {
+            width: 50%;
+        }
+
+        /* Set the fixed width of the scraping method column */
+        #company-table th:nth-child(3) {
+            width: 20%;
+        }
+
+        /* Set the fixed width of the search text column */
+        #board-table th:nth-child(2) {
+            width: 70%;
+        }
+
+        /* Set the fixed width of the actions columns */
+        #company-table th:nth-child(4),
+        #board-table th:nth-child(3) {
+            width: 15%;
+        }
     </style>
 </head>
 
@@ -169,7 +203,9 @@
 
             const actionsCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-danger';
             const updateBtn = document.createElement('button');
+            updateBtn.className = 'btn btn-primary';
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
@@ -260,7 +296,9 @@
 
             const actionsCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-danger';
             const updateBtn = document.createElement('button');
+            updateBtn.className = 'btn btn-primary';
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
