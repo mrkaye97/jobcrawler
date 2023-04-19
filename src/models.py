@@ -2,18 +2,16 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class Boards(db.Model):
+class Searches(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    company = db.Column(db.String(256), unique=False, nullable=False)
-    url = db.Column(db.String(256), unique=False, nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey("companies.id"))
+
     search_text = db.Column(db.String(256), unique=False, nullable=False)
 
-    # repr method represents how one object of this datatable
-    # will look like
     def __repr__(self):
         return f"Company : {self.company}, URL: {self.url}, search: {self.search_text}"
 
-class User(db.Model):
+class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(128))
     last_name = db.Column(db.String(128))
@@ -22,3 +20,12 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.email)
+
+class Companies(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(128), index = True, nullable = False)
+    board_url = db.Column(db.String(128), nullable = False)
+    scraping_method = db.Column(db.String(64), nullable = False, default = "soup")
+
+    def __repr__(self):
+        return '<Company {}>'.format(self.name)

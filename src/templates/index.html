@@ -44,13 +44,101 @@
 </head>
 
 <body>
-    <h1>My Job Boards</h1>
+    <h1>My Companies</h1>
+    <table id="company-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Board URL</th>
+                <th>Scraping Method</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button id="add-company-btn">Add Company</button>
+    <script>
+        const addCompanyBtn = document.getElementById('add-company-btn');
+        addCompanyBtn.addEventListener('click', function () {
+            const defaultName = 'Default Company';
+            const defaultBoardUrl = 'https://www.example.com';
+            const defaultScrapingMethod = 'soup';
+
+            const company = {
+                name: defaultName,
+                board_url: defaultBoardUrl,
+                scraping_method: defaultScrapingMethod
+            };
+
+            // Create the row with default values first
+            const tableBody = document.querySelector('#company-table tbody');
+            const row = createCompanyRow(company);
+            tableBody.appendChild(row);
+
+            fetch('http://127.0.0.1:5000/companies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(company)
+            }).then(response => response.json())
+                .then(newCompany => {
+                    // Update the row's id with the id from the server response
+                    row.dataset.id = newCompany.id;
+
+                    // Update the row with the data from the server
+                    row.replaceWith(createCompanyRow(newCompany));
+                });
+        });
+
+        function createCompanyRow(company) {
+            const row = document.createElement('tr');
+            row.dataset.id = company.id;
+
+            const nameCell = document.createElement('td');
+            const boardUrlCell = document.createElement('td');
+            const scrapingMethodCell = document.createElement('td');
+
+            nameCell.contentEditable = true;
+            boardUrlCell.contentEditable = true;
+            scrapingMethodCell.contentEditable = true;
+
+            nameCell.innerText = company.name;
+            boardUrlCell.innerText = company.board_url;
+            scrapingMethodCell.innerText = company.scraping_method;
+
+            row.appendChild(nameCell);
+            row.appendChild(boardUrlCell);
+            row.appendChild(scrapingMethodCell);
+
+            const actionsCell = document.createElement('td');
+            const deleteBtn = document.createElement('button');
+            const updateBtn = document.createElement('button');
+
+            deleteBtn.innerText = 'Delete';
+            // Add event listener for deleteBtn, similar to the one in createBoardRow function
+
+            updateBtn.innerText = 'Update';
+            // Add event listener for updateBtn, similar to the one in createBoardRow function
+
+            actionsCell.appendChild(deleteBtn);
+            actionsCell.appendChild(updateBtn);
+            row.appendChild(actionsCell);
+
+            return row;
+        }
+
+
+    </script>
+</body>
+
+<body>
+    <h1>My Job Searches</h1>
     <table id="board-table">
         <thead>
             <tr>
-                <th>Company</th>
+                <th>Company ID</th>
                 <th>Search Text</th>
-                <th>URL</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -60,7 +148,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            fetch('http://127.0.0.1:5000/boards')
+            fetch('http://127.0.0.1:5000/searches')
                 .then(response => response.json())
                 .then(boards => {
                     const tableBody = document.querySelector('#board-table tbody');
@@ -73,21 +161,19 @@
 
             const addRowBtn = document.getElementById('add-row-btn');
             addRowBtn.addEventListener('click', function () {
-                const defaultCompany = 'A Company';
-                const defaultSearchText = 'R regex';
-                const defaultUrl = 'https://www.example.com';
+                const defaultCompanyId = 123;
+                const defaultSearchText = 'A regex';
 
                 const board = {
-                    company: defaultCompany,
-                    search_text: defaultSearchText,
-                    url: defaultUrl
+                    company_id: defaultCompanyId,
+                    search_text: defaultSearchText
                 };
 
                 const tableBody = document.querySelector('#board-table tbody');
                 const row = createBoardRow(board);
                 tableBody.appendChild(row);
 
-                fetch('http://127.0.0.1:5000/boards', {
+                fetch('http://127.0.0.1:5000/searches', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -107,21 +193,17 @@
             const row = document.createElement('tr');
             row.dataset.id = board.id;
 
-            const companyCell = document.createElement('td');
+            const companyIdCell = document.createElement('td');
             const searchCell = document.createElement('td');
-            const urlCell = document.createElement('td');
 
-            companyCell.contentEditable = true;
+            companyIdCell.contentEditable = true;
             searchCell.contentEditable = true;
-            urlCell.contentEditable = true;
 
-            companyCell.innerText = board.company;
+            companyIdCell.innerText = board.companyId;
             searchCell.innerText = board.search_text;
-            urlCell.innerText = board.url;
 
-            row.appendChild(companyCell);
+            row.appendChild(companyIdCell);
             row.appendChild(searchCell);
-            row.appendChild(urlCell);
 
             const actionsCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
@@ -129,13 +211,8 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                const formData = new FormData();
-                formData.append('company', board.company);
-                formData.append('url', board.url);
-                formData.append('search_text', board.search_text);
-                fetch(`http://127.0.0.1:5000/boards`, {
-                    method: 'DELETE',
-                    body: formData
+                fetch(`http://127.0.0.1:5000/searches/${row.dataset.id}`, {
+                    method: 'DELETE'
                 }).then(() => {
                     row.remove();
                 });
@@ -144,11 +221,10 @@
             updateBtn.innerText = 'Update';
             updateBtn.addEventListener('click', function () {
                 const formData = new FormData();
-                formData.append('company', companyCell.innerText);
-                formData.append('url', urlCell.innerText);
+                formData.append('company_id', companyIdCell.innerText);
                 formData.append('search_text', searchCell.innerText);
 
-                fetch(`http://127.0.0.1:5000/boards/${row.dataset.id}`, {
+                fetch(`http://127.0.0.1:5000/searches/${row.dataset.id}`, {
                     method: 'PUT',
                     body: formData
                 });
