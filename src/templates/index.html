@@ -89,6 +89,49 @@
         #board-table th:nth-child(3) {
             width: 15%;
         }
+
+        select {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 4px 8px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            background-color: #fafbfc;
+            color: #24292e;
+            appearance: none;
+            /* Remove the default arrow */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        select:hover {
+            background-color: #f6f8fa;
+        }
+
+        /* Add a custom arrow for the dropdowns */
+        select::-ms-expand {
+            display: none;
+        }
+
+        select {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill="%2324292e" d="M4.427 6.427L8 9.573l3.573-3.146a.25.25 0 01.427.177v.073l-.007.008L8 10.573l-4.006-3.98L3.993 6.93v-.073a.25.25 0 01.434-.18z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 24px;
+        }
+
+        #company-table th,
+        #company-table td,
+        #board-table th,
+        #board-table td {
+            vertical-align: middle;
+        }
+
+        /* Add padding to table cells for better spacing */
+        #company-table td,
+        #board-table td {
+            padding: 8px;
+        }
     </style>
 </head>
 
@@ -195,9 +238,9 @@
             const seleniumOption = document.createElement('option');
 
             soupOption.value = 'soup';
-            soupOption.text = 'soup';
+            soupOption.text = 'Soup';
             seleniumOption.value = 'selenium';
-            seleniumOption.text = 'selenium';
+            seleniumOption.text = 'Selenium';
 
             scrapingMethodSelect.appendChild(soupOption);
             scrapingMethodSelect.appendChild(seleniumOption);
