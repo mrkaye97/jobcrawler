@@ -17,7 +17,7 @@ migrate = Migrate(app, db)
 db.init_app(app)
 migrate.init_app(app, db)
 
-@sched.scheduled_job(trigger = 'interval', seconds = 3, id='crawl')
+@sched.scheduled_job(trigger = 'interval', hours = 3, id='crawl')
 def crawl():
     """ Function for test purposes. """
     print("Scheduler is alive!")
@@ -34,7 +34,7 @@ def crawl():
 
     result_txt = "\n".join(results)
 
-    if os.environ.get("PRODUCTION") == True:
+    if os.environ.get("SEND_EMAIL") == "yes":
         send_email(
             sender_email = "mrkaye97@gmail.com",
             sender_name = "Matt Kaye",

@@ -3,10 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class Boards(db.Model):
-    __table_args__ = (
-        db.UniqueConstraint('company', 'url', 'search_text'),
-    )
-
     id = db.Column(db.Integer, primary_key=True)
     company = db.Column(db.String(256), unique=False, nullable=False)
     url = db.Column(db.String(256), unique=False, nullable=False)

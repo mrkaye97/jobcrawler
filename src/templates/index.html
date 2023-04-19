@@ -73,11 +73,19 @@
 
             const addRowBtn = document.getElementById('add-row-btn');
             addRowBtn.addEventListener('click', function () {
+                const defaultCompany = 'A Company';
+                const defaultSearchText = 'R regex';
+                const defaultUrl = 'https://www.example.com';
+
                 const board = {
-                    company: '',
-                    search_text: '',
-                    url: ''
+                    company: defaultCompany,
+                    search_text: defaultSearchText,
+                    url: defaultUrl
                 };
+
+                const tableBody = document.querySelector('#board-table tbody');
+                const row = createBoardRow(board);
+                tableBody.appendChild(row);
 
                 fetch('http://127.0.0.1:5000/boards', {
                     method: 'POST',
@@ -85,17 +93,19 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(board)
-                }).then(response => response.json())
-                    .then(newBoard => {
-                        const tableBody = document.querySelector('#board-table tbody');
-                        const row = createBoardRow(newBoard);
-                        tableBody.appendChild(row);
+                }).then((response) => {
+                    console.log(response);
+                    response.json().then(newBoard => {
+                        console.log(newBoard);
+                        row.dataset.id = newBoard.id;
                     });
+                });
             });
         });
 
         function createBoardRow(board) {
             const row = document.createElement('tr');
+            row.dataset.id = board.id;
 
             const companyCell = document.createElement('td');
             const searchCell = document.createElement('td');
@@ -138,7 +148,7 @@
                 formData.append('url', urlCell.innerText);
                 formData.append('search_text', searchCell.innerText);
 
-                fetch(`http://127.0.0.1:5000/boards`, {
+                fetch(`http://127.0.0.1:5000/boards/${row.dataset.id}`, {
                     method: 'PUT',
                     body: formData
                 });

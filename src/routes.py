@@ -11,25 +11,32 @@ def index():
 def getjobs():
     result = Boards.query.all()
     out = [{key: b.__dict__[key] for key in ["id", "company", "url", "search_text"]} for b in result]
-    print(out)
     return jsonify(out)
 
 @app.route('/boards', methods=["POST"])
 def create():
-    company = request.form.get("company")
-    url = request.form.get("url")
-    search_text = request.form.get("search_text")
+    content = request.json
+    company = content.get("company")
+    url = content.get("url")
+    search_text = content.get("search_text")
 
     if company and url and search_text:
         p = Boards(company = company, url = url, search_text = search_text)
         db.session.add(p)
         db.session.commit()
-        return jsonify(f"Successfully created {company} board @ {url}")
-    else:
-        return jsonify("Failed")
 
-@app.route('/boards', methods=["PUT"])
-def insert():
+        id = p.id
+
+        record = Boards.query.get(id)
+        record = record.__dict__
+        del record["_sa_instance_state"]
+
+        return record
+    else:
+        return "Failed", 400
+
+@app.route('/boards/<int:id>', methods=["PUT"])
+def update(id):
     company = request.form.get("company")
     url = request.form.get("url")
     search_text = request.form.get("search_text")
@@ -38,13 +45,15 @@ def insert():
     print("URL:", url)
     print("Search: ", search_text)
 
-    if company and url and search_text:
-        p = Boards(company = company, url = url, search_text = search_text)
-        db.session.add(p)
-        db.session.commit()
-        return jsonify(f"Successfully created {company} board @ {url}")
-    else:
-        return jsonify("Failed")
+    posting = Boards.query.get(id)
+
+    posting.company = company
+    posting.url = url
+    posting.search_text = search_text
+
+    db.session.commit()
+
+    return f"Successfully updated the record for id: {id}"
 
 @app.route('/boards/<int:id>', methods = ["DELETE"])
 def erase(id):
