@@ -262,8 +262,6 @@
             const actionsCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-danger';
-            const updateBtn = document.createElement('button');
-            updateBtn.className = 'btn btn-primary';
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
@@ -274,24 +272,32 @@
                 });
             });
 
-            updateBtn.innerText = 'Update';
-            updateBtn.addEventListener('click', function () {
-                const formData = new FormData();
-                formData.append('name', nameCell.innerText);
-                formData.append('board_url', boardUrlCell.innerText);
-                formData.append('scraping_method', scrapingMethodSelect.value);
-
-                fetch(`http://127.0.0.1:5000/companies/${row.dataset.id}`, {
-                    method: 'PUT',
-                    body: formData
-                })
-            });
-
             actionsCell.appendChild(deleteBtn);
-            actionsCell.appendChild(updateBtn);
             row.appendChild(actionsCell);
 
+            nameCell.addEventListener('input', autoSaveCompany);
+            boardUrlCell.addEventListener('input', autoSaveCompany);
+            scrapingMethodSelect.addEventListener('change', autoSaveCompany);
+
             return row;
+        }
+
+        function autoSaveCompany(event) {
+            const cell = event.target;
+            const row = cell.closest('tr');
+            const nameCell = row.querySelector('td:nth-child(1)');
+            const boardUrlCell = row.querySelector('td:nth-child(2)');
+            const scrapingMethodSelect = row.querySelector('td:nth-child(3) select');
+
+            const formData = new FormData();
+            formData.append('name', nameCell.innerText);
+            formData.append('board_url', boardUrlCell.innerText);
+            formData.append('scraping_method', scrapingMethodSelect.value);
+
+            fetch(`http://127.0.0.1:5000/companies/${row.dataset.id}`, {
+                method: 'PUT',
+                body: formData
+            });
         }
 
         const addRowBtn = document.getElementById('add-row-btn');
@@ -355,8 +361,6 @@
             const actionsCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-danger';
-            const updateBtn = document.createElement('button');
-            updateBtn.className = 'btn btn-primary';
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
@@ -367,23 +371,29 @@
                 });
             });
 
-            updateBtn.innerText = 'Update';
-            updateBtn.addEventListener('click', function () {
-                const formData = new FormData();
-                formData.append('company_id', companySelect.value);
-                formData.append('search_text', searchCell.innerText);
-
-                fetch(`http://127.0.0.1:5000/searches/${row.dataset.id}`, {
-                    method: 'PUT',
-                    body: formData
-                });
-            });
-
             actionsCell.appendChild(deleteBtn);
-            actionsCell.appendChild(updateBtn);
             row.appendChild(actionsCell);
 
+            companySelect.addEventListener('change', autoSaveBoard);
+            searchCell.addEventListener('input', autoSaveBoard);
+
             return row;
+        }
+
+        function autoSaveBoard(event) {
+            const cell = event.target;
+            const row = cell.closest('tr');
+            const companySelect = row.querySelector('td:nth-child(1) select');
+            const searchCell = row.querySelector('td:nth-child(2)');
+
+            const formData = new FormData();
+            formData.append('company_id', companySelect.value);
+            formData.append('search_text', searchCell.innerText);
+
+            fetch(`http://127.0.0.1:5000/searches/${row.dataset.id}`, {
+                method: 'PUT',
+                body: formData
+            });
         }
     </script>
 </body>
