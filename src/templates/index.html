@@ -1,142 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Board Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
-            background-color: #f6f8fa;
-            color: #24292e;
-            padding: 2rem;
-        }
-
-        h1 {
-            margin-bottom: 1rem;
-            margin-top: 2rem;
-        }
-
-        table {
-            width: 100%;
-            margin-bottom: 1rem;
-            border-collapse: collapse;
-        }
-
-        th {
-            font-weight: 600;
-            border-bottom: 1px solid #e1e4e8;
-        }
-
-        td {
-            border-bottom: 1px solid #e1e4e8;
-        }
-
-        /* Update button styles to match GitHub's UI */
-        button {
-            background-color: #2ea44f;
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 6px;
-            margin: 4px 2px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #22863a;
-        }
-
-        /* Make both tables the same width */
-        #company-table,
-        #board-table {
-            width: 100%;
-            table-layout: fixed;
-        }
-
-        /* Set the fixed width of the name/company name columns */
-        #company-table th:nth-child(1),
-        #board-table th:nth-child(1) {
-            width: 15%;
-        }
-
-        /* Set the fixed width of the board URL column */
-        #company-table th:nth-child(2) {
-            width: 50%;
-        }
-
-        /* Set the fixed width of the scraping method column */
-        #company-table th:nth-child(3) {
-            width: 20%;
-        }
-
-        /* Set the fixed width of the search text column */
-        #board-table th:nth-child(2) {
-            width: 70%;
-        }
-
-        /* Set the fixed width of the actions columns */
-        #company-table th:nth-child(4),
-        #board-table th:nth-child(3) {
-            width: 15%;
-        }
-
-        select {
-            font-family: inherit;
-            font-size: 14px;
-            padding: 4px 8px;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            background-color: #fafbfc;
-            color: #24292e;
-            appearance: none;
-            /* Remove the default arrow */
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        select:hover {
-            background-color: #f6f8fa;
-        }
-
-        /* Add a custom arrow for the dropdowns */
-        select::-ms-expand {
-            display: none;
-        }
-
-        select {
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill="%2324292e" d="M4.427 6.427L8 9.573l3.573-3.146a.25.25 0 01.427.177v.073l-.007.008L8 10.573l-4.006-3.98L3.993 6.93v-.073a.25.25 0 01.434-.18z"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-            padding-right: 24px;
-        }
-
-        #company-table th,
-        #company-table td,
-        #board-table th,
-        #board-table td {
-            vertical-align: middle;
-        }
-
-        /* Add padding to table cells for better spacing */
-        #company-table td,
-        #board-table td {
-            padding: 8px;
-        }
-    </style>
-</head>
+{% extends "base.html" %}
+{% block content %}
 
 <body>
-    <h1>My Companies</h1>
+    <h1>Companies</h1>
     <table id="company-table" class="table table-striped">
         <thead>
             <tr>
@@ -150,6 +16,7 @@
     </table>
     <button id="add-company-btn" class="btn btn-success">Add Company</button>
 
+    {% if current_user.is_authenticated %}
     <h1>My Job Searches</h1>
     <table id="board-table" class="table table-striped">
         <thead>
@@ -162,6 +29,7 @@
         <tbody></tbody>
     </table>
     <button id="add-row-btn" class="btn btn-success">Add Row</button>
+    {% endif %}
 
     <script>
         let companies = [];
@@ -410,4 +278,4 @@
     </script>
 </body>
 
-</html>
+{% endblock %}

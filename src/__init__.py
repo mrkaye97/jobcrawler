@@ -5,10 +5,12 @@ from flask_migrate import Migrate
 import os
 from .models import *
 from .jobs import *
+from flask_login import LoginManager
 
 sched = BackgroundScheduler()
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 from src import routes
 
@@ -17,7 +19,16 @@ migrate = Migrate(app, db)
 db.init_app(app)
 migrate.init_app(app, db)
 
-@sched.scheduled_job(trigger = 'interval', seconds = 3, id='crawl')
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    # since the user_id is just the primary key of our user table, use it in the query for the user
+    return Users.query.get(int(user_id))
+
+@sched.scheduled_job(trigger = 'interval', hours = 3, id='crawl')
 def crawl():
     """ Function for test purposes. """
     print("Scheduler is alive!")

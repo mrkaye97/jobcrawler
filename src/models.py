@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 
@@ -11,10 +12,9 @@ class Searches(db.Model):
     def __repr__(self):
         return f"Company : {self.company}, URL: {self.url}, search: {self.search_text}"
 
-class Users(db.Model):
+class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(128))
-    last_name = db.Column(db.String(128))
     email = db.Column(db.String(128), index=True, unique=True)
     password_hash = db.Column(db.String(128))
 

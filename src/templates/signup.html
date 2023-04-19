@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <h3 class="login-title">Sign Up</h3>
+        <form method="POST" action="/signup">
+            <div class="field">
+                <div class="control">
+                    <input class="login-input" type="email" name="email" placeholder="Email" autofocus="">
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <input class="login-input" type="text" name="first_name" placeholder="First Name" autofocus="">
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <input class="login-input" type="password" name="password" placeholder="Password">
+                </div>
+            </div>
+            <button class="login-button" type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

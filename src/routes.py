@@ -1,15 +1,73 @@
 from . import app
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, redirect, url_for, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
+from flask_login import login_user, login_required, logout_user
 
 @app.route('/')
 @app.route('/index')
 def index():
     return render_template("index.html")
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login_post():
+    # login code goes here
+    email = request.form.get('email')
+    password = request.form.get('password')
+    remember = True if request.form.get('remember') else False
+
+    user = Users.query.filter_by(email=email).first()
+
+    # check if the user actually exists
+    # take the user-supplied password, hash it, and compare it to the hashed password in the database
+    if not user or not check_password_hash(user.password_hash, password):
+        flash('Please check your login details and try again.')
+        return redirect(url_for('login')) # if the user doesn't exist or password is wrong, reload the page
+
+    # if the above check passes, then we know the user has the right credentials
+    login_user(user, remember=remember)
+    return redirect(url_for('index'))
+
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+@app.route('/signup', methods=['POST'])
+def signup_post():
+    # code to validate and add user to database goes here
+    email = request.form.get('email')
+    first_name = request.form.get('first_name')
+    password = request.form.get('password')
+
+    user = Users.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+
+    if user: # if a user is found, we want to redirect back to signup page so user can try again
+        flash('Email address already exists')
+        return redirect(url_for('login'))
+
+    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+    new_user = Users(email=email, first_name=first_name, password_hash=generate_password_hash(password, method='sha256'))
+
+    # add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
+
+    return redirect(url_for('login'))
+
 ## CRUD operations for a job search
 @app.route("/searches")
+@login_required
 def get_searches():
     searches = Searches.\
         query.\
@@ -27,6 +85,7 @@ def get_searches():
     return result
 
 @app.route('/searches', methods=["POST"])
+@login_required
 def create_search():
     content = request.json
 
@@ -50,6 +109,7 @@ def create_search():
         return "Failed", 400
 
 @app.route('/searches/<int:id>', methods=["PUT"])
+@login_required
 def update_search(id):
     company_id = request.form.get("company_id")
     search_text = request.form.get("search_text")
@@ -68,6 +128,7 @@ def update_search(id):
     return f"Successfully updated the record for id: {id}"
 
 @app.route('/searches/<int:id>', methods = ["DELETE"])
+@login_required
 def delete_search(id):
     print("Deleting: ", id)
     data = Searches.query.get(id)
@@ -76,6 +137,7 @@ def delete_search(id):
     return jsonify(f"Successfully deleted {id}")
 
 @app.route('/searches', methods=["DELETE"])
+@login_required
 def delete_search_by_name():
     company = request.form.get("company")
     url = request.form.get("url")
