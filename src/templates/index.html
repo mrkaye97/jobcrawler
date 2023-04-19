@@ -275,8 +275,10 @@
             actionsCell.appendChild(deleteBtn);
             row.appendChild(actionsCell);
 
-            nameCell.addEventListener('input', autoSaveCompany);
-            boardUrlCell.addEventListener('input', autoSaveCompany);
+            nameCell.addEventListener('blur', autoSaveCompany);
+            nameCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
+            boardUrlCell.addEventListener('blur', autoSaveCompany);
+            boardUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
             scrapingMethodSelect.addEventListener('change', autoSaveCompany);
 
             return row;
@@ -375,7 +377,8 @@
             row.appendChild(actionsCell);
 
             companySelect.addEventListener('change', autoSaveBoard);
-            searchCell.addEventListener('input', autoSaveBoard);
+            searchCell.addEventListener('blur', autoSaveBoard);
+            searchCell.addEventListener('keydown', handleEnterKey(autoSaveBoard));
 
             return row;
         }
@@ -394,6 +397,16 @@
                 method: 'PUT',
                 body: formData
             });
+        }
+
+        function handleEnterKey(saveFunction) {
+            return function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Prevent adding a newline
+                    event.target.blur(); // Remove focus from the cell
+                    saveFunction(event);
+                }
+            };
         }
     </script>
 </body>
