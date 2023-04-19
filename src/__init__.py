@@ -17,20 +17,26 @@ migrate = Migrate(app, db)
 db.init_app(app)
 migrate.init_app(app, db)
 
-@sched.scheduled_job(trigger = 'interval', hours = 3, id='crawl')
+@sched.scheduled_job(trigger = 'interval', seconds = 3, id='crawl')
 def crawl():
     """ Function for test purposes. """
     print("Scheduler is alive!")
     results = []
 
     with app.app_context():
-        searches = db.session.query.join(Companies).with_entities(Companies.name, Companies.board_url, Searches.search_text)
+        searches = Searches.\
+                query.\
+                join(Companies).\
+                with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_text, Companies.scraping_method).\
+                all()
 
         for search in searches:
-            if search.company in ['Headspace', 'Spotify']:
+            if search.scraping_method == 'selenium':
                 results = results + get_links_selenium(url = search.board_url, query = search.search_text, company = search.name)
-            else:
+            elif search.scraping_method == 'soup':
                 results = results + get_links_soup(url = search.board_url, query = search.search_text, company = search.name)
+            else:
+                results = []
 
     result_txt = "\n".join(results)
 
