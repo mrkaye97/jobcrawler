@@ -1,6 +1,7 @@
 from . import app
 from flask import request, jsonify, render_template
 from . import *
+import json
 
 @app.route('/')
 @app.route('/index')
@@ -9,14 +10,27 @@ def index():
 
 ## CRUD operations for a job search
 @app.route("/searches")
-def get_board():
-    result = Searches.query.join(Companies).with_entities(Searches.id, Companies.name, Companies.board_url, Searches.search_text).all()
-    out = [{key: b.__dict__[key] for key in ["id", "name", "url", "search_text"]} for b in result]
-    return jsonify(out)
+def get_searches():
+    searches = Searches.\
+        query.\
+        join(Companies).\
+        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_text).\
+        order_by(Searches.id).\
+        all()
+
+    result = [
+        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_text": search.search_text}
+        for search in searches
+    ]
+
+    print(json.dumps(result))
+    return result
 
 @app.route('/searches', methods=["POST"])
-def create_board():
+def create_search():
     content = request.json
+
+    print(request.json)
     company_id = content.get("company_id")
     search_text = content.get("search_text")
 
@@ -36,19 +50,17 @@ def create_board():
         return "Failed", 400
 
 @app.route('/searches/<int:id>', methods=["PUT"])
-def update_board(id):
-    company = request.form.get("company")
-    url = request.form.get("url")
+def update_search(id):
+    company_id = request.form.get("company_id")
     search_text = request.form.get("search_text")
 
-    print("Company: ", company)
-    print("URL:", url)
+
+    print("Company Id: ", company_id)
     print("Search: ", search_text)
 
     posting = Searches.query.get(id)
 
-    posting.company = company
-    posting.url = url
+    posting.company_id = company_id
     posting.search_text = search_text
 
     db.session.commit()
@@ -56,7 +68,7 @@ def update_board(id):
     return f"Successfully updated the record for id: {id}"
 
 @app.route('/searches/<int:id>', methods = ["DELETE"])
-def delete_board(id):
+def delete_search(id):
     print("Deleting: ", id)
     data = Searches.query.get(id)
     db.session.delete(data)
@@ -64,7 +76,7 @@ def delete_board(id):
     return jsonify(f"Successfully deleted {id}")
 
 @app.route('/searches', methods=["DELETE"])
-def delete_board_by_name():
+def delete_search_by_name():
     company = request.form.get("company")
     url = request.form.get("url")
     search_text = request.form.get("search_text")
@@ -81,7 +93,7 @@ def delete_board_by_name():
 @app.route("/companies")
 def get_companies():
     result = Companies.query.all()
-    return [{key: b.__dict__[key] for key in ["id", "board_url", "scraping_method"]} for b in result]
+    return [{key: b.__dict__[key] for key in ["id", "name", "board_url", "scraping_method"]} for b in result]
 
 @app.route('/companies', methods=["POST"])
 def create_company():

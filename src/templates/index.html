@@ -6,22 +6,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Board Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+
+        h1 {
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+        }
+
         table {
-            border-collapse: collapse;
             width: 100%;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+            margin-bottom: 1rem;
         }
 
         button {
@@ -35,6 +34,7 @@
             font-size: 14px;
             margin: 4px 2px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         button:hover {
@@ -45,7 +45,7 @@
 
 <body>
     <h1>My Companies</h1>
-    <table id="company-table">
+    <table id="company-table" class="table table-striped">
         <thead>
             <tr>
                 <th>Name</th>
@@ -56,8 +56,54 @@
         </thead>
         <tbody></tbody>
     </table>
-    <button id="add-company-btn">Add Company</button>
+    <button id="add-company-btn" class="btn btn-success">Add Company</button>
+
+    <h1>My Job Searches</h1>
+    <table id="board-table" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Company Name</th>
+                <th>Search Text</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button id="add-row-btn" class="btn btn-success">Add Row</button>
+
     <script>
+        let companies = [];
+        let firstCompanyId = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('http://127.0.0.1:5000/companies')
+                .then(response => response.json())
+                .then(fetchedCompanies => {
+                    companies = fetchedCompanies;
+                    firstCompanyId = companies.length > 0 ? companies[0].id : null;
+
+                    console.log("First company: ", firstCompanyId);
+
+                    const companyTableBody = document.querySelector('#company-table tbody');
+                    companies.forEach(company => {
+                        const row = createCompanyRow(company);
+                        companyTableBody.appendChild(row);
+                    });
+
+                    // Fetch job searches
+                    fetch('http://127.0.0.1:5000/searches')
+                        .then(response => response.json())
+                        .then(boards => {
+                            const tableBody = document.querySelector('#board-table tbody');
+
+                            boards.forEach(board => {
+                                const row = createBoardRow(board);
+                                tableBody.appendChild(row);
+                            });
+                        });
+                });
+        });
+
         const addCompanyBtn = document.getElementById('add-company-btn');
         addCompanyBtn.addEventListener('click', function () {
             const defaultName = 'Default Company';
@@ -83,10 +129,7 @@
                 body: JSON.stringify(company)
             }).then(response => response.json())
                 .then(newCompany => {
-                    // Update the row's id with the id from the server response
                     row.dataset.id = newCompany.id;
-
-                    // Update the row with the data from the server
                     row.replaceWith(createCompanyRow(newCompany));
                 });
         });
@@ -98,14 +141,27 @@
             const nameCell = document.createElement('td');
             const boardUrlCell = document.createElement('td');
             const scrapingMethodCell = document.createElement('td');
+            const scrapingMethodSelect = document.createElement('select');
+            const soupOption = document.createElement('option');
+            const seleniumOption = document.createElement('option');
+
+            soupOption.value = 'soup';
+            soupOption.text = 'soup';
+            seleniumOption.value = 'selenium';
+            seleniumOption.text = 'selenium';
+
+            scrapingMethodSelect.appendChild(soupOption);
+            scrapingMethodSelect.appendChild(seleniumOption);
+            scrapingMethodSelect.value = company.scraping_method;
+
+            scrapingMethodCell.appendChild(scrapingMethodSelect);
+            row.appendChild(scrapingMethodCell);
 
             nameCell.contentEditable = true;
             boardUrlCell.contentEditable = true;
-            scrapingMethodCell.contentEditable = true;
 
             nameCell.innerText = company.name;
             boardUrlCell.innerText = company.board_url;
-            scrapingMethodCell.innerText = company.scraping_method;
 
             row.appendChild(nameCell);
             row.appendChild(boardUrlCell);
@@ -116,10 +172,26 @@
             const updateBtn = document.createElement('button');
 
             deleteBtn.innerText = 'Delete';
-            // Add event listener for deleteBtn, similar to the one in createBoardRow function
+            deleteBtn.addEventListener('click', function () {
+                fetch(`http://127.0.0.1:5000/companies/${row.dataset.id}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    row.remove();
+                });
+            });
 
             updateBtn.innerText = 'Update';
-            // Add event listener for updateBtn, similar to the one in createBoardRow function
+            updateBtn.addEventListener('click', function () {
+                const formData = new FormData();
+                formData.append('name', nameCell.innerText);
+                formData.append('board_url', boardUrlCell.innerText);
+                formData.append('scraping_method', scrapingMethodSelect.value);
+
+                fetch(`http://127.0.0.1:5000/companies/${row.dataset.id}`, {
+                    method: 'PUT',
+                    body: formData
+                })
+            });
 
             actionsCell.appendChild(deleteBtn);
             actionsCell.appendChild(updateBtn);
@@ -128,81 +200,62 @@
             return row;
         }
 
+        const addRowBtn = document.getElementById('add-row-btn');
+        addRowBtn.addEventListener('click', function () {
+            const defaultCompanyId = firstCompanyId;
+            const defaultSearchText = 'A regex';
 
-    </script>
-</body>
+            const board = {
+                company_id: defaultCompanyId,
+                search_text: defaultSearchText
+            };
 
-<body>
-    <h1>My Job Searches</h1>
-    <table id="board-table">
-        <thead>
-            <tr>
-                <th>Company ID</th>
-                <th>Search Text</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <button id="add-row-btn">Add Row</button>
+            const tableBody = document.querySelector('#board-table tbody');
+            const row = createBoardRow(board);
+            tableBody.appendChild(row);
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('http://127.0.0.1:5000/searches')
-                .then(response => response.json())
-                .then(boards => {
-                    const tableBody = document.querySelector('#board-table tbody');
-
-                    boards.forEach(board => {
-                        const row = createBoardRow(board);
-                        tableBody.appendChild(row);
-                    });
-                });
-
-            const addRowBtn = document.getElementById('add-row-btn');
-            addRowBtn.addEventListener('click', function () {
-                const defaultCompanyId = 123;
-                const defaultSearchText = 'A regex';
-
-                const board = {
-                    company_id: defaultCompanyId,
-                    search_text: defaultSearchText
-                };
-
-                const tableBody = document.querySelector('#board-table tbody');
-                const row = createBoardRow(board);
-                tableBody.appendChild(row);
-
-                fetch('http://127.0.0.1:5000/searches', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(board)
-                }).then((response) => {
-                    console.log(response);
-                    response.json().then(newBoard => {
-                        console.log(newBoard);
-                        row.dataset.id = newBoard.id;
-                    });
+            fetch('http://127.0.0.1:5000/searches', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(board)
+            }).then((response) => {
+                response.json().then(newBoard => {
+                    row.dataset.id = newBoard.search_id;
                 });
             });
         });
 
         function createBoardRow(board) {
             const row = document.createElement('tr');
-            row.dataset.id = board.id;
+            row.dataset.id = board.search_id;
 
-            const companyIdCell = document.createElement('td');
+            const companyNameCell = document.createElement('td');
+            const companySelect = document.createElement('select');
             const searchCell = document.createElement('td');
 
-            companyIdCell.contentEditable = true;
+            companies.forEach(company => {
+                const option = document.createElement('option');
+                option.value = company.id;
+                option.text = company.name;
+
+                console.log("Company id: ", company.id);
+                console.log("Search id: ", board.search_id);
+                console.log("Company name: ", company.name);
+                if (company.id === board.company_id) {
+                    option.selected = true;
+                }
+                companySelect.appendChild(option);
+            });
+
+            companyNameCell.appendChild(companySelect);
+
             searchCell.contentEditable = true;
 
-            companyIdCell.innerText = board.companyId;
             searchCell.innerText = board.search_text;
 
-            row.appendChild(companyIdCell);
+            row.appendChild(companyNameCell);
             row.appendChild(searchCell);
 
             const actionsCell = document.createElement('td');
@@ -221,7 +274,7 @@
             updateBtn.innerText = 'Update';
             updateBtn.addEventListener('click', function () {
                 const formData = new FormData();
-                formData.append('company_id', companyIdCell.innerText);
+                formData.append('company_id', companySelect.value);
                 formData.append('search_text', searchCell.innerText);
 
                 fetch(`http://127.0.0.1:5000/searches/${row.dataset.id}`, {
