@@ -162,7 +162,7 @@
             formData.append('board_url', boardUrlCell.innerText);
             formData.append('scraping_method', scrapingMethodSelect.value);
 
-            fetch(`/companiess/${row.dataset.id}`, {
+            fetch(`/companies/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });
