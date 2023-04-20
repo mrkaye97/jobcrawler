@@ -53,6 +53,12 @@
                         companyTableBody.appendChild(row);
                     });
 
+                    $('#company-table').DataTable({
+                        pageLength: 5,
+                        lengthChange: true,
+                        searching: true
+                    });
+
                     // Fetch job searches
                     fetch(`/searches`)
                         .then(response => response.json())
@@ -63,6 +69,13 @@
                                 const row = createBoardRow(board);
                                 tableBody.appendChild(row);
                             });
+
+                            $('#board-table').DataTable({
+                                pageLength: 5,
+                                lengthChange: true,
+                                searching: true
+                            });
+
                         });
                 });
         });
