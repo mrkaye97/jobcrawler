@@ -17,6 +17,7 @@ class Users(UserMixin, db.Model):
     first_name = db.Column(db.String(128))
     email = db.Column(db.String(128), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    email_frequency_days = db.Column(db.Integer, nullable = False, default = 7)
 
     def __repr__(self):
         return '<User {}>'.format(self.email)
