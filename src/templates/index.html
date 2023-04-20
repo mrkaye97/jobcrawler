@@ -42,8 +42,6 @@
                     companies = fetchedCompanies;
                     firstCompanyId = companies.length > 0 ? companies[0].id : null;
 
-                    console.log("First company: ", firstCompanyId);
-
                     const companyTableBody = document.querySelector('#company-table tbody');
                     companies.forEach(company => {
                         const row = createCompanyRow(company);
@@ -192,7 +190,7 @@
                 body: JSON.stringify(board)
             }).then((response) => {
                 response.json().then(newBoard => {
-                    row.dataset.id = newBoard.search_id;
+                    row.dataset.id = newBoard.id;
                 });
             });
         });
@@ -210,9 +208,6 @@
                 option.value = company.id;
                 option.text = company.name;
 
-                console.log("Company id: ", company.id);
-                console.log("Search id: ", board.search_id);
-                console.log("Company name: ", company.name);
                 if (company.id === board.company_id) {
                     option.selected = true;
                 }

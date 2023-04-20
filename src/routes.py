@@ -3,7 +3,7 @@ from flask import request, jsonify, render_template, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
-from flask_login import login_user, login_required, logout_user
+from flask_login import login_user, login_required, logout_user, current_user
 
 @app.route('/')
 @app.route('/index')
@@ -69,8 +69,10 @@ def signup_post():
 @app.route("/searches")
 @login_required
 def get_searches():
+
     searches = Searches.\
         query.\
+        filter_by(user_id = current_user.get_id()).\
         join(Companies).\
         with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_text).\
         order_by(Searches.id).\
@@ -92,17 +94,19 @@ def create_search():
     print(request.json)
     company_id = content.get("company_id")
     search_text = content.get("search_text")
+    user_id = current_user.get_id()
 
     if company_id and search_text:
-        p = Searches(company_id = company_id, search_text = search_text)
+        p = Searches(company_id = company_id, search_text = search_text, user_id = user_id)
         db.session.add(p)
         db.session.commit()
 
         id = p.id
-
         record = Searches.query.get(id)
         record = record.__dict__
         del record["_sa_instance_state"]
+
+        print(json.dumps(record))
 
         return record
     else:
@@ -113,7 +117,6 @@ def create_search():
 def update_search(id):
     company_id = request.form.get("company_id")
     search_text = request.form.get("search_text")
-
 
     print("Company Id: ", company_id)
     print("Search: ", search_text)
