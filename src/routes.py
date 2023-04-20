@@ -9,7 +9,7 @@ import logging
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html", host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"))
+    return render_template("index.html", host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"), protocol = os.environ.get("PROTOCOL"))
 
 @app.route('/logout')
 @login_required
@@ -19,7 +19,7 @@ def logout():
 
 @app.route('/login')
 def login():
-    return render_template('login.html', host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"))
+    return render_template('login.html', host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"), protocol = os.environ.get("PROTOCOL"))
 
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -42,7 +42,7 @@ def login_post():
 
 @app.route('/signup')
 def signup():
-    return render_template('signup.html', host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"))
+    return render_template('signup.html', host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"), protocol = os.environ.get("PROTOCOL"))
 
 @app.route('/signup', methods=['POST'])
 def signup_post():

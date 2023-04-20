@@ -34,14 +34,10 @@
     <script>
         let companies = [];
         let firstCompanyId = null;
-        var HOST = "{{ host }}";
-        var PORT = {{ port }};
+        var URL = "{{protocol}}://{{ host }}:{{ port }}";
 
         document.addEventListener('DOMContentLoaded', function () {
-            console.log(`Host: ${HOST}`);
-            console.log(`Port: ${PORT}`);
-
-            fetch(`${HOST}:${PORT}/companies`)
+            fetch(`${URL}/companies`)
                 .then(response => response.json())
                 .then(fetchedCompanies => {
                     companies = fetchedCompanies;
@@ -54,7 +50,7 @@
                     });
 
                     // Fetch job searches
-                    fetch(`${HOST}:${PORT}/searches`)
+                    fetch(`${URL}/searches`)
                         .then(response => response.json())
                         .then(boards => {
                             const tableBody = document.querySelector('#board-table tbody');
@@ -84,7 +80,7 @@
             const row = createCompanyRow(company);
             tableBody.appendChild(row);
 
-            fetch(`${HOST}:${PORT}/companies`, {
+            fetch(`${URL}/companies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -136,7 +132,7 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`${HOST}:${PORT}/companies/${row.dataset.id}`, {
+                fetch(`${URL}/companies/${row.dataset.id}`, {
                     method: 'DELETE'
                 }).then(() => {
                     row.remove();
@@ -167,7 +163,7 @@
             formData.append('board_url', boardUrlCell.innerText);
             formData.append('scraping_method', scrapingMethodSelect.value);
 
-            fetch(`${HOST}:${PORT}/companiess/${row.dataset.id}`, {
+            fetch(`${URL}/companiess/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });
@@ -187,7 +183,7 @@
             const row = createBoardRow(board);
             tableBody.appendChild(row);
 
-            fetch(`${HOST}:${PORT}/searches`, {
+            fetch(`${URL}/searches`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -234,7 +230,7 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`${HOST}:${PORT}/searches/${row.dataset.id}`, {
+                fetch(`${URL}/searches/${row.dataset.id}`, {
                     method: 'DELETE'
                 }).then(() => {
                     row.remove();
@@ -261,7 +257,7 @@
             formData.append('company_id', companySelect.value);
             formData.append('search_text', searchCell.innerText);
 
-            fetch(`${HOST}:${PORT}/searches/${row.dataset.id}`, {
+            fetch(`${URL}/searches/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });
