@@ -53,7 +53,7 @@ def signup_post():
     user = Users.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
 
     if user: # if a user is found, we want to redirect back to signup page so user can try again
-        flash('Email address already exists')
+        flash('Email address already exists. Please log in.')
         return redirect(url_for('login'))
 
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.

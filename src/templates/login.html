@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
+    }
+</style>
 <div class="login-container">
     <div class="login-box">
         <h3 class="login-title">Login</h3>
@@ -22,6 +29,13 @@
                 </label>
             </div>
             <button class="login-button" type="submit">Login</button>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="error-message">
+                {{ messages[0] }}
+            </div>
+            {% endif %}
+            {% endwith %}
         </form>
     </div>
 </div>
