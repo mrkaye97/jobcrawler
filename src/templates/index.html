@@ -9,7 +9,9 @@
                 <th>Name</th>
                 <th>Board URL</th>
                 <th>Scraping Method</th>
+                {% if current_user.email == "mrkaye97@gmail.com" %}
                 <th>Actions</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody></tbody>
@@ -98,26 +100,37 @@
 
             const nameCell = document.createElement('td');
             const boardUrlCell = document.createElement('td');
+
             const scrapingMethodCell = document.createElement('td');
-            const scrapingMethodSelect = document.createElement('select');
-            const soupOption = document.createElement('option');
-            const seleniumOption = document.createElement('option');
+            let scrapingMethodSelect;
 
-            soupOption.value = 'soup';
-            soupOption.text = 'Soup';
-            seleniumOption.value = 'selenium';
-            seleniumOption.text = 'Selenium';
+            if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
+                scrapingMethodSelect = document.createElement('select');
+                const soupOption = document.createElement('option');
+                const seleniumOption = document.createElement('option');
 
-            scrapingMethodSelect.appendChild(soupOption);
-            scrapingMethodSelect.appendChild(seleniumOption);
-            scrapingMethodSelect.value = company.scraping_method;
+                soupOption.value = 'soup';
+                soupOption.text = 'Soup';
+                seleniumOption.value = 'selenium';
+                seleniumOption.text = 'Selenium';
 
-            scrapingMethodCell.appendChild(scrapingMethodSelect);
+                scrapingMethodSelect.appendChild(soupOption);
+                scrapingMethodSelect.appendChild(seleniumOption);
+                scrapingMethodSelect.value = company.scraping_method;
+
+                scrapingMethodCell.appendChild(scrapingMethodSelect);
+            } else {
+                const scrapingMethodText = document.createElement('span');
+                scrapingMethodText.innerText = company.scraping_method === 'soup' ? 'Soup' : 'Selenium';
+                scrapingMethodCell.appendChild(scrapingMethodText);
+            }
+
             row.appendChild(scrapingMethodCell);
 
-            nameCell.contentEditable = true;
-            boardUrlCell.contentEditable = true;
-
+            if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
+                nameCell.contentEditable = true;
+                boardUrlCell.contentEditable = true;
+            }
             nameCell.innerText = company.name;
             boardUrlCell.innerText = company.board_url;
 
@@ -125,27 +138,32 @@
             row.appendChild(boardUrlCell);
             row.appendChild(scrapingMethodCell);
 
-            const actionsCell = document.createElement('td');
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn btn-danger';
+            if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
+                const actionsCell = document.createElement('td');
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
 
-            deleteBtn.innerText = 'Delete';
-            deleteBtn.addEventListener('click', function () {
-                fetch(`/companies/${row.dataset.id}`, {
-                    method: 'DELETE'
-                }).then(() => {
-                    row.remove();
+                deleteBtn.innerText = 'Delete';
+                deleteBtn.addEventListener('click', function () {
+                    fetch(`/companies/${row.dataset.id}`, {
+                        method: 'DELETE'
+                    }).then(() => {
+                        row.remove();
+                    });
                 });
-            });
 
-            actionsCell.appendChild(deleteBtn);
-            row.appendChild(actionsCell);
+                actionsCell.appendChild(deleteBtn);
+                row.appendChild(actionsCell);
 
-            nameCell.addEventListener('blur', autoSaveCompany);
-            nameCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
-            boardUrlCell.addEventListener('blur', autoSaveCompany);
-            boardUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
-            scrapingMethodSelect.addEventListener('change', autoSaveCompany);
+                nameCell.addEventListener('blur', autoSaveCompany);
+                nameCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
+                boardUrlCell.addEventListener('blur', autoSaveCompany);
+                boardUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
+
+                if (scrapingMethodSelect) {
+                    scrapingMethodSelect.addEventListener('change', autoSaveCompany);
+                }
+            }
 
             return row;
         }
