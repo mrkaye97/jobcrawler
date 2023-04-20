@@ -34,10 +34,9 @@
     <script>
         let companies = [];
         let firstCompanyId = null;
-        var URL = "{{url}}";
 
         document.addEventListener('DOMContentLoaded', function () {
-            fetch(`${URL}/companies`)
+            fetch(`/companies`)
                 .then(response => response.json())
                 .then(fetchedCompanies => {
                     companies = fetchedCompanies;
@@ -50,7 +49,7 @@
                     });
 
                     // Fetch job searches
-                    fetch(`${URL}/searches`)
+                    fetch(`/searches`)
                         .then(response => response.json())
                         .then(boards => {
                             const tableBody = document.querySelector('#board-table tbody');
@@ -80,7 +79,7 @@
             const row = createCompanyRow(company);
             tableBody.appendChild(row);
 
-            fetch(`${URL}/companies`, {
+            fetch(`/companies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -132,7 +131,7 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`${URL}/companies/${row.dataset.id}`, {
+                fetch(`/companies/${row.dataset.id}`, {
                     method: 'DELETE'
                 }).then(() => {
                     row.remove();
@@ -163,7 +162,7 @@
             formData.append('board_url', boardUrlCell.innerText);
             formData.append('scraping_method', scrapingMethodSelect.value);
 
-            fetch(`${URL}/companiess/${row.dataset.id}`, {
+            fetch(`/companiess/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });
@@ -183,7 +182,7 @@
             const row = createBoardRow(board);
             tableBody.appendChild(row);
 
-            fetch(`${URL}/searches`, {
+            fetch(`/searches`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -230,7 +229,7 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`${URL}/searches/${row.dataset.id}`, {
+                fetch(`/searches/${row.dataset.id}`, {
                     method: 'DELETE'
                 }).then(() => {
                     row.remove();
@@ -257,7 +256,7 @@
             formData.append('company_id', companySelect.value);
             formData.append('search_text', searchCell.innerText);
 
-            fetch(`${URL}/searches/${row.dataset.id}`, {
+            fetch(`/searches/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });

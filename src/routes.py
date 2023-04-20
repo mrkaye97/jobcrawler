@@ -5,18 +5,10 @@ from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
 
-if os.getenv("ENV") == "PROD":
-    url = f"{os.getenv('PROTOCOL')}://{os.getenv('HOSTNAME')}.app"
-else:
-    url = f"{os.getenv('PROTOCOL')}://{os.getenv('HOSTNAME')}:{os.getenv('PORT')}"
-
-app.logger.info("URL: ", url)
-print(url)
-
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html", url = url)
+    return render_template("index.html")
 
 @app.route('/logout')
 @login_required
@@ -26,7 +18,7 @@ def logout():
 
 @app.route('/login')
 def login():
-    return render_template('login.html', url = url)
+    return render_template('login.html')
 
 @app.route('/login', methods=['POST'])
 def login_post():
