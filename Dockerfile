@@ -15,7 +15,8 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /usr/src/app/
 
-CMD gunicorn src:app \
+CMD flask db upgrade && \
+    gunicorn src:app \
     --workers 2 \
     --bind 0.0.0.0:${PORT} \
     --log-level=debug \

@@ -34,7 +34,7 @@
     <script>
         let companies = [];
         let firstCompanyId = null;
-        var URL = "{{protocol}}://{{ host }}";
+        var URL = "{{url}}";
 
         document.addEventListener('DOMContentLoaded', function () {
             fetch(`${URL}/companies`)
