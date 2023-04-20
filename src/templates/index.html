@@ -34,9 +34,14 @@
     <script>
         let companies = [];
         let firstCompanyId = null;
+        var HOST = "{{ host }}";
+        var PORT = {{ port }};
 
         document.addEventListener('DOMContentLoaded', function () {
-            fetch('http://127.0.0.1:8000/companies')
+            console.log(`Host: ${HOST}`);
+            console.log(`Port: ${PORT}`);
+
+            fetch(`${HOST}:${PORT}/companies`)
                 .then(response => response.json())
                 .then(fetchedCompanies => {
                     companies = fetchedCompanies;
@@ -49,7 +54,7 @@
                     });
 
                     // Fetch job searches
-                    fetch('http://127.0.0.1:8000/searches')
+                    fetch(`${HOST}:${PORT}/searches`)
                         .then(response => response.json())
                         .then(boards => {
                             const tableBody = document.querySelector('#board-table tbody');
@@ -79,7 +84,7 @@
             const row = createCompanyRow(company);
             tableBody.appendChild(row);
 
-            fetch('http://127.0.0.1:8000/companies', {
+            fetch(`${HOST}:${PORT}/companies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -131,7 +136,7 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`http://127.0.0.1:8000/companies/${row.dataset.id}`, {
+                fetch(`${HOST}:${PORT}/companies/${row.dataset.id}`, {
                     method: 'DELETE'
                 }).then(() => {
                     row.remove();
@@ -162,7 +167,7 @@
             formData.append('board_url', boardUrlCell.innerText);
             formData.append('scraping_method', scrapingMethodSelect.value);
 
-            fetch(`http://127.0.0.1:8000/companies/${row.dataset.id}`, {
+            fetch(`${HOST}:${PORT}/companiess/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });
@@ -182,7 +187,7 @@
             const row = createBoardRow(board);
             tableBody.appendChild(row);
 
-            fetch('http://127.0.0.1:8000/searches', {
+            fetch(`${HOST}:${PORT}/searches`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -229,7 +234,7 @@
 
             deleteBtn.innerText = 'Delete';
             deleteBtn.addEventListener('click', function () {
-                fetch(`http://127.0.0.1:8000/searches/${row.dataset.id}`, {
+                fetch(`${HOST}:${PORT}/searches/${row.dataset.id}`, {
                     method: 'DELETE'
                 }).then(() => {
                     row.remove();
@@ -256,7 +261,7 @@
             formData.append('company_id', companySelect.value);
             formData.append('search_text', searchCell.innerText);
 
-            fetch(`http://127.0.0.1:8000/searches/${row.dataset.id}`, {
+            fetch(`${HOST}:${PORT}/searches/${row.dataset.id}`, {
                 method: 'PUT',
                 body: formData
             });

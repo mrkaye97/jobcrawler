@@ -9,7 +9,7 @@ import logging
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html")
+    return render_template("index.html", host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"))
 
 @app.route('/logout')
 @login_required
@@ -19,7 +19,7 @@ def logout():
 
 @app.route('/login')
 def login():
-    return render_template('login.html')
+    return render_template('login.html', host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"))
 
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -42,7 +42,7 @@ def login_post():
 
 @app.route('/signup')
 def signup():
-    return render_template('signup.html')
+    return render_template('signup.html', host = os.environ.get("HOSTNAME"), port = os.environ.get("PORT"))
 
 @app.route('/signup', methods=['POST'])
 def signup_post():
@@ -70,7 +70,6 @@ def signup_post():
 @app.route("/searches")
 @login_required
 def get_searches():
-
     searches = Searches.\
         query.\
         filter_by(user_id = current_user.get_id()).\
