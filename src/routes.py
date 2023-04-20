@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
+import logging
 
 @app.route('/')
 @app.route('/index')
@@ -83,7 +84,7 @@ def get_searches():
         for search in searches
     ]
 
-    print(json.dumps(result))
+    app.logger.info(json.dumps(result))
     return result
 
 @app.route('/searches', methods=["POST"])
@@ -91,7 +92,7 @@ def get_searches():
 def create_search():
     content = request.json
 
-    print(request.json)
+    app.logger.info(request.json)
     company_id = content.get("company_id")
     search_text = content.get("search_text")
     user_id = current_user.get_id()
@@ -106,7 +107,7 @@ def create_search():
         record = record.__dict__
         del record["_sa_instance_state"]
 
-        print(json.dumps(record))
+        app.logger.info(json.dumps(record))
 
         return record
     else:
@@ -118,8 +119,8 @@ def update_search(id):
     company_id = request.form.get("company_id")
     search_text = request.form.get("search_text")
 
-    print("Company Id: ", company_id)
-    print("Search: ", search_text)
+    app.logger.info("Company Id: ", company_id)
+    app.logger.info("Search: ", search_text)
 
     posting = Searches.query.get(id)
 
@@ -133,7 +134,7 @@ def update_search(id):
 @app.route('/searches/<int:id>', methods = ["DELETE"])
 @login_required
 def delete_search(id):
-    print("Deleting: ", id)
+    app.logger.info("Deleting: ", id)
     data = Searches.query.get(id)
     db.session.delete(data)
     db.session.commit()
@@ -146,9 +147,9 @@ def delete_search_by_name():
     url = request.form.get("url")
     search_text = request.form.get("search_text")
 
-    print("Deleting: ", company, url, search_text)
+    app.logger.info("Deleting: ", company, url, search_text)
     data = Searches.query.filter_by(company = company, url = url, search_text = search_text).first()
-    print(data)
+    app.logger.info(data)
     db.session.delete(data)
     db.session.commit()
     return jsonify(f"Successfully deleted")
@@ -188,9 +189,9 @@ def update_company(id):
     board_url = request.form.get("board_url")
     scraping_method = request.form.get("scraping_method")
 
-    print("Name: ", name)
-    print("URL:", board_url)
-    print("Scraping method: ", scraping_method)
+    app.logger.info("Name: ", name)
+    app.logger.info("URL:", board_url)
+    app.logger.info("Scraping method: ", scraping_method)
 
     company = Companies.query.get(id)
 
@@ -204,7 +205,7 @@ def update_company(id):
 
 @app.route('/companies/<int:id>', methods = ["DELETE"])
 def delete_company(id):
-    print("Deleting: ", id)
+    app.logger.info("Deleting: ", id)
     data = Companies.query.get(id)
     db.session.delete(data)
     db.session.commit()

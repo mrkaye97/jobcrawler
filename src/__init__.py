@@ -6,6 +6,7 @@ import os
 from .models import *
 from .jobs import *
 from flask_login import LoginManager
+import logging
 
 sched = BackgroundScheduler()
 
@@ -18,6 +19,11 @@ app.config.from_object(Config)
 migrate = Migrate(app, db)
 db.init_app(app)
 migrate.init_app(app, db)
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'

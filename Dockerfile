@@ -15,4 +15,8 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /usr/src/app/
 
-CMD gunicorn -w 4 'src:app'
+CMD gunicorn src:app \
+    --workers 2 \
+    --bind 0.0.0.0:8000 \
+    --log-level=debug \
+    --preload
