@@ -8,6 +8,7 @@ class Searches(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), index = True)
     search_text = db.Column(db.String(256), unique=False, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index = True)
+    posting_id = db.Column(db.Integer, db.ForeignKey("postings.id"))
 
     def __repr__(self):
         return f"Company : {self.company}, URL: {self.url}, search: {self.search_text}"
@@ -15,7 +16,7 @@ class Searches(db.Model):
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(128))
-    email = db.Column(db.String(128), index=True, unique=True)
+    email = db.Column(db.String(128), index=True)
     password_hash = db.Column(db.String(128))
     email_frequency_days = db.Column(db.Integer, nullable = False, default = 7)
 
@@ -30,3 +31,12 @@ class Companies(db.Model):
 
     def __repr__(self):
         return '<Company {}>'.format(self.name)
+
+class Postings(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), index = True)
+    link_text = db.Column(db.String(256), index = True)
+    link_href = db.Column(db.String(256), index = True)
+
+    def __repr__(self):
+        return '<Posting {}>'.format(self.id)
