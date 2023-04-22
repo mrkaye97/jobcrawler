@@ -8,7 +8,7 @@ from .jobs import *
 from flask_login import LoginManager
 import logging
 import datetime
-from urllib.parse import urljoin
+import re
 
 sched = BackgroundScheduler()
 
@@ -100,7 +100,12 @@ def send_emails():
                     ).\
                     all()
 
-                matching_postings = [f"{search.link_text} @ {search.company_name}: {search.link_href}" for search in user_search_results if search.search_text in search.link_text]
+                matching_postings = [
+                    f"{search.link_text} @ {search.company_name}: {search.link_href}"
+                    for search in user_search_results
+                    if re.search(search.search_text, search.link_text)
+                ]
+
                 link_text = "\n".join(matching_postings)
 
                 message = f"""
