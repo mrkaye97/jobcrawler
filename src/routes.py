@@ -21,7 +21,6 @@ def login():
 
 @app.route('/login', methods=['POST'])
 def login_post():
-    # login code goes here
     email = request.form.get('email')
     password = request.form.get('password')
     remember = True if request.form.get('remember') else False
@@ -44,27 +43,23 @@ def signup():
 
 @app.route('/signup', methods=['POST'])
 def signup_post():
-    # code to validate and add user to database goes here
     email = request.form.get('email')
     first_name = request.form.get('first_name')
     password = request.form.get('password')
 
-    user = Users.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+    user = Users.query.filter_by(email=email).first()
 
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
+    if user:
         flash('Email address already exists. Please log in.')
         return redirect(url_for('login'))
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
     new_user = Users(email=email, first_name=first_name, password_hash=generate_password_hash(password, method='sha256'))
 
-    # add the new user to the database
     db.session.add(new_user)
     db.session.commit()
 
     return redirect(url_for('login'))
 
-## CRUD operations for a job search
 @app.route("/searches")
 @login_required
 def get_searches():
@@ -89,7 +84,9 @@ def get_searches():
 def create_search():
     content = request.json
 
-    app.logger.info(request.json)
+    app.logger.info("Creating a new search")
+    app.logger.info(json.dumps(content))
+
     company_id = content.get("company_id")
     search_regex = content.get("search_regex")
     user_id = current_user.get_id()
@@ -113,11 +110,11 @@ def create_search():
 @app.route('/searches/<int:id>', methods=["PUT"])
 @login_required
 def update_search(id):
+    app.logger.info("Updating a record")
+    app.logger.info(json.dumps(request.form))
+
     company_id = request.form.get("company_id")
     search_regex = request.form.get("search_regex")
-
-    app.logger.info("Company Id: ", company_id)
-    app.logger.info("Search: ", search_regex)
 
     posting = Searches.query.get(id)
 
@@ -131,28 +128,15 @@ def update_search(id):
 @app.route('/searches/<int:id>', methods = ["DELETE"])
 @login_required
 def delete_search(id):
-    app.logger.info("Deleting: ", id)
+    app.logger.info(f"Deleting id {id} from /searches")
+
     data = Searches.query.get(id)
     db.session.delete(data)
     db.session.commit()
-    return jsonify(f"Successfully deleted {id}")
 
-@app.route('/searches', methods=["DELETE"])
-@login_required
-def delete_search_by_name():
-    company = request.form.get("company")
-    url = request.form.get("url")
-    search_regex = request.form.get("search_regex")
-
-    app.logger.info("Deleting: ", company, url, search_regex)
-    data = Searches.query.filter_by(company = company, url = url, search_regex = search_regex).first()
-    app.logger.info(data)
-    db.session.delete(data)
-    db.session.commit()
-    return jsonify(f"Successfully deleted")
+    return f"Successfully deleted {id}"
 
 
-## CRUD operations for a company
 @app.route("/companies")
 def get_companies():
     result = Companies.query.all()
@@ -160,19 +144,23 @@ def get_companies():
 
 @app.route('/companies', methods=["POST"])
 def create_company():
+
     content = request.json
+
+    app.logger.info("Creating a new company")
+    app.logger.info(json.dumps(content))
+
     name = content.get("name")
     board_url = content.get("board_url")
     scraping_method = content.get("scraping_method")
 
     if name and board_url:
         c = Companies(name = name, board_url = board_url, scraping_method = scraping_method)
+
         db.session.add(c)
         db.session.commit()
 
-        id = c.id
-
-        record = Companies.query.get(id)
+        record = Companies.query.get(c.id)
         record = record.__dict__
         del record["_sa_instance_state"]
 
@@ -182,13 +170,12 @@ def create_company():
 
 @app.route('/companies/<int:id>', methods=["PUT"])
 def update_company(id):
+    app.logger.info("Updating a record")
+    app.logger.info(json.dumps(request.form))
+
     name = request.form.get("name")
     board_url = request.form.get("board_url")
     scraping_method = request.form.get("scraping_method")
-
-    app.logger.info("Name: ", name)
-    app.logger.info("URL:", board_url)
-    app.logger.info("Scraping method: ", scraping_method)
 
     company = Companies.query.get(id)
 
@@ -202,8 +189,10 @@ def update_company(id):
 
 @app.route('/companies/<int:id>', methods = ["DELETE"])
 def delete_company(id):
-    app.logger.info("Deleting: ", id)
+    app.logger.info(f"Deleting company id {id}")
+
     data = Companies.query.get(id)
     db.session.delete(data)
     db.session.commit()
-    return jsonify(f"Successfully deleted {id}")
+
+    return f"Successfully deleted {id}"
