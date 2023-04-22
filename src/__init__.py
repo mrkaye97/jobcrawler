@@ -80,7 +80,7 @@ def send_emails():
             Searches.\
                 query.\
                 join(Companies).\
-                with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_text, Companies.scraping_method).\
+                with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex, Companies.scraping_method).\
                 all()
 
             if current_day % user_email_frequencies == 0:
@@ -94,7 +94,7 @@ def send_emails():
                         Users.email,
                         Users.first_name,
                         Companies.name.label("company_name"),
-                        Searches.search_text,
+                        Searches.search_regex,
                         Postings.link_href,
                         Postings.link_text,
                     ).\
@@ -103,7 +103,7 @@ def send_emails():
                 matching_postings = [
                     f"{search.link_text} @ {search.company_name}: {search.link_href}"
                     for search in user_search_results
-                    if re.search(search.search_text, search.link_text)
+                    if re.search(search.search_regex, search.link_text)
                 ]
 
                 link_text = "\n".join(matching_postings)

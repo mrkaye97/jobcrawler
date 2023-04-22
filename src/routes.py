@@ -73,12 +73,12 @@ def get_searches():
         query.\
         filter_by(user_id = current_user.get_id()).\
         join(Companies).\
-        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_text).\
+        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
         order_by(Searches.id).\
         all()
 
     result = [
-        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_text": search.search_text}
+        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
         for search in searches
     ]
 
@@ -92,11 +92,11 @@ def create_search():
 
     app.logger.info(request.json)
     company_id = content.get("company_id")
-    search_text = content.get("search_text")
+    search_regex = content.get("search_regex")
     user_id = current_user.get_id()
 
-    if company_id and search_text:
-        p = Searches(company_id = company_id, search_text = search_text, user_id = user_id)
+    if company_id and search_regex:
+        p = Searches(company_id = company_id, search_regex = search_regex, user_id = user_id)
         db.session.add(p)
         db.session.commit()
 
@@ -115,15 +115,15 @@ def create_search():
 @login_required
 def update_search(id):
     company_id = request.form.get("company_id")
-    search_text = request.form.get("search_text")
+    search_regex = request.form.get("search_regex")
 
     app.logger.info("Company Id: ", company_id)
-    app.logger.info("Search: ", search_text)
+    app.logger.info("Search: ", search_regex)
 
     posting = Searches.query.get(id)
 
     posting.company_id = company_id
-    posting.search_text = search_text
+    posting.search_regex = search_regex
 
     db.session.commit()
 
@@ -143,10 +143,10 @@ def delete_search(id):
 def delete_search_by_name():
     company = request.form.get("company")
     url = request.form.get("url")
-    search_text = request.form.get("search_text")
+    search_regex = request.form.get("search_regex")
 
-    app.logger.info("Deleting: ", company, url, search_text)
-    data = Searches.query.filter_by(company = company, url = url, search_text = search_text).first()
+    app.logger.info("Deleting: ", company, url, search_regex)
+    data = Searches.query.filter_by(company = company, url = url, search_regex = search_regex).first()
     app.logger.info(data)
     db.session.delete(data)
     db.session.commit()

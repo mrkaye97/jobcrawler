@@ -209,7 +209,7 @@
 
             const board = {
                 company_id: defaultCompanyId,
-                search_text: defaultSearchText
+                search_regex: defaultSearchText
             };
 
             const tableBody = document.querySelector('#board-table tbody');
@@ -252,7 +252,7 @@
 
             searchCell.contentEditable = true;
 
-            searchCell.innerText = board.search_text;
+            searchCell.innerText = board.search_regex;
 
             row.appendChild(companyNameCell);
             row.appendChild(searchCell);
@@ -288,7 +288,7 @@
 
             const formData = new FormData();
             formData.append('company_id', companySelect.value);
-            formData.append('search_text', searchCell.innerText);
+            formData.append('search_regex', searchCell.innerText);
 
             fetch(`/searches/${row.dataset.id}`, {
                 method: 'PUT',
