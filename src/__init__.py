@@ -72,6 +72,8 @@ def send_emails():
         user_email_frequencies = 7
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
+        ## TODO: Instead of first pulling all users and then check
+        ## if the email frequency matches, just do this filter in the db in the second query
         for user in Users.query.all():
             ## TODO: Replace `user_email_frequencies` with the frequency of
             ## the individual user
