@@ -93,7 +93,6 @@ def crawl_for_postings():
 
 def run_email_send_job():
     with app.app_context():
-        user_email_frequencies = 7
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
         ## TODO: Instead of first pulling all users and then check
@@ -107,7 +106,9 @@ def run_email_send_job():
                 with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex, Companies.scraping_method).\
                 all()
 
-            if current_day % user_email_frequencies == 0:
+            user_emaiL_frequency = user.email_frequency_days or 7
+
+            if current_day % user_emaiL_frequency == 0:
                 user_search_results = Searches.\
                     query.\
                     filter_by(user_id = user.id).\
@@ -139,7 +140,7 @@ def run_email_send_job():
 
                     {link_text}
 
-                    Have a good one! I'll send you another round of matching links in {user_email_frequencies} days.
+                    Have a good one! I'll send you another round of matching links in {user_emaiL_frequency} days.
 
                     Matt
                 """
