@@ -1,4 +1,3 @@
-from . import app
 from flask import request, jsonify, render_template, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
