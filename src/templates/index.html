@@ -27,7 +27,7 @@
         <thead>
             <tr>
                 <th>Company Name</th>
-                <th>Search Text</th>
+                <th>Search Text (Supports regex)</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -205,11 +205,11 @@
         const addRowBtn = document.getElementById('add-row-btn');
         addRowBtn.addEventListener('click', function () {
             const defaultCompanyId = firstCompanyId;
-            const defaultSearchText = 'A regex';
+            const defaultSearchRegex = 'A regex';
 
             const board = {
                 company_id: defaultCompanyId,
-                search_regex: defaultSearchText
+                search_regex: defaultSearchRegex
             };
 
             const tableBody = document.querySelector('#board-table tbody');
