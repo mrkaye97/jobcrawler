@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 import sib_api_v3_sdk
 import os
 from selenium import webdriver
@@ -23,44 +23,38 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     print(response)
 
-def get_links_selenium(url, query, company):
-    results = []
+def get_links_selenium(url):
     DRIVER="geckodriver"
     service = Service(executable_path=DRIVER)
-    driver = webdriver.Firefox(service=service)
+    driver = webdriver.Chrome(service=service)
     delay = 3
 
     driver.implicitly_wait(delay)
     driver.get(url)
     links =  driver.find_elements(By.XPATH, "//a[@href]")
 
-    for link in links:
-        text = link.get_attribute("text")
-        href = link.get_attribute("href")
-
-        if query.lower() in text.lower():
-            results = results + [f"{text} @ {company}: {href}"]
-
     driver.quit()
 
-    return results
+    return [
+        {
+            "text": link.get_attribute("text"),
+            "href": link.get_attribute("href")
+        }
+        for link in links
+    ]
 
-def get_links_soup(url, query, company):
+def get_links_soup(url):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, features="html.parser")
 
-    links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs and query.lower() in tag.get_text().lower())
+    links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs)
 
     links = soup.find_all(links)
 
-    results = []
-    for link in links:
-        href_parsed = urlparse(link.get("href"))
-        search_parsed = urlparse(url)
-        if search_parsed.path in href_parsed.path:
-            job_title = link.string
-            if 'lever' in url:
-                job_title = link.contents[0].text
-            results = results + [f"{job_title} @ {company}: {urljoin(url, link['href'])}"]
-
-    return results
+    return [
+        {
+            "text": link.contents[0].text if 'lever' in url else link.string,
+            "href": urlparse(link.get("href"))
+        }
+        for link in links
+    ]
