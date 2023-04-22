@@ -6,9 +6,7 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from .models import *
-from . import *
-from . import app, sched
+from .models import Users, Companies, Postings, Searches
 import datetime
 import re
 
@@ -26,7 +24,7 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     response = api_instance.send_transac_email(send_smtp_email)
 
-    print(response)
+    return response
 
 def get_links_selenium(url):
     DRIVER="geckodriver"
@@ -64,7 +62,7 @@ def get_links_soup(url):
         for link in links
     ]
 
-def crawl_for_postings():
+def crawl_for_postings(app, db):
     with app.app_context():
         for company in Companies.query.all():
             app.logger.info(f"Scraping {company.name}'s job board")
@@ -91,7 +89,7 @@ def crawl_for_postings():
             app.logger.info("Committing changes.")
             db.session.commit()
 
-def run_email_send_job():
+def run_email_send_job(app):
     with app.app_context():
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
@@ -155,13 +153,3 @@ def run_email_send_job():
                     )
                 else:
                     app.logger.info(message)
-
-@sched.scheduled_job(trigger = 'interval', hours = 3, id = 'crawl')
-def crawl():
-    app.logger.info("Kicking off scraping job")
-    crawl_for_postings()
-
-@sched.scheduled_job(trigger = "interval", hours = 24, id = "send_emails")
-def send_emails():
-    app.logger.info("Kicking off email sending job")
-    run_email_send_job()
