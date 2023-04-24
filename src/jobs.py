@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 import sib_api_v3_sdk
 import os
 from selenium import webdriver
@@ -111,18 +111,10 @@ def run_email_send_job(app):
         ## TODO: Instead of first pulling all users and then check
         ## if the email frequency matches, just do this filter in the db in the second query
         for user in Users.query.all():
-            ## TODO: Replace `user_email_frequencies` with the frequency of
-            ## the individual user
-            Searches.\
-                query.\
-                join(Companies).\
-                with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex, Companies.scraping_method).\
-                all()
-
+            print(user)
             user_email_frequency = user.email_frequency_days or 7
 
-            ## Replace with current_date % user_email_frequency
-            if True:
+            if current_day % user_email_frequency == 0:
                 user_search_results = Searches.\
                     query.\
                     filter_by(user_id = user.id).\
@@ -139,33 +131,34 @@ def run_email_send_job(app):
                     ).\
                     all()
 
-                matching_postings = [
-                    f"{search.link_text} @ {search.company_name}: {search.link_href}"
-                    for search in user_search_results
-                    if re.search(search.search_regex, search.link_text)
-                ]
+                if user_search_results:
+                    matching_postings = [
+                        f"{search.link_text} @ {search.company_name}: {search.link_href}"
+                        for search in user_search_results
+                        if re.search(search.search_regex, search.link_text.lower())
+                    ]
 
-                link_text = "\n".join(matching_postings)
+                    link_text = "\n".join(matching_postings)
 
-                message = f"""
-                    Hey {user_search_results.name},
+                    message = f"""
+                        Hey {user.first_name},
 
-                    Here are your links for the day!
+                        Here are your links for the day!
 
-                    {link_text}
+                        {link_text}
 
-                    Have a good one! I'll send you another round of matching links in {user_email_frequency} days.
+                        Have a good one! I'll send you another round of matching links in {user_email_frequency} days.
 
-                    Matt
-                """
+                        Matt
+                    """
 
-                if os.environ.get("ENV") == "PROD":
-                    send_email(
-                        sender_email = "mrkaye97@gmail.com",
-                        sender_name = "Matt Kaye",
-                        recipient = user_search_results.email,
-                        subject = "Your daily job feed digest",
-                        body = message
-                    )
-                else:
-                    app.logger.info(message)
+                    if os.environ.get("ENV") == "PROD":
+                        send_email(
+                            sender_email = "mrkaye97@gmail.com",
+                            sender_name = "Matt Kaye",
+                            recipient = user.email,
+                            subject = "Your daily job feed digest",
+                            body = message
+                        )
+                    else:
+                        app.logger.info(message)
