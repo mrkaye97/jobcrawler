@@ -8,6 +8,7 @@
             <tr>
                 <th>Name</th>
                 <th>Board URL</th>
+                <th>Job Posting URL Prefix</th>
                 <th>Scraping Method</th>
                 {% if current_user.email == "mrkaye97@gmail.com" %}
                 <th>Actions</th>
@@ -115,6 +116,8 @@
 
             const nameCell = document.createElement('td');
             const boardUrlCell = document.createElement('td');
+            const jobPostingUrlCell = document.createElement('td'); // Add this line
+
 
             const scrapingMethodCell = document.createElement('td');
             let scrapingMethodSelect;
@@ -140,17 +143,19 @@
                 scrapingMethodCell.appendChild(scrapingMethodText);
             }
 
-            row.appendChild(scrapingMethodCell);
-
             if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
                 nameCell.contentEditable = true;
                 boardUrlCell.contentEditable = true;
+                jobPostingUrlCell.contentEditable = true;
             }
+
+            jobPostingUrlCell.innerText = company.job_posting_url_prefix || '';
             nameCell.innerText = company.name;
             boardUrlCell.innerText = company.board_url;
 
             row.appendChild(nameCell);
             row.appendChild(boardUrlCell);
+            row.appendChild(jobPostingUrlCell);
             row.appendChild(scrapingMethodCell);
 
             if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
@@ -174,6 +179,8 @@
                 nameCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
                 boardUrlCell.addEventListener('blur', autoSaveCompany);
                 boardUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
+                jobPostingUrlCell.addEventListener('blur', autoSaveCompany);
+                jobPostingUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
 
                 if (scrapingMethodSelect) {
                     scrapingMethodSelect.addEventListener('change', autoSaveCompany);
@@ -188,11 +195,19 @@
             const row = cell.closest('tr');
             const nameCell = row.querySelector('td:nth-child(1)');
             const boardUrlCell = row.querySelector('td:nth-child(2)');
-            const scrapingMethodSelect = row.querySelector('td:nth-child(3) select');
+            const jobPostingUrlCell = row.querySelector('td:nth-child(3)');
+            const scrapingMethodSelect = row.querySelector('td:nth-child(4) select');
 
             const formData = new FormData();
+
+            console.log("Name: ", nameCell);
+            console.log("boardUrlCell: ", boardUrlCell);
+            console.log("jobPostingUrlCell: ", jobPostingUrlCell);
+            console.log("scrapingMethodSelect: ", scrapingMethodSelect);
+
             formData.append('name', nameCell.innerText);
             formData.append('board_url', boardUrlCell.innerText);
+            formData.append('job_posting_url_prefix', jobPostingUrlCell.innerText);
             formData.append('scraping_method', scrapingMethodSelect.value);
 
             fetch(`/companies/${row.dataset.id}`, {

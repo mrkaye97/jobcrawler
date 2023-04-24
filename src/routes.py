@@ -17,6 +17,15 @@ def logout():
 
 @app.route('/login')
 def login():
+    if os.environ.get('ENV') == 'DEV':
+        user_email = "mrkaye97@gmail.com"
+        user = Users.query.filter_by(email=user_email).first()
+        if user:
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            flash(f'User with email {user_email} not found.', 'danger')
+
     return render_template('login.html')
 
 @app.route('/login', methods=['POST'])
@@ -67,12 +76,12 @@ def get_searches():
         query.\
         filter_by(user_id = current_user.get_id()).\
         join(Companies).\
-        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex, Companies.job_posting_url_prefix).\
+        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
         order_by(Searches.id).\
         all()
 
     result = [
-        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "job_posting_url_prefix": search.job_posting_url_prefix, "search_regex": search.search_regex}
+        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
         for search in searches
     ]
 
@@ -140,7 +149,12 @@ def delete_search(id):
 @app.route("/companies")
 def get_companies():
     result = Companies.query.all()
-    return [{key: b.__dict__[key] for key in ["id", "name", "board_url", "scraping_method"]} for b in result]
+
+    result = [{key: b.__dict__[key] for key in ["id", "name", "board_url", "job_posting_url_prefix", "scraping_method"]} for b in result]
+
+    app.logger.info(json.dumps(result))
+
+    return result
 
 @app.route('/companies', methods=["POST"])
 def create_company():
