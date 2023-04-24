@@ -67,12 +67,12 @@ def get_searches():
         query.\
         filter_by(user_id = current_user.get_id()).\
         join(Companies).\
-        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
+        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex, Companies.job_posting_url_prefix).\
         order_by(Searches.id).\
         all()
 
     result = [
-        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
+        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "job_posting_url_prefix": search.job_posting_url_prefix, "search_regex": search.search_regex}
         for search in searches
     ]
 
@@ -152,10 +152,11 @@ def create_company():
 
     name = content.get("name")
     board_url = content.get("board_url")
+    url_prefix = content.get("job_posting_url_prefix")
     scraping_method = content.get("scraping_method")
 
     if name and board_url:
-        c = Companies(name = name, board_url = board_url, scraping_method = scraping_method)
+        c = Companies(name = name, board_url = board_url, job_posting_url_prefix = url_prefix, scraping_method = scraping_method)
 
         db.session.add(c)
         db.session.commit()
@@ -176,12 +177,14 @@ def update_company(id):
     name = request.form.get("name")
     board_url = request.form.get("board_url")
     scraping_method = request.form.get("scraping_method")
+    url_prefix = request.form.get("job_posting_url_prefix")
 
     company = Companies.query.get(id)
 
     company.name = name
     company.board_url = board_url
     company.scraping_method = scraping_method
+    company.job_posting_url_prefix = url_prefix
 
     db.session.commit()
 

@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 import sib_api_v3_sdk
 import os
 from selenium import webdriver
@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from .models import Users, Companies, Postings, Searches
 import datetime
 import re
+from sqlalchemy import text
 
 def send_email(sender_name, sender_email, recipient, subject, body):
     configuration = sib_api_v3_sdk.Configuration()
@@ -29,22 +30,32 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 def get_links_selenium(url):
     DRIVER="geckodriver"
     service = Service(executable_path=DRIVER)
-    driver = webdriver.Chrome(service=service)
+    driver = webdriver.Firefox(service=service)
     delay = 3
 
     driver.implicitly_wait(delay)
     driver.get(url)
+
     links =  driver.find_elements(By.XPATH, "//a[@href]")
 
-    driver.quit()
-
-    return [
+    result =  [
         {
             "text": link.get_attribute("text"),
             "href": link.get_attribute("href")
         }
         for link in links
     ]
+
+    driver.quit()
+
+    return result
+
+
+def get_links_lever():
+    pass
+
+def get_links_greenhouse():
+    pass
 
 def get_links_soup(url):
     r = requests.get(url)
@@ -54,13 +65,15 @@ def get_links_soup(url):
 
     links = soup.find_all(links)
 
-    return [
+    result = [
         {
             "text": link.contents[0].text if 'lever' in url else link.string,
-            "href": urlparse(link.get("href"))
+            "href": urljoin(url, link['href'])
         }
         for link in links
     ]
+
+    return result
 
 def crawl_for_postings(app, db):
     with app.app_context():
@@ -76,8 +89,10 @@ def crawl_for_postings(app, db):
             app.logger.info(f"Finished scraping {company.name}'s job board")
             app.logger.info(f"Removing existing links for {company.name}")
 
-            existing_postings = Postings.query.get(company.id)
-            db.session.delete(existing_postings)
+            existing_postings = Postings.query.filter_by(company_id = company.id).all()
+
+            if existing_postings:
+                db.session.execute(text(f'delete from postings where company_id = {company.id}'))
 
             app.logger.info(f"Finished removing existing links for {company.name}")
             app.logger.info(f"Adding new links for {company.name}")
@@ -106,7 +121,7 @@ def run_email_send_job(app):
 
             user_emaiL_frequency = user.email_frequency_days or 7
 
-            if current_day % user_emaiL_frequency == 0:
+            if True:
                 user_search_results = Searches.\
                     query.\
                     filter_by(user_id = user.id).\
