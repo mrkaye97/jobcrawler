@@ -27,7 +27,7 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     return response
 
-def get_links_selenium(url):
+def get_links_selenium(url, example_prefix):
     DRIVER="geckodriver"
     service = Service(executable_path=DRIVER)
     driver = webdriver.Firefox(service=service)
@@ -44,6 +44,7 @@ def get_links_selenium(url):
             "href": link.get_attribute("href")
         }
         for link in links
+        if example_prefix in link.get_attribute("href")
     ]
 
     driver.quit()
@@ -57,7 +58,7 @@ def get_links_lever():
 def get_links_greenhouse():
     pass
 
-def get_links_soup(url):
+def get_links_soup(url, example_prefix):
     r = requests.get(url)
     soup = BeautifulSoup(r.content, features="html.parser")
 
@@ -65,24 +66,23 @@ def get_links_soup(url):
 
     links = soup.find_all(links)
 
-    result = [
+    return [
         {
             "text": link.contents[0].text if 'lever' in url else link.string,
             "href": urljoin(url, link['href'])
         }
         for link in links
+        if example_prefix in urljoin(url, link['href'])
     ]
-
-    return result
 
 def crawl_for_postings(app, db):
     with app.app_context():
         for company in Companies.query.all():
             app.logger.info(f"Scraping {company.name}'s job board")
             if company.scraping_method == 'selenium':
-                links = get_links_selenium(url = company.board_url)
+                links = get_links_selenium(url = company.board_url, example_prefix = company.job_posting_url_prefix)
             elif company.scraping_method == 'soup':
-                links = get_links_soup(url = company.board_url)
+                links = get_links_soup(url = company.board_url, example_prefix = company.job_posting_url_prefix)
             else:
                 links = []
 
@@ -119,8 +119,9 @@ def run_email_send_job(app):
                 with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex, Companies.scraping_method).\
                 all()
 
-            user_emaiL_frequency = user.email_frequency_days or 7
+            user_email_frequency = user.email_frequency_days or 7
 
+            ## Replace with current_date % user_email_frequency
             if True:
                 user_search_results = Searches.\
                     query.\
@@ -153,7 +154,7 @@ def run_email_send_job(app):
 
                     {link_text}
 
-                    Have a good one! I'll send you another round of matching links in {user_emaiL_frequency} days.
+                    Have a good one! I'll send you another round of matching links in {user_email_frequency} days.
 
                     Matt
                 """
