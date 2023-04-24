@@ -152,7 +152,7 @@ def run_email_send_job(app):
                         Matt
                     """
 
-                    if os.environ.get("ENV") == "PROD":
+                    if os.environ.get("ENV") == "PROD" and user.email == "mrkaye97@gmail.com":
                         send_email(
                             sender_email = "mrkaye97@gmail.com",
                             sender_name = "Matt Kaye",
