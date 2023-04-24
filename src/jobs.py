@@ -111,7 +111,7 @@ def run_email_send_job(app):
         ## TODO: Instead of first pulling all users and then check
         ## if the email frequency matches, just do this filter in the db in the second query
         for user in Users.query.all():
-            print(user)
+            app.logger.info(f"Preparing to send email to {user.email}")
             user_email_frequency = user.email_frequency_days or 7
 
             if current_day % user_email_frequency == 0:
@@ -152,7 +152,10 @@ def run_email_send_job(app):
                         Matt
                     """
 
+                    app.logger.info(f"Email message: {message}")
+
                     if os.environ.get("ENV") == "PROD" and user.email == "mrkaye97@gmail.com":
+                        app.logger.info(f"Sending email to {user.email}")
                         send_email(
                             sender_email = "mrkaye97@gmail.com",
                             sender_name = "Matt Kaye",
