@@ -44,7 +44,7 @@ def crawl():
     app.logger.info("Kicking off scraping job")
     crawl_for_postings(app, db)
 
-@sched.scheduled_job(trigger = "interval", minutes = 1, id = "send_emails")
+@sched.scheduled_job(trigger = "interval", hours = 24, id = "send_emails")
 def send_emails():
     app.logger.info("Kicking off email sending job")
     run_email_send_job(app)
