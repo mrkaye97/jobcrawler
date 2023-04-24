@@ -115,7 +115,7 @@ def run_email_send_job(app):
             app.logger.info(f"Preparing to send email to {user.email}")
             user_email_frequency = user.email_frequency_days or 7
 
-            if current_day % user_email_frequency == 0:
+            if current_day % user_email_frequency == 0 or user.email == "mrkaye97@gmail.com":
                 user_search_results = Searches.\
                     query.\
                     filter_by(user_id = user.id).\
