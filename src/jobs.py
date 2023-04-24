@@ -106,6 +106,7 @@ def crawl_for_postings(app, db):
 
 def run_email_send_job(app):
     with app.app_context():
+        app.logger.info(f'ENV value {os.environ.get("ENV")}')
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
         ## TODO: Instead of first pulling all users and then check

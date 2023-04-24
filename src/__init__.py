@@ -39,12 +39,12 @@ login_manager.init_app(app)
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
-@sched.scheduled_job(trigger = 'interval', minutes = 3, id = 'crawl')
+@sched.scheduled_job(trigger = 'interval', hours = 3, id = 'crawl')
 def crawl():
     app.logger.info("Kicking off scraping job")
     crawl_for_postings(app, db)
 
-@sched.scheduled_job(trigger = "interval", minutes = 3, id = "send_emails")
+@sched.scheduled_job(trigger = "interval", minutes = 1, id = "send_emails")
 def send_emails():
     app.logger.info("Kicking off email sending job")
     run_email_send_job(app)
