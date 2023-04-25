@@ -11,6 +11,7 @@ from .models import Users, Companies, Postings, Searches
 import datetime
 import re
 from sqlalchemy import text
+from xvfbwrapper import Xvfb
 
 
 def send_email(sender_name, sender_email, recipient, subject, body):
@@ -30,32 +31,30 @@ def send_email(sender_name, sender_email, recipient, subject, body):
     return response
 
 def get_links_selenium(url, example_prefix):
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    with Xvfb() as xvfb:
+        options = Options()
+        options.add_argument("--headless")
 
-    DRIVER="geckodriver"
-    service = Service(executable_path=DRIVER)
-    driver = webdriver.Firefox(service=service, options=options)
-    delay = 3
+        DRIVER="geckodriver"
+        service = Service(executable_path=DRIVER)
+        driver = webdriver.Firefox(service=service, options=options)
+        delay = 3
 
-    driver.implicitly_wait(delay)
-    driver.get(url)
+        driver.implicitly_wait(delay)
+        driver.get(url)
 
-    links =  driver.find_elements(By.XPATH, "//a[@href]")
+        links =  driver.find_elements(By.XPATH, "//a[@href]")
 
-    result =  [
-        {
-            "text": link.get_attribute("text"),
-            "href": link.get_attribute("href")
-        }
-        for link in links
-        if example_prefix in link.get_attribute("href")
-    ]
+        result =  [
+            {
+                "text": link.get_attribute("text"),
+                "href": link.get_attribute("href")
+            }
+            for link in links
+            if example_prefix in link.get_attribute("href")
+        ]
 
-    driver.quit()
+        driver.quit()
 
     return result
 
