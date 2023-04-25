@@ -139,19 +139,36 @@ def run_email_send_job(app):
                         if re.search(search.search_regex, search.link_text.lower())
                     ]
 
-                    link_text = "\n".join(matching_postings)
+                    if matching_postings:
 
-                    message = f"""
-                        Hey {user.first_name},
+                        link_text = "\n".join(matching_postings)
 
-                        Here are your links for the day!
+                        message = f"""
+                            Hey {user.first_name},
 
-                        {link_text}
+                            Here are your links for the day!
 
-                        Have a good one! I'll send you another round of matching links in {user_email_frequency} days.
+                            {link_text}
 
-                        Matt
-                    """
+                            I'll send you another round of matching links in {user_email_frequency} days.
+
+                            Have a good one!
+
+                            Matt
+                        """
+
+                    else:
+                        message = f"""
+                            Hey {user.first_name},
+
+                            There were no job postings matching any of your search queries today.
+
+                            I'll try again in {user_email_frequency} days.
+
+                            Have a good one!
+
+                            Matt
+                        """
 
                     app.logger.info(f"Email message: {message}")
 
