@@ -60,6 +60,24 @@ def get_links_greenhouse():
 
 def get_links_soup(url, example_prefix):
     r = requests.get(url)
+
+    if r.status_code == 404:
+        send_email(
+            sender_email = "mrkaye97@gmail.com",
+            sender_name = "Matt Kaye",
+            recipient = "mrkaye97@gmail.com",
+            subject = "Broken job feed detected",
+            body = f"""
+            Hey Matt,
+
+            The following URL just 404ed: {url}.
+
+            It'd be good to look into that!
+            """
+        )
+
+        return []
+
     soup = BeautifulSoup(r.content, features="html.parser")
 
     links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs)
