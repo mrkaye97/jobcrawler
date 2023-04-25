@@ -15,7 +15,8 @@ RUN apt-get update && \
     libgtk-3-0 \
     libdbus-glib-1-2 \
     libx11-xcb1 \
-    xvfb
+    xvfb \
+    xauth
 
 # Download and install geckodriver
 RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && \
