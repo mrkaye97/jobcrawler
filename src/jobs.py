@@ -4,12 +4,14 @@ from urllib.parse import urljoin
 import sib_api_v3_sdk
 import os
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from .models import Users, Companies, Postings, Searches
 import datetime
 import re
 from sqlalchemy import text
+
 
 def send_email(sender_name, sender_email, recipient, subject, body):
     configuration = sib_api_v3_sdk.Configuration()
@@ -28,9 +30,15 @@ def send_email(sender_name, sender_email, recipient, subject, body):
     return response
 
 def get_links_selenium(url, example_prefix):
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
     DRIVER="geckodriver"
     service = Service(executable_path=DRIVER)
-    driver = webdriver.Firefox(service=service)
+    driver = webdriver.Firefox(service=service, options=options)
     delay = 3
 
     driver.implicitly_wait(delay)

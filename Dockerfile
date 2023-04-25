@@ -12,7 +12,6 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     firefox-esr \
     wget \
-    unzip \
     libgtk-3-0 \
     libdbus-glib-1-2 \
     libx11-xcb1
@@ -22,6 +21,14 @@ RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckod
     tar -xzf geckodriver-v0.30.0-linux64.tar.gz && \
     rm geckodriver-v0.30.0-linux64.tar.gz && \
     mv geckodriver /usr/local/bin
+
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-dev \
+    libffi-dev \
+    libssl-dev
 
 # install dependencies
 RUN pip install --upgrade pip
