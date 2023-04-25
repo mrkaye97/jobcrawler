@@ -39,8 +39,8 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /usr/src/app/
 
-CMD flask db upgrade && \
-    gunicorn src:app \
+CMD xvfb-run --server-args="-screen 0 1024x768x24" flask db upgrade && \
+    xvfb-run --server-args="-screen 0 1024x768x24" gunicorn src:app \
     --workers 2 \
     --bind 0.0.0.0:${PORT} \
     --log-level=debug \
