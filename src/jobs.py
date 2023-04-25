@@ -61,6 +61,8 @@ def get_links_greenhouse():
 def get_links_soup(url, example_prefix):
     r = requests.get(url)
 
+    ## TODO: Replace this with a legit error
+    ## monitoring tool like Sentry
     if r.status_code == 404:
         send_email(
             sender_email = "mrkaye97@gmail.com",
