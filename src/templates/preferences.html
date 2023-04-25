@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Preferences</h1>
+<form action="/preferences" method="post">
+    <div class="mb-3">
+        <label for="first_name" class="form-label">First Name</label>
+        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ current_user.first_name }}"
+            required>
+    </div>
+    <div class="mb-3">
+        <label for="email_frequency_days" class="form-label">Email Frequency (Days)</label>
+        <select class="form-select" id="email_frequency_days" name="email_frequency_days" required>
+            {% for i in range(1, 8) %}
+            <option value="{{ i }}" {% if current_user.email_frequency_days==i %}selected{% endif %}>{{ i }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Preferences</button>
+</form>
+{% endblock %}

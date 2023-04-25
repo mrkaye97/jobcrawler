@@ -243,6 +243,9 @@
                             </a>
                             {% endif %}
                             {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('get_preferences') }}" class="btn btn-outline-primary me-2">
+                                Preferences
+                            </a>
                             <a href="{{ url_for('logout') }}" class="btn btn-outline-primary">
                                 Logout
                             </a>

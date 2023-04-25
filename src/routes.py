@@ -69,6 +69,25 @@ def signup_post():
 
     return redirect(url_for('login'))
 
+@app.route('/preferences', methods=['GET', 'POST'])
+@login_required
+def get_preferences():
+
+    if request.method == 'POST':
+        app.logger.info(json.dumps(request.form))
+
+        first_name = request.form.get('first_name')
+        email_frequency_days = int(request.form.get('email_frequency_days'))
+
+        current_user.first_name = first_name
+        current_user.email_frequency_days = email_frequency_days
+        db.session.commit()
+
+        flash('Preferences updated successfully', 'success')
+        return redirect(url_for('get_preferences'))
+
+    return render_template('preferences.html')
+
 @app.route("/searches")
 @login_required
 def get_searches():
