@@ -7,14 +7,15 @@ WORKDIR /usr/src/app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install Firefox, geckodriver, and required dependencies
+# Install Firefox, geckodriver, xvfb, and required dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     firefox-esr \
     wget \
     libgtk-3-0 \
     libdbus-glib-1-2 \
-    libx11-xcb1
+    libx11-xcb1 \
+    xvfb
 
 # Download and install geckodriver
 RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && \
