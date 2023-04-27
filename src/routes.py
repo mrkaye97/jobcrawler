@@ -254,27 +254,29 @@ def request_new_company():
     name = request.form['name']
     board_url = request.form['board_url']
 
-    # Here you can send an email to mrkaye97@gmail.com with the form data
-    # and/or save the data to the database as needed
+    message = f"""
+    Hey Matt!
+
+    I'd like to request a new company:
+
+    - Name: {name}
+    - Board URL: {board_url}
+
+    Thank you!
+
+    {current_user.first_name}
+    {current_user.email}
+    """
+
+    app.logger.info("Sending email to request a new company")
+    app.logger.info(message)
 
     send_email(
         sender_name = "Jobcrawler Bot",
         sender_email = "mrkaye97@gmail.com",
         recipient = "mrkaye97@gmail.com",
         subject = "Requesting a new company!",
-        body = f"""
-        Hey Matt!
-
-        I'd like to request a new company:
-
-        - Name: {name}
-        - Board URL: {board_url}
-
-        Thank you!
-
-        {current_user.first_name}
-        {current_user.email}
-        """
+        body = message
     )
 
     flash('Company request submitted successfully', 'success')
