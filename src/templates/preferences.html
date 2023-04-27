@@ -16,6 +16,10 @@
             {% endfor %}
         </select>
     </div>
-    <button type="submit" class="btn btn-primary">Save Preferences</button>
+    <div class="mb-3">
+        <label for="default_search_regex" class="form-label">Default Search Regex</label>
+        <input type="text" class="form-control" id="default_search_regex" name="default_search_regex"
+            value="{{ current_user.default_search_regex|default('', true) }}">
+    </div> <button type="submit" class="btn btn-primary">Save Preferences</button>
 </form>
 {% endblock %}

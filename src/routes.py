@@ -78,9 +78,11 @@ def get_preferences():
 
         first_name = request.form.get('first_name')
         email_frequency_days = int(request.form.get('email_frequency_days'))
+        default_search_regex = request.form.get('default_search_regex')
 
         current_user.first_name = first_name
         current_user.email_frequency_days = email_frequency_days
+        current_user.default_search_regex = default_search_regex
         db.session.commit()
 
         flash('Preferences updated successfully', 'success')
@@ -232,3 +234,14 @@ def delete_company(id):
     db.session.commit()
 
     return f"Successfully deleted {id}"
+
+@app.route('/users/current/default-search')
+def get_current_user_default_search():
+    app.logger.info("Loading current user")
+
+    u = Users.query.get(current_user.get_id())
+
+    return {
+        "default_search": u.default_search_regex,
+        "first_name": u.first_name
+    }

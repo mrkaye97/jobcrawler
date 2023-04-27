@@ -19,6 +19,7 @@ class Users(UserMixin, db.Model):
     email = db.Column(db.String(128), index=True)
     password_hash = db.Column(db.String(128))
     email_frequency_days = db.Column(db.Integer, nullable = False, default = 7)
+    default_search_regex = db.Column(db.String, nullable = True)
 
     def __repr__(self):
         return '<User {}>'.format(self.email)
