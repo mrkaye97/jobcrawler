@@ -22,17 +22,17 @@
     <button id="add-company-btn" class="btn btn-success">Add Company</button>
     {% endif %}
 
-    <button type="button" class="btn btn-primary" onclick="handleAddNewCompany()" id="add-new-company-btn">
+    <button type="button" class="btn btn-primary" onclick="handleRequestNewCompany()" id="request-new-company-btn">
         Request a new company
     </button>
 
     <script>
-        function handleAddNewCompany() {
+        function handleRequestNewCompany() {
             {% if current_user.is_authenticated %}
-            var myModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+            var myModal = new bootstrap.Modal(document.getElementById('requestCompanyModal'), {});
             myModal.show();
             {% else %}
-            window.location.href = "{{ url_for('signup') }}?redirect=addCompany";
+            window.location.href = "{{ url_for('signup') }}?redirect=requestCompany";
             {% endif %}
         }
     </script>
@@ -340,12 +340,12 @@
         }
     </script>
 
-    <div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel"
+    <div class="modal fade" id="requestCompanyModal" tabindex="-1" aria-labelledby="requestCompanyModalLabel"
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addCompanyModalLabel">Request a New Company</h5>
+                    <h5 class="modal-title" id="requestCompanyModalLabel">Request a New Company</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="/companies/request" method="POST">
