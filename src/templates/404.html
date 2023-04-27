@@ -40,14 +40,15 @@
 </style>
 
 <div class="error-container">
-    <h1 class="error-code">Oops!</h1>
-    <p class="error-message">Something went wrong, but don't worry. We've been notified and are looking into it.</p>
-    <button class="go-back" onclick="goBack()">Go Back</button>
+    <h1 class="error-code">404</h1>
+    <p class="error-message">These are not the HTML nodes you’re looking for.</p>
+    <p class="error-message">Back to home, go. And find your page, you will.</p>
+    <button class="go-back" onclick="goHome()">Go Home</button>
 </div>
 
 <script>
-    function goBack() {
-        window.history.back();
+    function goHome() {
+        window.location.href = "{{ url_for('index') }}";
     }
 </script>
 {% endblock %}

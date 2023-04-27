@@ -288,4 +288,11 @@ def handle_error(e):
     app.logger.error("Request failed.")
     app.logger.error(str(e))
 
-    return render_template('error.html')
+    code = 500
+    if isinstance(e, HTTPException):
+        code = e.code
+
+    if code == 404:
+        return render_template('404.html')
+    else:
+        return render_template("error.html")
