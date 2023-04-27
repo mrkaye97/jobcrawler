@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, redirect, url_for, flash
+from flask import request, render_template, redirect, url_for, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
@@ -288,8 +288,4 @@ def handle_error(e):
     app.logger.error("Request failed.")
     app.logger.error(str(e))
 
-    code = 500
-    if isinstance(e, HTTPException):
-        code = e.code
-
-    return "Request failed", code
+    return render_template('error.html')

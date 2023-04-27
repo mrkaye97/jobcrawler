@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .error-code {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #2ea44f;
+        margin: 0;
+    }
+
+    .error-message {
+        font-size: 1.2rem;
+        color: #333333;
+        margin: 1rem 0;
+    }
+
+    .go-back {
+        background-color: #2ea44f;
+        border: none;
+        color: #ffffff;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        outline: none;
+        transition: background-color 0.3s;
+    }
+
+    .go-back:hover {
+        background-color: #22863a;
+    }
+</style>
+
+<div class="error-container">
+    <h1 class="error-code">Oops!</h1>
+    <p class="error-message">Something went wrong, but don't worry. We've been notified and are looking into it.</p>
+    <button class="go-back" onclick="goBack()">Go Back</button>
+</div>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+{% endblock %}
