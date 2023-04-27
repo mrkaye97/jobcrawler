@@ -286,6 +286,7 @@ def request_new_company():
 @app.errorhandler(Exception)
 def handle_error(e):
     app.logger.error("Request failed.")
+    app.logger.error(f"URL: {request.url}")
     app.logger.error(str(e))
 
     code = 500
