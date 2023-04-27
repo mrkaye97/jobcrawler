@@ -27,8 +27,6 @@ app.secret_key = os.urandom(24)
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
-handler = logging.StreamHandler(sys.stdout)
-root.addHandler(handler)
 
 from src import routes
 
