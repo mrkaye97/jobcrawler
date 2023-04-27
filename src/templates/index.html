@@ -22,6 +22,22 @@
     <button id="add-company-btn" class="btn btn-success">Add Company</button>
     {% endif %}
 
+    <button type="button" class="btn btn-primary" onclick="handleAddNewCompany()" id="add-new-company-btn">
+        Request a new company
+    </button>
+
+    <script>
+        function handleAddNewCompany() {
+            {% if current_user.is_authenticated %}
+            var myModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+            myModal.show();
+            {% else %}
+            window.location.href = "{{ url_for('signup') }}?redirect=addCompany";
+            {% endif %}
+        }
+    </script>
+
+
     {% if current_user.is_authenticated %}
     <h1>My Job Searches</h1>
     <table id="board-table" class="table table-striped">
@@ -323,6 +339,35 @@
             };
         }
     </script>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add New Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/companies/request" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                placeholder="Enter company name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="board_url" class="form-label">Board URL</label>
+                            <input type="url" class="form-control" id="board_url" name="board_url"
+                                placeholder="Enter board URL" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 
 {% endblock %}

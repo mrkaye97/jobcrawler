@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
+from .jobs import send_email
 
 @app.route('/')
 @app.route('/index')
@@ -18,7 +19,7 @@ def logout():
 @app.route('/login')
 def login():
     if os.environ.get('ENV') == 'DEV':
-        user_email = "mrkaye97@gmail.com"
+        user_email = "mk@test.dev"
         user = Users.query.filter_by(email=user_email).first()
         if user:
             login_user(user)
@@ -48,7 +49,7 @@ def login_post():
 
 @app.route('/signup')
 def signup():
-    return render_template('signup.html', host = os.environ.get("HOSTNAME"), protocol = os.environ.get("PROTOCOL"))
+    return render_template('signup.html')
 
 @app.route('/signup', methods=['POST'])
 def signup_post():
@@ -245,3 +246,36 @@ def get_current_user_default_search():
         "default_search": u.default_search_regex,
         "first_name": u.first_name
     }
+
+@app.route('/companies/request', methods = ["POST"])
+def request_new_company():
+    app.logger.info("Requesting a new company")
+
+    name = request.form['name']
+    board_url = request.form['board_url']
+
+    # Here you can send an email to mrkaye97@gmail.com with the form data
+    # and/or save the data to the database as needed
+
+    send_email(
+        sender_name = "Jobcrawler Bot",
+        sender_email = "mrkaye97@gmail.com",
+        recipient = "mrkaye97@gmail.com",
+        subject = "Requesting a new company!",
+        body = f"""
+        Hey Matt!
+
+        I'd like to request a new company:
+
+        - Name: {name}
+        - Board URL: {board_url}
+
+        Thank you!
+
+        {current_user.first_name}
+        {current_user.email}
+        """
+    )
+
+    flash('Company request submitted successfully', 'success')
+    return redirect(url_for('index'))
