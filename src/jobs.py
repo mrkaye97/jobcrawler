@@ -189,29 +189,16 @@ def run_email_send_job(app):
                             Matt
                         """
 
-                    else:
-                        message = f"""
-                            Hey {user.first_name},
+                        app.logger.info(f"Email message: {message}")
 
-                            There were no job postings matching any of your search queries today.
-
-                            I'll try again in {user_email_frequency} days.
-
-                            Have a good one!
-
-                            Matt
-                        """
-
-                    app.logger.info(f"Email message: {message}")
-
-                    if os.environ.get("ENV") == "PROD" and user.email == "mrkaye97@gmail.com":
-                        app.logger.info(f"Sending email to {user.email}")
-                        send_email(
-                            sender_email = "mrkaye97@gmail.com",
-                            sender_name = "Matt Kaye",
-                            recipient = user.email,
-                            subject = "Your daily job feed digest",
-                            body = message
-                        )
-                    else:
-                        app.logger.info(message)
+                        if os.environ.get("ENV") == "PROD" and user.email == "mrkaye97@gmail.com":
+                            app.logger.info(f"Sending email to {user.email}")
+                            send_email(
+                                sender_email = "mrkaye97@gmail.com",
+                                sender_name = "Matt Kaye",
+                                recipient = user.email,
+                                subject = "Your daily job feed digest",
+                                body = message
+                            )
+                        else:
+                            app.logger.info(message)
