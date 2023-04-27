@@ -1,4 +1,4 @@
-from flask import request, render_template, redirect, url_for, flash
+from flask import request, render_template, redirect, url_for, flash, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
@@ -20,7 +20,7 @@ def logout():
 @app.route('/login')
 def login():
     if os.environ.get('ENV') == 'DEV':
-        user_email = "mk@test.dev"
+        user_email = "mrkaye97@gmail.com"
         user = Users.query.filter_by(email=user_email).first()
         if user:
             login_user(user)
@@ -297,3 +297,15 @@ def handle_error(e):
         return render_template('404.html')
     else:
         return render_template("error.html")
+
+@app.route('/favicon.ico')
+def favicon():
+    app.logger.info(f"Root path {app.root_path}")
+
+    return send_from_directory(
+        os.path.join(
+            app.root_path,
+            'static'
+        ),
+        'favicon.ico'
+    )
