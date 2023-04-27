@@ -8,8 +8,19 @@ from .jobs import crawl_for_postings, run_email_send_job
 from flask_login import LoginManager
 import logging
 import sys
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 sched = BackgroundScheduler()
+
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    integrations=[
+        FlaskIntegration(),
+    ],
+
+    traces_sample_rate=1.0
+)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)

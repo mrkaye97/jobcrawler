@@ -4,6 +4,7 @@ from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
 from .jobs import send_email
+from werkzeug.exceptions import HTTPException
 
 @app.route('/')
 @app.route('/index')
@@ -281,3 +282,14 @@ def request_new_company():
 
     flash('Company request submitted successfully', 'success')
     return redirect(url_for('index'))
+
+@app.errorhandler(Exception)
+def handle_error(e):
+    app.logger.error("Request failed.")
+    app.logger.error(str(e))
+
+    code = 500
+    if isinstance(e, HTTPException):
+        code = e.code
+
+    return "Request failed", code
