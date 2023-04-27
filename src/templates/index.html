@@ -340,11 +340,12 @@
         }
     </script>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Add New Company</h5>
+                    <h5 class="modal-title" id="addCompanyModalLabel">Request a New Company</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="/companies/request" method="POST">
@@ -368,6 +369,7 @@
             </div>
         </div>
     </div>
+
 </body>
 
 {% endblock %}
