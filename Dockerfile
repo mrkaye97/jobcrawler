@@ -8,29 +8,22 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Install Firefox, geckodriver, xvfb, and required dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    firefox-esr \
-    wget \
-    libgtk-3-0 \
-    libdbus-glib-1-2 \
-    libx11-xcb1 \
-    xvfb \
-    xauth
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+RUN apt-get -y update
+RUN apt-get install -y google-chrome-stable
 
-# Download and install geckodriver
-RUN wget https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz && \
-    tar -xzf geckodriver-v0.30.0-linux64.tar.gz && \
-    rm geckodriver-v0.30.0-linux64.tar.gz && \
-    mv geckodriver /usr/local/bin
+# Installing Unzip
+RUN apt-get install -yqq unzip
 
-# Install build dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    python3-dev \
-    libffi-dev \
-    libssl-dev
+# Download the Chrome Driver
+RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+
+# Unzip the Chrome Driver into /usr/local/bin directory
+RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+
+# Set display port as an environment variable
+ENV DISPLAY=:99
 
 # install dependencies
 RUN pip install --upgrade pip
@@ -40,8 +33,8 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /usr/src/app/
 
-CMD xvfb-run --server-args="-screen 0 1024x768x24" flask db upgrade && \
-    xvfb-run --server-args="-screen 0 1024x768x24" gunicorn src:app \
+CMD flask db upgrade && \
+    gunicorn src:app \
     --workers 2 \
     --bind 0.0.0.0:${PORT} \
     --log-level=debug \

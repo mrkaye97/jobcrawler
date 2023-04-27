@@ -39,7 +39,8 @@ login_manager.init_app(app)
 def load_user(user_id):
     return Users.query.get(int(user_id))
 
-@sched.scheduled_job(trigger = 'cron', hour = 23, id = 'crawl')
+# @sched.scheduled_job(trigger = 'cron', hour = 23, id = 'crawl')
+@sched.scheduled_job(trigger = 'interval', minutes = 3, id = 'crawl')
 def crawl():
     app.logger.info("Kicking off scraping job")
     crawl_for_postings(app, db)
