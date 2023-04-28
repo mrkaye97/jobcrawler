@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
-from .jobs import send_email
+from .jobs import send_email, get_links_selenium, get_links_soup
 from werkzeug.exceptions import HTTPException
 
 @app.route('/')
@@ -309,3 +309,22 @@ def favicon():
         ),
         'favicon.ico'
     )
+
+@app.route('/scraping/test', methods = ["POST"])
+def test_scraping():
+    content = request.json
+
+    if content.get("scraping_method") == "soup":
+        links = get_links_soup(
+            url = content.get("board_url"),
+            example_prefix = content.get("job_posting_url_prefix")
+        )
+    elif content.get("scraping_method") == "selenium":
+        links = get_links_selenium(
+            url = content.get("board_url"),
+            example_prefix = content.get("job_posting_url_prefix")
+        )
+    else:
+        return "Could not find that scraping method", 400
+
+    return [l for l in links if l.get("text")]

@@ -2,6 +2,110 @@
 {% block content %}
 
 <body>
+    <div class="modal fade" id="requestCompanyModal" tabindex="-1" aria-labelledby="requestCompanyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="requestCompanyModalLabel">Request a New Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/companies/request" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                placeholder="Enter company name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="board_url" class="form-label">Board URL</label>
+                            <input type="url" class="form-control" id="board_url" name="board_url"
+                                placeholder="Enter board URL" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="spinner-container" class="spinner-container" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCompanyModalLabel">Add a New Company</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="add-company-name" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="add-company-name" placeholder="Enter company name"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-company-board-url" class="form-label">Board URL</label>
+                        <input type="text" class="form-control" id="add-company-board-url" placeholder="Board URL"
+                            required pattern="https?://.+" title="Please enter a valid URL">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-company-url-prefix" class="form-label">Job Posting URL Prefix</label>
+                        <input type="text" class="form-control" id="add-company-url-prefix"
+                            placeholder="Job Posting URL Prefix" required pattern="https?://.+"
+                            title="Please enter a valid URL">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-company-scraping-method" class="form-label">Scraping Method</label>
+                        <select class="form-select" id="add-company-scraping-method" required>
+                            <option value="soup">Soup</option>
+                            <option value="selenium">Selenium</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="test-scraping">Test</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="testResultsModal" tabindex="-1" aria-labelledby="testResultsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="testResultsModalLabel">Test Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="url-results-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">URLs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="go-back">Go Back</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-company">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h1>Companies</h1>
     <table id="company-table" class="table table-striped">
         <thead>
@@ -98,32 +202,46 @@
 
         const addCompanyBtn = document.getElementById('add-company-btn');
         addCompanyBtn.addEventListener('click', function () {
-            const defaultName = 'Default Company';
-            const defaultBoardUrl = 'https://www.example.com';
-            const defaultScrapingMethod = 'soup';
+            const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+            addCompanyModal.show();
+        });
 
-            const company = {
-                name: defaultName,
-                board_url: defaultBoardUrl,
-                scraping_method: defaultScrapingMethod
-            };
-
-            const tableBody = document.querySelector('#company-table tbody');
-            const row = createCompanyRow(company);
-            tableBody.appendChild(row);
+        const confirmAddCompanyBtn = document.getElementById('confirm-add-company');
+        confirmAddCompanyBtn.addEventListener('click', function () {
+            const nameInput = document.getElementById('add-company-name');
+            const boardUrlInput = document.getElementById('add-company-board-url');
+            const urlPrefixInput = document.getElementById('add-company-url-prefix');
+            const scrapingMethodInput = document.getElementById('add-company-scraping-method');
 
             fetch(`/companies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(company)
+                body: JSON.stringify({
+                    name: nameInput.value,
+                    board_url: boardUrlInput.value,
+                    job_posting_url_prefix: urlPrefixInput.value,
+                    scraping_method: scrapingMethodInput.value
+                })
             }).then(response => response.json())
-                .then(newCompany => {
-                    row.dataset.id = newCompany.id;
-                    row.replaceWith(createCompanyRow(newCompany));
+                .then(company => {
+                    const companyTable = document.getElementById('company-table');
+                    const companyRow = createCompanyRow(company);
+                    companyTable.querySelector('tbody').appendChild(companyRow);
+
+                    nameInput.value = '';
+                    boardUrlInput.value = '';
+                    urlPrefixInput.value = '';
+                    scrapingMethodInput.value = '';
+
+                    const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
+                    testResultsModal.hide();
                 });
         });
+
+
+
 
         function createCompanyRow(company) {
             const row = document.createElement('tr');
@@ -131,7 +249,7 @@
 
             const nameCell = document.createElement('td');
             const boardUrlCell = document.createElement('td');
-            const jobPostingUrlCell = document.createElement('td'); // Add this line
+            const jobPostingUrlCell = document.createElement('td');
 
 
             const scrapingMethodCell = document.createElement('td');
@@ -338,38 +456,65 @@
                 }
             };
         }
+
+        const testScrapingBtn = document.getElementById('test-scraping');
+        testScrapingBtn.addEventListener('click', function () {
+            const nameInput = document.getElementById('add-company-name');
+            const boardUrlInput = document.getElementById('add-company-board-url');
+            const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
+            const scrapingMethodInput = document.getElementById('add-company-scraping-method');
+
+            const spinnerContainer = document.getElementById('spinner-container');
+            spinnerContainer.style.display = 'flex';
+
+            fetch(`/scraping/test`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: nameInput.value,
+                    board_url: boardUrlInput.value,
+                    job_posting_url_prefix: jobPostingUrlPrefixInput.value,
+                    scraping_method: scrapingMethodInput.value
+                })
+            }).then(response => response.json())
+                .then(urlResults => {
+                    spinnerContainer.style.display = 'none';
+
+                    const urlResultsTableBody = document.getElementById('url-results-table').getElementsByTagName('tbody')[0];
+                    urlResultsTableBody.innerHTML = '';
+                    urlResults.forEach(url => {
+                        const tr = document.createElement('tr');
+                        const td = document.createElement('td');
+
+                        const anchor = document.createElement('a');
+                        anchor.href = url.href;
+                        anchor.textContent = url.text;
+                        td.appendChild(anchor);
+
+                        tr.appendChild(td);
+                        urlResultsTableBody.appendChild(tr);
+                    });
+
+                    const addCompanyModal = bootstrap.Modal.getInstance(document.getElementById('addCompanyModal'));
+                    addCompanyModal.hide();
+
+                    const testResultsModal = new bootstrap.Modal(document.getElementById('testResultsModal'), {});
+                    testResultsModal.show();
+                });
+        });
+
+        const goBackBtn = document.getElementById('go-back');
+        goBackBtn.addEventListener('click', function () {
+            const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
+            testResultsModal.hide();
+
+            const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+            addCompanyModal.show();
+        });
+
     </script>
-
-    <div class="modal fade" id="requestCompanyModal" tabindex="-1" aria-labelledby="requestCompanyModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="requestCompanyModalLabel">Request a New Company</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="/companies/request" method="POST">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Company Name</label>
-                            <input type="text" class="form-control" id="name" name="name"
-                                placeholder="Enter company name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="board_url" class="form-label">Board URL</label>
-                            <input type="url" class="form-control" id="board_url" name="board_url"
-                                placeholder="Enter board URL" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Submit Request</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
 </body>
 
 {% endblock %}
