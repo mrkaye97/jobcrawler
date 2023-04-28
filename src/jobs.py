@@ -67,33 +67,11 @@ def get_links_selenium(app, url, example_prefix):
 
     return result
 
-def get_links_lever():
-    pass
-
-def get_links_greenhouse():
-    pass
-
 def get_links_soup(url, example_prefix):
     r = requests.get(url)
 
-    ## TODO: Replace this with a legit error
-    ## monitoring tool like Sentry
     if r.status_code == 404:
-        send_email(
-            sender_email = "mrkaye97@gmail.com",
-            sender_name = "Matt Kaye",
-            recipient = "mrkaye97@gmail.com",
-            subject = "Broken job feed detected",
-            body = f"""
-            Hey Matt,
-
-            The following URL just 404ed: {url}.
-
-            It'd be good to look into that!
-            """
-        )
-
-        return []
+        raise Exception(f"The following URL just 404ed: {url}")
 
     soup = BeautifulSoup(r.content, features="html.parser")
 
