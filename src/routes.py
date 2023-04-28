@@ -295,18 +295,26 @@ def favicon():
 def test_scraping():
     content = request.json
 
-    if content.get("scraping_method") == "soup":
+    posting_url_prefix = content.get("job_posting_url_prefix")
+    board_url = content.get("board_url")
+    scraping_method = content.get("scraping_method")
+
+    if scraping_method == "soup":
         links = get_links_soup(
-            url = content.get("board_url"),
-            example_prefix = content.get("job_posting_url_prefix")
+            url = board_url,
+            example_prefix = posting_url_prefix
         )
-    elif content.get("scraping_method") == "selenium":
+    elif scraping_method == "selenium":
         links = get_links_selenium(
             app = app,
-            url = content.get("board_url"),
-            example_prefix = content.get("job_posting_url_prefix")
+            url = board_url,
+            example_prefix = posting_url_prefix
         )
     else:
         return "Could not find that scraping method", 400
 
-    return [l for l in links if l.get("text")]
+    matching_links = [l for l in links if posting_url_prefix in l.get("href")]
+    if not matching_links:
+        raise Exception(f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}")
+
+    return matching_links
