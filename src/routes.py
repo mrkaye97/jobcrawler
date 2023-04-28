@@ -313,6 +313,7 @@ def test_scraping():
         )
     elif content.get("scraping_method") == "selenium":
         links = get_links_selenium(
+            app = app,
             url = content.get("board_url"),
             example_prefix = content.get("job_posting_url_prefix")
         )

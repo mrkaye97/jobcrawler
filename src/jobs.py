@@ -41,28 +41,31 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     return response
 
-def get_links_selenium(url, example_prefix):
+def get_links_selenium(app, url, example_prefix):
     driver = webdriver.Chrome(options=set_chrome_options())
     delay = 3
 
     driver.implicitly_wait(delay)
+
+    app.logger.info(f"Getting {url}")
     driver.get(url)
+    app.logger.info(f"Finished getting {url}")
 
     links =  driver.find_elements(By.XPATH, "//a[@href]")
 
-    result =  [
-        {
-            "text": link.get_attribute("text"),
-            "href": link.get_attribute("href")
-        }
-        for link in links
-        if example_prefix in link.get_attribute("href")
-    ]
+    result = []
+    for link in links:
+        href = link.get_attribute("href")
+        app.logger.info(f"Found link {href}")
+        if example_prefix in href:
+            result = result + [{
+                "text": link.get_attribute("text"),
+                "href": href
+            }]
 
     driver.quit()
 
     return result
-
 
 def get_links_lever():
     pass
@@ -112,7 +115,7 @@ def crawl_for_postings(app, db):
         for company in Companies.query.all():
             app.logger.info(f"Scraping {company.name}'s job board")
             if company.scraping_method == 'selenium':
-                links = get_links_selenium(url = company.board_url, example_prefix = company.job_posting_url_prefix)
+                links = get_links_selenium(app = app, url = company.board_url, example_prefix = company.job_posting_url_prefix)
             elif company.scraping_method == 'soup':
                 links = get_links_soup(url = company.board_url, example_prefix = company.job_posting_url_prefix)
             else:
