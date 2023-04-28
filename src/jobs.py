@@ -25,6 +25,14 @@ def set_chrome_options() -> Options:
     chrome_prefs["profile.default_content_settings"] = {"images": 2}
     return chrome_options
 
+def load_page(url):
+    r = requests.get(url)
+
+    if r.status_code == 404:
+        raise Exception(f"The following URL just 404ed: {url}")
+
+    return r
+
 def send_email(sender_name, sender_email, recipient, subject, body):
     configuration = sib_api_v3_sdk.Configuration()
     configuration.api_key['api-key'] = os.environ.get("SIB_API_KEY")
@@ -42,6 +50,9 @@ def send_email(sender_name, sender_email, recipient, subject, body):
     return response
 
 def get_links_selenium(app, url, example_prefix):
+    ## Check if the page loads without 404ing
+    load_page(url)
+
     driver = webdriver.Chrome(options=set_chrome_options())
     delay = 3
 
@@ -68,10 +79,7 @@ def get_links_selenium(app, url, example_prefix):
     return result
 
 def get_links_soup(url, example_prefix):
-    r = requests.get(url)
-
-    if r.status_code == 404:
-        raise Exception(f"The following URL just 404ed: {url}")
+    r = load_page(url)
 
     soup = BeautifulSoup(r.content, features="html.parser")
 
