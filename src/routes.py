@@ -237,41 +237,6 @@ def get_current_user_default_search():
         "first_name": u.first_name
     }
 
-@app.route('/companies/request', methods = ["POST"])
-def request_new_company():
-    app.logger.info("Requesting a new company")
-
-    name = request.form['name']
-    board_url = request.form['board_url']
-
-    message = f"""
-    Hey Matt!
-
-    I'd like to request a new company:
-
-    - Name: {name}
-    - Board URL: {board_url}
-
-    Thank you!
-
-    {current_user.first_name}
-    {current_user.email}
-    """
-
-    app.logger.info("Sending email to request a new company")
-    app.logger.info(message)
-
-    send_email(
-        sender_name = "Jobcrawler Bot",
-        sender_email = "mrkaye97@gmail.com",
-        recipient = "mrkaye97@gmail.com",
-        subject = "Requesting a new company!",
-        body = message
-    )
-
-    flash('Company request submitted successfully', 'success')
-    return redirect(url_for('index'))
-
 @app.errorhandler(Exception)
 def handle_error(e):
     app.logger.error("Request failed.")
