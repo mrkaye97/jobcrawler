@@ -76,8 +76,6 @@ def signup_post():
 def get_preferences():
 
     if request.method == 'POST':
-        app.logger.info(json.dumps(request.form))
-
         first_name = request.form.get('first_name')
         email_frequency_days = int(request.form.get('email_frequency_days'))
         default_search_regex = request.form.get('default_search_regex')
@@ -108,7 +106,6 @@ def get_searches():
         for search in searches
     ]
 
-    app.logger.info(json.dumps(result))
     return result
 
 @app.route('/searches', methods=["POST"])
@@ -160,8 +157,6 @@ def update_search(id):
 @app.route('/searches/<int:id>', methods = ["DELETE"])
 @login_required
 def delete_search(id):
-    app.logger.info(f"Deleting id {id} from /searches")
-
     data = Searches.query.get(id)
     db.session.delete(data)
     db.session.commit()
@@ -174,8 +169,6 @@ def get_companies():
     result = Companies.query.all()
 
     result = [{key: b.__dict__[key] for key in ["id", "name", "board_url", "job_posting_url_prefix", "scraping_method"]} for b in result]
-
-    app.logger.info(json.dumps(result))
 
     return result
 
@@ -229,8 +222,6 @@ def update_company(id):
 
 @app.route('/companies/<int:id>', methods = ["DELETE"])
 def delete_company(id):
-    app.logger.info(f"Deleting company id {id}")
-
     data = Companies.query.get(id)
     db.session.delete(data)
     db.session.commit()
@@ -239,8 +230,6 @@ def delete_company(id):
 
 @app.route('/users/current/default-search')
 def get_current_user_default_search():
-    app.logger.info("Loading current user")
-
     u = Users.query.get(current_user.get_id())
 
     return {
