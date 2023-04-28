@@ -478,31 +478,50 @@
                     job_posting_url_prefix: jobPostingUrlPrefixInput.value,
                     scraping_method: scrapingMethodInput.value
                 })
-            }).then(response => response.json())
-                .then(urlResults => {
-                    spinnerContainer.style.display = 'none';
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            }).then(urlResults => {
+                spinnerContainer.style.display = 'none';
 
-                    const urlResultsTableBody = document.getElementById('url-results-table').getElementsByTagName('tbody')[0];
-                    urlResultsTableBody.innerHTML = '';
-                    urlResults.forEach(url => {
-                        const tr = document.createElement('tr');
-                        const td = document.createElement('td');
+                const urlResultsTableBody = document.getElementById('url-results-table').getElementsByTagName('tbody')[0];
+                urlResultsTableBody.innerHTML = '';
+                urlResults.forEach(url => {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
 
-                        const anchor = document.createElement('a');
-                        anchor.href = url.href;
-                        anchor.textContent = url.text;
-                        td.appendChild(anchor);
+                    const anchor = document.createElement('a');
+                    anchor.href = url.href;
+                    anchor.textContent = url.text;
+                    td.appendChild(anchor);
 
-                        tr.appendChild(td);
-                        urlResultsTableBody.appendChild(tr);
-                    });
-
-                    const addCompanyModal = bootstrap.Modal.getInstance(document.getElementById('addCompanyModal'));
-                    addCompanyModal.hide();
-
-                    const testResultsModal = new bootstrap.Modal(document.getElementById('testResultsModal'), {});
-                    testResultsModal.show();
+                    tr.appendChild(td);
+                    urlResultsTableBody.appendChild(tr);
                 });
+
+                const addCompanyModal = bootstrap.Modal.getInstance(document.getElementById('addCompanyModal'));
+                addCompanyModal.hide();
+
+                const testResultsModal = new bootstrap.Modal(document.getElementById('testResultsModal'), {});
+                testResultsModal.show();
+            }).catch(error => {
+                spinnerContainer.style.display = 'none';
+
+                const addCompanyModal = document.getElementById('addCompanyModal');
+                const errorContainer = document.createElement('div');
+                errorContainer.className = 'alert alert-danger mt-2';
+                errorContainer.textContent = 'Something went wrong. Please check your inputs and try again.';
+
+                // Remove existing error message if present
+                const existingError = addCompanyModal.querySelector('.alert');
+                if (existingError) {
+                    existingError.remove();
+                }
+
+                addCompanyModal.querySelector('.modal-body').appendChild(errorContainer);
+            });
         });
 
         const goBackBtn = document.getElementById('go-back');
