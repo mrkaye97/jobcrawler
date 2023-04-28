@@ -300,15 +300,7 @@ def handle_error(e):
 
 @app.route('/favicon.ico')
 def favicon():
-    app.logger.info(f"Root path {app.root_path}")
-
-    return send_from_directory(
-        os.path.join(
-            app.root_path,
-            'static'
-        ),
-        'favicon.ico'
-    )
+    return send_from_directory(directory = app.static_folder, path = "favicon.ico")
 
 @app.route('/scraping/test', methods = ["POST"])
 def test_scraping():

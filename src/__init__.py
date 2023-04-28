@@ -22,7 +22,7 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder = "static")
 app.secret_key = os.urandom(24)
 
 root = logging.getLogger()
