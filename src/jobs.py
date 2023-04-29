@@ -7,7 +7,7 @@ import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from .models import Users, Companies, Postings, Searches
+from src.models import *
 import datetime
 import re
 from sqlalchemy import text

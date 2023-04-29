@@ -6,7 +6,13 @@ from config import Config
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_migrate import Migrate
 import os
-from .models import *
+
+from src.models import db
+from src.models.users import Users
+from src.models.searches import Searches
+from src.models.postings import Postings
+from src.models.companies import Companies
+
 from .jobs import crawl_for_postings, run_email_send_job
 from flask_login import LoginManager
 import logging
