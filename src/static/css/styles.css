@@ -1,0 +1,222 @@
+.error-message {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+    background-color: #f6f8fa;
+    color: #24292e;
+}
+
+h1 {
+    margin-bottom: 1rem;
+    margin-top: 2rem;
+}
+
+table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+
+th {
+    font-weight: 600;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+td {
+    border-bottom: 1px solid #e1e4e8;
+}
+
+/* Update button styles to match GitHub's UI */
+button {
+    background-color: #2ea44f;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #22863a;
+}
+
+/* Make both tables the same width */
+#company-table,
+#board-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Set the fixed width of the name/company name columns */
+#company-table th:nth-child(1),
+#board-table th:nth-child(1) {
+    width: 15%;
+}
+
+/* Set the fixed width of the board URL column */
+#company-table th:nth-child(2) {
+    width: 30%;
+}
+
+/* Set the fixed width of the scraping method column */
+#company-table th:nth-child(3) {
+    width: 30%;
+}
+
+/* Set the fixed width of the search text column */
+#board-table th:nth-child(2) {
+    width: 70%;
+}
+
+/* Set the fixed width of the actions columns */
+#company-table th:nth-child(4),
+#company-table th:nth-child(5),
+#board-table th:nth-child(3) {
+    width: 10%;
+}
+
+.nowrap {
+    width: 100%;
+    white-space: nowrap;
+}
+
+.nowrap td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dataTables_wrapper {
+    overflow-x: auto;
+}
+
+table.dataTable td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+select {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 4px 8px;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    background-color: #fafbfc;
+    color: #24292e;
+    appearance: none;
+    /* Remove the default arrow */
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+select:hover {
+    background-color: #f6f8fa;
+}
+
+/* Add a custom arrow for the dropdowns */
+select::-ms-expand {
+    display: none;
+}
+
+select {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill="%2324292e" d="M4.427 6.427L8 9.573l3.573-3.146a.25.25 0 01.427.177v.073l-.007.008L8 10.573l-4.006-3.98L3.993 6.93v-.073a.25.25 0 01.434-.18z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+}
+
+#company-table th,
+#company-table td,
+#board-table th,
+#board-table td {
+    vertical-align: middle;
+}
+
+/* Add padding to table cells for better spacing */
+#company-table td,
+#board-table td {
+    padding: 8px;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 15%;
+    padding-bottom: 15%;
+}
+
+.login-box {
+    width: 400px;
+    background-color: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 2rem;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.login-input {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.login-button {
+    width: 100%;
+    background-color: #2ea44f;
+    border: none;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-button:hover {
+    background-color: #22863a;
+}
+
+.modal-body h6 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.modal-body p {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: calc(50%);
+    z-index: 1100;
+}
