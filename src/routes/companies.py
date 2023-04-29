@@ -13,7 +13,6 @@ companies_bp = Blueprint('companies_bp', __name__, template_folder='templates', 
 
 @companies_bp.route("/companies")
 def get_companies():
-    current_app.logger.info("In companies")
     result = Companies.query.all()
 
     result = [{key: b.__dict__[key] for key in ["id", "name", "board_url", "job_posting_url_prefix", "scraping_method"]} for b in result]

@@ -14,8 +14,8 @@ from src.models.searches import Searches
 from src.models.postings import Postings
 from src.models.companies import Companies
 from src.jobs.scraping import crawl_for_postings, run_email_send_job
-from src.routes import homepage
-from src.routes.auth import auth
+from src.routes import home_bp
+from src.routes.auth import auth_bp
 from src.routes.companies import companies_bp
 from src.routes.errors import errors_bp
 from src.routes.preferences import preferences_bp
@@ -50,8 +50,8 @@ if os.environ.get("ENV") == "PROD":
 app = Flask(__name__, static_folder = "static", template_folder = "templates")
 admin = Admin(app, name='jobcrawler')
 
-app.register_blueprint(homepage)
-app.register_blueprint(auth)
+app.register_blueprint(home_bp)
+app.register_blueprint(auth_bp)
 app.register_blueprint(companies_bp)
 app.register_blueprint(errors_bp)
 app.register_blueprint(preferences_bp)
@@ -89,7 +89,7 @@ if __name__ != '__main__':
     app.logger.setLevel(gunicorn_logger.level)
 
 login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
+login_manager.login_view = 'auth_bp.login'
 login_manager.init_app(app)
 
 @login_manager.user_loader

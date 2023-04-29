@@ -39,16 +39,16 @@
                     <div class="container-fluid justify-content-between">
                         <div></div>
                         <div class="d-md-flex">
-                            <a href="{{ url_for('homepage.index') }}" class="btn btn-outline-primary me-2">
+                            <a href="{{ url_for('home_bp.index') }}" class="btn btn-outline-primary me-2">
                                 Home
                             </a>
                             {% if not current_user.is_authenticated %}
-                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary me-2">
+                            <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-primary me-2">
                                 Login
                             </a>
                             {% endif %}
                             {% if not current_user.is_authenticated %}
-                            <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-primary me-2">
+                            <a href="{{ url_for('auth_bp.signup') }}" class="btn btn-outline-primary me-2">
                                 Sign Up
                             </a>
                             {% endif %}
@@ -57,7 +57,7 @@
                                 class="btn btn-outline-primary me-2">
                                 Preferences
                             </a>
-                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-primary">
+                            <a href="{{ url_for('auth_bp.logout') }}" class="btn btn-outline-primary">
                                 Logout
                             </a>
                             {% endif %}
