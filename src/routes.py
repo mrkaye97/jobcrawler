@@ -3,9 +3,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
-from .jobs import get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job
+from .jobs import get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job, set_chrome_options
 from .exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
+from selenium import webdriver
 
 @app.route('/')
 @app.route('/index')
@@ -267,6 +268,13 @@ def favicon():
 
 @app.route('/scraping/test', methods = ["POST"])
 def test_scraping():
+
+    ## Set up Selenium
+    driver = webdriver.Chrome(options=set_chrome_options())
+    delay = 3
+
+    driver.implicitly_wait(delay)
+
     content = request.json
 
     posting_url_prefix = content.get("job_posting_url_prefix")
@@ -286,6 +294,7 @@ def test_scraping():
         )
     elif scraping_method == "selenium":
         links = get_links_selenium(
+            driver = driver,
             app = app,
             url = board_url,
             example_prefix = posting_url_prefix
@@ -297,6 +306,7 @@ def test_scraping():
     if not matching_links:
         raise ScrapingException(message = f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}", code = 400)
 
+    driver.quit()
     return matching_links
 
 @app.route('/scraping/run-crawl-job', methods = ["POST"])

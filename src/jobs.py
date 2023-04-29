@@ -51,14 +51,9 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     return response
 
-def get_links_selenium(app, url, example_prefix):
+def get_links_selenium(driver, app, url, example_prefix):
     ## Check if the page loads without 404ing
     load_page(url)
-
-    driver = webdriver.Chrome(options=set_chrome_options())
-    delay = 3
-
-    driver.implicitly_wait(delay)
 
     result = []
 
@@ -78,7 +73,6 @@ def get_links_selenium(app, url, example_prefix):
                     "href": href
                 }]
 
-        driver.quit()
     except Exception as e:
         message = f"""
             Failed to get links for {url}.
@@ -110,11 +104,18 @@ def get_links_soup(url, example_prefix):
     ]
 
 def crawl_for_postings(app, db):
+
+    ## Set up Selenium
+    driver = webdriver.Chrome(options=set_chrome_options())
+    delay = 3
+
+    driver.implicitly_wait(delay)
+
     with app.app_context():
         for company in Companies.query.all():
             app.logger.info(f"Scraping {company.name}'s job board")
             if company.scraping_method == 'selenium':
-                links = get_links_selenium(app = app, url = company.board_url, example_prefix = company.job_posting_url_prefix)
+                links = get_links_selenium(driver = driver, app = app, url = company.board_url, example_prefix = company.job_posting_url_prefix)
             elif company.scraping_method == 'soup':
                 links = get_links_soup(url = company.board_url, example_prefix = company.job_posting_url_prefix)
             else:
@@ -137,6 +138,10 @@ def crawl_for_postings(app, db):
 
             app.logger.info("Committing changes.")
             db.session.commit()
+
+    driver.quit()
+
+    return None
 
 def run_email_send_job(app, is_manual_trigger = False):
     with app.app_context():
