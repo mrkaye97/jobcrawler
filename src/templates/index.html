@@ -241,30 +241,35 @@
         const testScrapingBtn = document.getElementById('test-scraping');
         const addCompanyModalElement = document.getElementById('addCompanyModal');
         const addCompanyModal = bootstrap.Modal.getInstance(addCompanyModalElement);
+        let testButtonClicked = false;
 
         if (addCompanyModalElement) {
             addCompanyModalElement.addEventListener('hidden.bs.modal', () => {
-                const nameInput = document.getElementById('add-company-name');
-                const boardUrlInput = document.getElementById('add-company-board-url');
-                const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
-                const scrapingMethodInput = document.getElementById('add-company-scraping-method');
+                if (!testButtonClicked) {
+                    const nameInput = document.getElementById('add-company-name');
+                    const boardUrlInput = document.getElementById('add-company-board-url');
+                    const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
+                    const scrapingMethodInput = document.getElementById('add-company-scraping-method');
 
-                // Clear input fields
-                nameInput.value = '';
-                boardUrlInput.value = '';
-                jobPostingUrlPrefixInput.value = '';
-                scrapingMethodInput.value = 'soup';
+                    // Clear input fields
+                    nameInput.value = '';
+                    boardUrlInput.value = '';
+                    jobPostingUrlPrefixInput.value = '';
+                    scrapingMethodInput.value = 'soup';
 
-                // Remove error alert if present
-                const existingError = addCompanyModalElement.querySelector('.alert');
-                if (existingError) {
-                    existingError.remove();
+                    // Remove error alert if present
+                    const existingError = addCompanyModalElement.querySelector('.alert');
+                    if (existingError) {
+                        existingError.remove();
+                    }
                 }
+                testButtonClicked = false;
             });
         }
 
         if (testScrapingBtn) {
             testScrapingBtn.addEventListener('click', function () {
+                testButtonClicked = true;
                 const nameInput = document.getElementById('add-company-name');
                 const boardUrlInput = document.getElementById('add-company-board-url');
                 const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
@@ -345,7 +350,6 @@
                 addCompanyModal.show();
             });
         }
-
 
         const runCrawlJobBtn = document.getElementById('run-crawl-job-btn');
         if (runCrawlJobBtn) {
