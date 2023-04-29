@@ -38,7 +38,7 @@ RUN pip install -r requirements.txt
 COPY . /usr/src/app/
 
 CMD flask db upgrade && \
-    gunicorn src:app \
+    gunicorn app:app \
     --workers 2 \
     --timeout 180 \
     --bind 0.0.0.0:${PORT} \
