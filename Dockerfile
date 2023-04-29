@@ -40,6 +40,7 @@ COPY . /usr/src/app/
 CMD flask db upgrade && \
     gunicorn src:app \
     --workers 2 \
+    --timeout 180 \
     --bind 0.0.0.0:${PORT} \
     --log-level=info \
     --preload
