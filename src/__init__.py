@@ -13,16 +13,18 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 sched = BackgroundScheduler()
 
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[
-        FlaskIntegration(),
-    ],
+if os.environ.get("ENV") == "PROD":
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        integrations=[
+            FlaskIntegration(),
+        ],
 
-    traces_sample_rate=1.0
-)
+        traces_sample_rate=1.0
+    )
 
-app = Flask(__name__, static_folder = "static")
+app = Flask(__name__, static_folder = "static", template_folder = "templates")
+
 app.secret_key = os.urandom(24)
 
 root = logging.getLogger()
