@@ -99,7 +99,7 @@ def load_user(user_id):
 @sched.scheduled_job(trigger = 'cron', hour = 23, id = 'crawl')
 def crawl():
     app.logger.info("Kicking off scraping job")
-    crawl_for_postings(app, db)
+    crawl_for_postings(db)
 
 @sched.scheduled_job(trigger = "cron", hour = 0, id = "send_emails")
 def send_emails():
