@@ -258,7 +258,8 @@ def handle_error(e):
     if code == 404:
         return render_template('404.html')
     else:
-        return render_template("error.html")
+        message = "500 - That's our bad." if code == 500 else code
+        return render_template("error.html", error_message = message)
 
 @app.route('/favicon.ico')
 def favicon():
