@@ -303,5 +303,3 @@ def test_scraping():
 def run_crawl_job():
     app.logger.info("Kicking off scraping job")
     crawl_for_postings(app, db)
-
-
