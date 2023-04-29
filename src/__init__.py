@@ -1,3 +1,4 @@
+## Flask
 from flask import Flask
 from flask_admin import Admin
 from flask_admin.menu import MenuLink
@@ -5,23 +6,37 @@ from flask_admin.contrib.sqla import ModelView
 from config import Config
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_migrate import Migrate
-import os
 
+## Application
 from src.models import db
 from src.models.users import Users
 from src.models.searches import Searches
 from src.models.postings import Postings
 from src.models.companies import Companies
+from src.jobs.scraping import crawl_for_postings, run_email_send_job
+from src.routes import homepage
+from src.routes.auth import auth
+from src.routes.companies import companies_bp
+from src.routes.errors import errors_bp
+from src.routes.preferences import preferences_bp
+from src.routes.scraping import scraping_bp
+from src.routes.searches import searches_bp
 
-from .jobs import crawl_for_postings, run_email_send_job
-from flask_login import LoginManager
+## Logging
 import logging
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
-from flask_login import current_user
 
+## Auth
+from flask_login import current_user, LoginManager
+
+## Misc
+import os
+
+## Set up the background scheduler
 sched = BackgroundScheduler()
 
+## Set up Sentry
 if os.environ.get("ENV") == "PROD":
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DSN"),
@@ -34,6 +49,15 @@ if os.environ.get("ENV") == "PROD":
 
 app = Flask(__name__, static_folder = "static", template_folder = "templates")
 admin = Admin(app, name='jobcrawler')
+
+app.register_blueprint(homepage)
+app.register_blueprint(auth)
+app.register_blueprint(companies_bp)
+app.register_blueprint(errors_bp)
+app.register_blueprint(preferences_bp)
+app.register_blueprint(scraping_bp)
+app.register_blueprint(searches_bp)
+
 
 class AdminView(ModelView):
     def is_accessible(self):
@@ -53,8 +77,6 @@ app.secret_key = os.urandom(24)
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
-
-from src import routes
 
 app.config.from_object(Config)
 migrate = Migrate(app, db)

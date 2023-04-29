@@ -1,18 +1,29 @@
-from bs4 import BeautifulSoup
+## Flask imports
+from flask import current_app
+
+## current_application Imports
+from src.models.companies import Companies
+from src.models.postings import Postings
+from src.models.users import Users
+from src.models.searches import Searches
+from src.exceptions import ScrapingException
+
+## Imports for scraping
 import requests
+import traceback
+from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from sentry_sdk import capture_message
-import sib_api_v3_sdk
-import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from src.models import *
+
+## Misc Imports
+from sentry_sdk import capture_message
+import sib_api_v3_sdk
+import os
 import datetime
 import re
 from sqlalchemy import text
-from .exceptions import ScrapingException
-import traceback
 
 def set_chrome_options() -> Options:
     """Sets chrome options for Selenium.
@@ -51,22 +62,22 @@ def send_email(sender_name, sender_email, recipient, subject, body):
 
     return response
 
-def get_links_selenium(driver, app, url, example_prefix):
+def get_links_selenium(driver, url, example_prefix):
     ## Check if the page loads without 404ing
     load_page(url)
 
     result = []
 
     try:
-        app.logger.info(f"Getting {url}")
+        current_app.logger.info(f"Getting {url}")
         driver.get(url)
-        app.logger.info(f"Finished getting {url}")
+        current_app.logger.info(f"Finished getting {url}")
 
         links =  driver.find_elements(By.XPATH, "//a[@href]")
 
         for link in links:
             href = link.get_attribute("href")
-            app.logger.info(f"Found link {href}")
+            current_app.logger.info(f"Found link {href}")
             if example_prefix in href:
                 result = result + [{
                     "text": link.get_attribute("text"),
@@ -80,7 +91,7 @@ def get_links_selenium(driver, app, url, example_prefix):
             Error: {traceback.format_exc()}
         """
 
-        app.logger.error(message)
+        current_app.logger.error(message)
         capture_message(message)
 
     return result
@@ -103,7 +114,7 @@ def get_links_soup(url, example_prefix):
         if example_prefix in urljoin(url, link['href'])
     ]
 
-def crawl_for_postings(app, db):
+def crawl_for_postings(db):
 
     ## Set up Selenium
     driver = webdriver.Chrome(options=set_chrome_options())
@@ -111,40 +122,40 @@ def crawl_for_postings(app, db):
 
     driver.implicitly_wait(delay)
 
-    with app.app_context():
+    with current_app.app_context():
         for company in Companies.query.all():
-            app.logger.info(f"Scraping {company.name}'s job board")
+            current_app.logger.info(f"Scraping {company.name}'s job board")
             if company.scraping_method == 'selenium':
-                links = get_links_selenium(driver = driver, app = app, url = company.board_url, example_prefix = company.job_posting_url_prefix)
+                links = get_links_selenium(driver = driver, url = company.board_url, example_prefix = company.job_posting_url_prefix)
             elif company.scraping_method == 'soup':
                 links = get_links_soup(url = company.board_url, example_prefix = company.job_posting_url_prefix)
             else:
                 links = []
 
-            app.logger.info(f"Finished scraping {company.name}'s job board")
-            app.logger.info(f"Removing existing links for {company.name}")
+            current_app.logger.info(f"Finished scraping {company.name}'s job board")
+            current_app.logger.info(f"Removing existing links for {company.name}")
 
             existing_postings = Postings.query.filter_by(company_id = company.id).all()
 
             if existing_postings:
                 db.session.execute(text(f'delete from postings where company_id = {company.id}'))
 
-            app.logger.info(f"Finished removing existing links for {company.name}")
-            app.logger.info(f"Adding new links for {company.name}")
+            current_app.logger.info(f"Finished removing existing links for {company.name}")
+            current_app.logger.info(f"Adding new links for {company.name}")
 
             for link in links:
                 new_posting = Postings(company_id = company.id, link_text = link["text"], link_href = link["href"])
                 db.session.add(new_posting)
 
-            app.logger.info("Committing changes.")
+            current_app.logger.info("Committing changes.")
             db.session.commit()
 
     driver.quit()
 
     return None
 
-def run_email_send_job(app, is_manual_trigger = False):
-    with app.app_context():
+def run_email_send_job(is_manual_trigger = False):
+    with current_app.app_context():
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
         ## TODO: Instead of first pulling all users and then check
@@ -154,7 +165,7 @@ def run_email_send_job(app, is_manual_trigger = False):
                 user_email_frequency = user.email_frequency_days or 7
 
                 if current_day % user_email_frequency == 0 or user.email == "mrkaye97@gmail.com":
-                    app.logger.info(f"Preparing to send email to {user.email}")
+                    current_app.logger.info(f"Preparing to send email to {user.email}")
                     user_search_results = Searches.\
                         query.\
                         filter_by(user_id = user.id).\
@@ -180,7 +191,7 @@ def run_email_send_job(app, is_manual_trigger = False):
                                 clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
                                 matching_postings = matching_postings + [f"{clean_link_text} @ {search.company_name}: {search.link_href}"]
 
-                        app.logger.info(f"Matching job postings: {matching_postings}")
+                        current_app.logger.info(f"Matching job postings: {matching_postings}")
 
                         if matching_postings:
 
@@ -200,10 +211,10 @@ def run_email_send_job(app, is_manual_trigger = False):
                                 Matt
                             """
 
-                            app.logger.info(f"Email message: {message}")
+                            current_app.logger.info(f"Email message: {message}")
 
                             if os.environ.get("ENV") == "PROD":
-                                app.logger.info(f"Sending email to {user.email}")
+                                current_app.logger.info(f"Sending email to {user.email}")
                                 send_email(
                                     sender_email = "mrkaye97@gmail.com",
                                     sender_name = "Matt Kaye",
@@ -212,4 +223,4 @@ def run_email_send_job(app, is_manual_trigger = False):
                                     body = message
                                 )
                             else:
-                                app.logger.info(message)
+                                current_app.logger.info(message)

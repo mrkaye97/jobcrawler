@@ -209,7 +209,7 @@
             addRowBtn.addEventListener('click', function () {
                 const defaultCompanyId = firstCompanyId;
 
-                fetch(`/users/current/default-search`)
+                fetch(`/users/current/preferences`)
                     .then(response => response.json())
                     .then(fields => {
                         const defaultSearchRegex = fields.default_search;
