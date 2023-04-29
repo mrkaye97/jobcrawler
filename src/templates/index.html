@@ -103,11 +103,11 @@
 
     {% if current_user.is_authenticated %}
     <h1>My Job Searches</h1>
-    <div id="job-search-cards" class="row row-cols-1 row-cols-md-3 g-4">
+    <div id="job-search-cards" class="job-search-cards">
         <!-- Cards will be generated here -->
     </div>
     <div class="text-center mt-4">
-        <button id="add-card-btn" class="btn btn-success">Add Card</button>
+        <button id="add-card-btn" class="btn btn-success">New</button>
     </div>
 
     <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
@@ -204,17 +204,14 @@
 
                     populateCompanyDropdown(companiesWithoutExistingSearches);
 
-                    const container = document.querySelector('.container');
-                    const rowDiv = document.createElement('div');
-                    rowDiv.className = 'row row-cols-1 row-cols-md-3 g-4';
-                    container.appendChild(rowDiv);
-
                     searchesArray.forEach(search => {
                         const card = createJobSearchCard(search.companyId, search.companyName, search.searches);
-                        rowDiv.appendChild(card);
+                        const jobSearchCards = document.getElementById('job-search-cards');
+                        jobSearchCards.appendChild(card);
                     });
                 });
             {% endif %}
+
         });
 
         {% if current_user.is_authenticated %}
