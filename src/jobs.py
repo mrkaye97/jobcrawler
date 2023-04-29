@@ -7,7 +7,6 @@ import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium import webdriver
 from .models import Users, Companies, Postings, Searches
 import datetime
 import re
