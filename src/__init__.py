@@ -10,7 +10,6 @@ from .models import *
 from .jobs import crawl_for_postings, run_email_send_job
 from flask_login import LoginManager
 import logging
-import sys
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask_login import current_user
