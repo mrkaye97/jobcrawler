@@ -1,4 +1,4 @@
-function createCompanyRow(company) {
+function createCompanyRow(company, email) {
     const row = document.createElement('tr');
     row.dataset.id = company.id;
 
@@ -10,7 +10,7 @@ function createCompanyRow(company) {
     const scrapingMethodCell = document.createElement('td');
     let scrapingMethodSelect;
 
-    if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
+    if (email === "mrkaye97@gmail.com") {
         scrapingMethodSelect = document.createElement('select');
         const soupOption = document.createElement('option');
         const seleniumOption = document.createElement('option');
@@ -31,7 +31,7 @@ function createCompanyRow(company) {
         scrapingMethodCell.appendChild(scrapingMethodText);
     }
 
-    if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
+    if (email === "mrkaye97@gmail.com") {
         nameCell.contentEditable = true;
         boardUrlCell.contentEditable = true;
         jobPostingUrlCell.contentEditable = true;
@@ -46,7 +46,7 @@ function createCompanyRow(company) {
     row.appendChild(jobPostingUrlCell);
     row.appendChild(scrapingMethodCell);
 
-    if ("{{ current_user.email }}" === "mrkaye97@gmail.com") {
+    if (email === "mrkaye97@gmail.com") {
         const actionsCell = document.createElement('td');
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-danger';
@@ -209,23 +209,22 @@ function runEmailJob() {
         });
 }
 
-function populateCompanySelect() {
-    const companySelect = document.getElementById('company-select');
-
-    console.log(companies);
-    // Clear existing options
+function populateCompanyDropdown(companies) {
+    const companySelect = document.querySelector('#company-select');
+    const rowDiv = document.querySelector('#job-search-cards');
     companySelect.innerHTML = '';
 
     companies.forEach(company => {
-        console.log("Company from in populateCompanySelect", company);
-        const option = document.createElement('option');
-        option.value = company.id;
-        option.text = company.name;
-        companySelect.appendChild(option);
+        const existingCard = Array.from(rowDiv.children).find(cardDiv => cardDiv.dataset.id === company.id.toString());
+        if (!existingCard) {
+            const option = document.createElement('option');
+            option.value = company.id;
+            option.textContent = company.name;
+            companySelect.appendChild(option);
+        }
     });
 }
-
-function createJobSearchCard(companyId, searches) {
+function createJobSearchCard(companyId, companyName, searches) {
     // The card container
     const cardDiv = document.createElement('div');
     cardDiv.className = 'col';
@@ -242,28 +241,30 @@ function createJobSearchCard(companyId, searches) {
     // Card title
     const cardTitle = document.createElement('h5');
     cardTitle.className = 'card-title';
-    cardTitle.textContent = companies.find(c => c.id === companyId).name;
+    cardTitle.textContent = companyName;
     cardBody.appendChild(cardTitle);
 
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-warning btn-sm mt-2 me-2';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', function () {
+        openEditModal(companyId);
+    });
+    cardBody.appendChild(editBtn);
+
+    const deleteCardBtn = document.createElement('button');
+    deleteCardBtn.className = 'btn btn-danger btn-sm mt-2';
+    deleteCardBtn.textContent = 'Delete';
+    deleteCardBtn.addEventListener('click', function () {
+        deleteCard(companyId);
+    });
+    cardBody.appendChild(deleteCardBtn);
     // Card content (search links)
     const searchList = document.createElement('ul');
     searches.forEach(search => {
         const listItem = document.createElement('li');
         listItem.textContent = search.search_regex;
         listItem.dataset.searchId = search.search_id;
-
-        // Add delete button to list item
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-danger btn-sm ms-2';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', function () {
-            fetch(`/searches/${listItem.dataset.searchId}`, {
-                method: 'DELETE'
-            }).then(() => {
-                listItem.remove();
-            });
-        });
-        listItem.appendChild(deleteBtn);
 
         searchList.appendChild(listItem);
     });
@@ -275,37 +276,56 @@ function createJobSearchCard(companyId, searches) {
     return cardDiv;
 }
 
-function createBoardCard(board) {
-    const colDiv = document.createElement('div');
-    colDiv.className = 'col';
+function openEditModal(companyId) {
+    const editCardModal = new bootstrap.Modal(document.getElementById('editCardModal'), {});
+    editCardModal.show();
 
-    const cardDiv = document.createElement('div');
-    cardDiv.className = 'card github-card';
+    // Populate the job searches list
+    const searchList = document.querySelector(`[data-id="${companyId}"] ul`);
+    const editSearchList = document.getElementById('edit-search-list');
+    editSearchList.innerHTML = '';
 
-    const cardTitle = document.createElement('h4');
-    cardTitle.textContent = board.companyName;
-    cardDiv.appendChild(cardTitle);
-
-    const searchList = document.createElement('ul');
-    board.searches.forEach(search => {
-        const listItem = document.createElement('li');
-        listItem.textContent = search.search_regex;
-        searchList.appendChild(listItem);
+    Array.from(searchList.children).forEach(item => {
+        const listItem = item.cloneNode(true);
+        listItem.classList.add('list-group-item');
+        editSearchList.appendChild(listItem);
     });
-    cardDiv.appendChild(searchList);
 
-    const deleteBtn = document.createElement('a');
-    deleteBtn.className = 'card-btn';
+    // Save the companyId in the dataset for later use
+    editSearchList.dataset.companyId = companyId;
+}
+
+function createSearchListItem(search) {
+    const listItem = document.createElement('li');
+    listItem.textContent = search.search_regex;
+    listItem.dataset.searchId = search.search_id;
+    listItem.classList.add('list-group-item');
+
+    // Add delete button to list item
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-danger btn-sm ms-2';
     deleteBtn.textContent = 'Delete';
-    deleteBtn.href = '#';
-    // Update the event listener with the new delete functionality
-    deleteBtn.addEventListener('click', function (event) {
-        event.preventDefault();
-        // Delete the company and all searches associated with it
+    deleteBtn.addEventListener('click', function () {
+        fetch(`/searches/${listItem.dataset.searchId}`, {
+            method: 'DELETE'
+        }).then(() => {
+            listItem.remove();
+        });
     });
-    cardDiv.appendChild(deleteBtn);
+    listItem.appendChild(deleteBtn);
 
-    colDiv.appendChild(cardDiv);
+    return listItem;
+}
 
-    return colDiv;
+function deleteCard(companyId) {
+    // Delete all searches associated with the companyId
+    fetch(`/searches/company/${companyId}`, {
+        method: 'DELETE'
+    }).then(() => {
+        console.log("Deleting card");
+        const cardDiv = document.querySelector(`[data-id="${companyId}"]`);
+        if (cardDiv) {
+            cardDiv.remove();
+        }
+    });
 }

@@ -11,7 +11,7 @@ class Searches(db.Model):
     posting_id = db.Column(db.Integer, db.ForeignKey("postings.id"))
 
     def __repr__(self):
-        return f"Company : {self.company}, URL: {self.url}, search: {self.search_regex}"
+        return f"<Search {self.id}> User: {self.user_id}, Company: {self.company_id}, Posting: {self.posting_id}, search: {self.search_regex}"
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)

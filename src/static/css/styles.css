@@ -280,3 +280,17 @@ select {
     border-color: rgba(27, 31, 35, 0.35);
     text-decoration: none;
 }
+
+/* Add styles for the card container */
+#job-search-cards {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+/* Set a wider width for the cards */
+.card {
+    width: 70%;
+}

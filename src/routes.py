@@ -109,7 +109,7 @@ def get_searches():
         else:
             result[search.company_id] = result[search.company_id] + [{"search_id": search.search_id, "search_regex": search.search_regex}]
 
-    app.logger.info(json.dumps(result))
+    app.logger.debug(json.dumps(result))
     return result
 
 @app.route('/searches', methods=["POST"])
@@ -117,8 +117,8 @@ def get_searches():
 def create_search():
     content = request.json
 
-    app.logger.info("Creating a new search")
-    app.logger.info(json.dumps(content))
+    app.logger.debug("Creating a new search")
+    app.logger.debug(json.dumps(content))
 
     company_id = content.get("company_id")
     search_regex = content.get("search_regex")
@@ -134,7 +134,7 @@ def create_search():
         record = record.__dict__
         del record["_sa_instance_state"]
 
-        app.logger.info(json.dumps(record))
+        app.logger.debug(json.dumps(record))
 
         return record
     else:
@@ -143,8 +143,8 @@ def create_search():
 @app.route('/searches/<int:id>', methods=["PUT"])
 @login_required
 def update_search(id):
-    app.logger.info("Updating a record")
-    app.logger.info(json.dumps(request.form))
+    app.logger.debug("Updating a record")
+    app.logger.debug(json.dumps(request.form))
 
     company_id = request.form.get("company_id")
     search_regex = request.form.get("search_regex")
@@ -167,13 +167,26 @@ def delete_search(id):
 
     return f"Successfully deleted {id}"
 
+@app.route('/searches/company/<int:company_id>', methods = ["DELETE"])
+@login_required
+def delete_all_company_searches(company_id):
+    app.logger.info(f"Deleting all searches for company {company_id} for user {current_user.get_id()}")
+    data = Searches.query.filter_by(company_id = company_id, user_id = current_user.get_id()).all()
+
+    for record in data:
+        db.session.delete(record)
+
+    db.session.commit()
+
+    return {"message": f"Successfully deleted {company_id}"}, 200
+
 
 @app.route("/companies")
 def get_companies():
     result = Companies.query.all()
 
     result = [{key: b.__dict__[key] for key in ["id", "name", "board_url", "job_posting_url_prefix", "scraping_method"]} for b in result]
-    app.logger.info(json.dumps(result))
+    app.logger.debug(json.dumps(result))
 
     return result
 
@@ -182,8 +195,8 @@ def create_company():
 
     content = request.json
 
-    app.logger.info("Creating a new company")
-    app.logger.info(json.dumps(content))
+    app.logger.debug("Creating a new company")
+    app.logger.debug(json.dumps(content))
 
     name = content.get("name")
     board_url = content.get("board_url")
@@ -206,8 +219,8 @@ def create_company():
 
 @app.route('/companies/<int:id>', methods=["PUT"])
 def update_company(id):
-    app.logger.info("Updating a record")
-    app.logger.info(json.dumps(request.form))
+    app.logger.debug("Updating a record")
+    app.logger.debug(json.dumps(request.form))
 
     name = request.form.get("name")
     board_url = request.form.get("board_url")

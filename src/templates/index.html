@@ -138,6 +138,32 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="editCardModal" tabindex="-1" aria-labelledby="editCardModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCardModalLabel">Edit job searches</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="search-regex-edit" class="form-label">Search regex</label>
+                            <input type="text" class="form-control" id="search-regex-edit">
+                        </div>
+                    </form>
+                    <ul id="edit-search-list" class="list-group">
+                        <!-- Job searches will be populated by JavaScript -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="add-search-btn" class="btn btn-primary">Add Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     <script>
@@ -151,13 +177,9 @@
                     companies = fetchedCompanies;
                     firstCompanyId = companies.length > 0 ? companies[0].id : null;
 
-                    {% if current_user.is_authenticated %}
-                    populateCompanySelect();
-                    {% endif %}
-
                     const companyTableBody = document.querySelector('#company-table tbody');
                     companies.forEach(company => {
-                        const row = createCompanyRow(company);
+                        const row = createCompanyRow(company, "{{current_user.email}}");
                         companyTableBody.appendChild(row);
                     });
 
@@ -177,19 +199,25 @@
                         return { companyId, companyName, searches };
                     });
 
+                    const companiesWithExistingSearches = Object.keys(searchesByCompany).map(Number);
+                    const companiesWithoutExistingSearches = companies.filter(obj => !companiesWithExistingSearches.includes(obj.id));
+
+                    populateCompanyDropdown(companiesWithoutExistingSearches);
+
                     const container = document.querySelector('.container');
                     const rowDiv = document.createElement('div');
                     rowDiv.className = 'row row-cols-1 row-cols-md-3 g-4';
                     container.appendChild(rowDiv);
 
                     searchesArray.forEach(search => {
-                        const card = createBoardCard(search);
+                        const card = createJobSearchCard(search.companyId, search.companyName, search.searches);
                         rowDiv.appendChild(card);
                     });
                 });
             {% endif %}
         });
 
+        {% if current_user.is_authenticated %}
         const addCompanyBtn = document.getElementById('add-company-btn');
         if (addCompanyBtn) {
             addCompanyBtn.addEventListener('click', function () {
@@ -197,6 +225,8 @@
                 addCompanyModal.show();
             });
         }
+        {% endif %}
+
 
         const confirmAddCompanyBtn = document.getElementById('confirm-add-company');
         if (confirmAddCompanyBtn) {
@@ -220,7 +250,7 @@
                 }).then(response => response.json())
                     .then(company => {
                         const companyTable = document.getElementById('company-table');
-                        const companyRow = createCompanyRow(company);
+                        const companyRow = createCompanyRow(company, "{{current_user.email}}");
                         companyTable.querySelector('tbody').appendChild(companyRow);
 
                         nameInput.value = '';
@@ -241,6 +271,37 @@
                 addCardModal.show();
             });
         }
+
+        const addSearchBtn = document.getElementById('add-search-btn');
+        if (addSearchBtn) {
+            addSearchBtn.addEventListener('click', function () {
+                const companyId = document.getElementById('edit-search-list').dataset.companyId;
+                const searchRegex = document.getElementById('search-regex-edit').value;
+
+                const newSearch = {
+                    company_id: companyId,
+                    search_regex: searchRegex
+                };
+
+                fetch(`/searches`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newSearch)
+                }).then((response) => {
+                    response.json().then(savedSearch => {
+                        const listItem = createSearchListItem(savedSearch);
+                        document.querySelector(`[data-id="${companyId}"] ul`).appendChild(listItem);
+                        document.getElementById('edit-search-list').appendChild(listItem.cloneNode(true));
+
+                        // Clear the input field
+                        document.getElementById('search-regex-edit').value = '';
+                    });
+                });
+            });
+        }
+
 
         const saveCardBtn = document.getElementById('save-card-btn');
         if (saveCardBtn) {
@@ -287,7 +348,8 @@
 
                             searchList.appendChild(listItem);
                         } else {
-                            const card = createJobSearchCard(savedBoard.company_id, [savedBoard]);
+                            const companyName = companies.find(company => company.id === parseInt(savedBoard.company_id)).name;
+                            const card = createJobSearchCard(savedBoard.company_id, companyName, [savedBoard]);
                             rowDiv.appendChild(card);
                         }
 
