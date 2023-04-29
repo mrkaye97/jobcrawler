@@ -151,7 +151,9 @@
                     companies = fetchedCompanies;
                     firstCompanyId = companies.length > 0 ? companies[0].id : null;
 
+                    {% if current_user.is_authenticated %}
                     populateCompanySelect();
+                    {% endif %}
 
                     const companyTableBody = document.querySelector('#company-table tbody');
                     companies.forEach(company => {
