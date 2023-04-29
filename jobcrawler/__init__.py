@@ -35,7 +35,7 @@ import os
 
 def create_app(config_class = Config):
     ## Set up the background scheduler
-    sched = BackgroundScheduler()
+    sched = BackgroundScheduler(timezone = "UTC")
 
     ## Set up Sentry
     if os.environ.get("ENV") == "PROD":
@@ -79,7 +79,7 @@ def create_app(config_class = Config):
     root = logging.getLogger()
     root.setLevel(logging.INFO)
 
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
     migrate = Migrate(app, db)
     db.init_app(app)
     migrate.init_app(app, db)
