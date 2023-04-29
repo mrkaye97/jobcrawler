@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 from urllib.parse import urljoin
+from sentry_sdk import capture_message
 import sib_api_v3_sdk
 import os
 from selenium import webdriver
@@ -12,6 +13,7 @@ import datetime
 import re
 from sqlalchemy import text
 from .exceptions import ScrapingException
+import traceback
 
 def set_chrome_options() -> Options:
     """Sets chrome options for Selenium.
@@ -59,23 +61,34 @@ def get_links_selenium(app, url, example_prefix):
 
     driver.implicitly_wait(delay)
 
-    app.logger.info(f"Getting {url}")
-    driver.get(url)
-    app.logger.info(f"Finished getting {url}")
-
-    links =  driver.find_elements(By.XPATH, "//a[@href]")
-
     result = []
-    for link in links:
-        href = link.get_attribute("href")
-        app.logger.info(f"Found link {href}")
-        if example_prefix in href:
-            result = result + [{
-                "text": link.get_attribute("text"),
-                "href": href
-            }]
 
-    driver.quit()
+    try:
+        app.logger.info(f"Getting {url}")
+        driver.get(url)
+        app.logger.info(f"Finished getting {url}")
+
+        links =  driver.find_elements(By.XPATH, "//a[@href]")
+
+        for link in links:
+            href = link.get_attribute("href")
+            app.logger.info(f"Found link {href}")
+            if example_prefix in href:
+                result = result + [{
+                    "text": link.get_attribute("text"),
+                    "href": href
+                }]
+
+        driver.quit()
+    except Exception as e:
+        message = f"""
+            Failed to get links for {url}.
+
+            Error: {traceback.format_exc()}
+        """
+
+        app.logger.error(message)
+        capture_message(message)
 
     return result
 
