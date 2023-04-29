@@ -158,7 +158,7 @@ def run_email_send_job(app):
                     matching_postings = [
                         f"{search.link_text} @ {search.company_name}: {search.link_href}"
                         for search in user_search_results
-                        if re.search(search.search_regex, search.link_text.lower())
+                        if re.search(search.search_regex, search.link_text.lower() if search.link_text else "")
                     ]
 
                     if matching_postings:
