@@ -295,7 +295,7 @@ def test_scraping():
 
     matching_links = [l for l in links if posting_url_prefix in l.get("href")]
     if not matching_links:
-        raise ScrapingException(f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}")
+        raise ScrapingException(message = f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}", code = 400)
 
     return matching_links
 
