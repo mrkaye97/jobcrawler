@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1 class="mb-4">Preferences</h1>
-<form action="/preferences" method="post">
+<form action="{{url_for('preferences_bp.get_preferences')}}" method="post">
     <div class="mb-3">
         <label for="first_name" class="form-label">First Name</label>
         <input type="text" class="form-control" id="first_name" name="first_name" value="{{ current_user.first_name }}"
