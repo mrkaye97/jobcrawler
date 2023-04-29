@@ -138,66 +138,71 @@
                         lengthChange: true,
                         searching: true
                     });
-
-                    fetch(`/searches`)
-                        .then(response => response.json())
-                        .then(boards => {
-                            const tableBody = document.querySelector('#board-table tbody');
-
-                            boards.forEach(board => {
-                                const row = createBoardRow(board);
-                                tableBody.appendChild(row);
-                            });
-
-                            $('#board-table').DataTable({
-                                pageLength: 5,
-                                lengthChange: true,
-                                searching: true
-                            });
-
-                        });
                 });
+            {% if current_user.is_authenticated %}
+            fetch(`/searches`)
+                .then(response => response.json())
+                .then(boards => {
+                    const tableBody = document.querySelector('#board-table tbody');
+
+                    boards.forEach(board => {
+                        const row = createBoardRow(board);
+                        tableBody.appendChild(row);
+                    });
+
+                    $('#board-table').DataTable({
+                        pageLength: 5,
+                        lengthChange: true,
+                        searching: true
+                    });
+
+                });
+            {% endif %}
         });
 
         const addCompanyBtn = document.getElementById('add-company-btn');
-        addCompanyBtn.addEventListener('click', function () {
-            const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
-            addCompanyModal.show();
-        });
+        if (addCompanyBtn) {
+            addCompanyBtn.addEventListener('click', function () {
+                const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+                addCompanyModal.show();
+            });
+        }
 
         const confirmAddCompanyBtn = document.getElementById('confirm-add-company');
-        confirmAddCompanyBtn.addEventListener('click', function () {
-            const nameInput = document.getElementById('add-company-name');
-            const boardUrlInput = document.getElementById('add-company-board-url');
-            const urlPrefixInput = document.getElementById('add-company-url-prefix');
-            const scrapingMethodInput = document.getElementById('add-company-scraping-method');
+        if (confirmAddCompanyBtn) {
+            confirmAddCompanyBtn.addEventListener('click', function () {
+                const nameInput = document.getElementById('add-company-name');
+                const boardUrlInput = document.getElementById('add-company-board-url');
+                const urlPrefixInput = document.getElementById('add-company-url-prefix');
+                const scrapingMethodInput = document.getElementById('add-company-scraping-method');
 
-            fetch(`/companies`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: nameInput.value,
-                    board_url: boardUrlInput.value,
-                    job_posting_url_prefix: urlPrefixInput.value,
-                    scraping_method: scrapingMethodInput.value
-                })
-            }).then(response => response.json())
-                .then(company => {
-                    const companyTable = document.getElementById('company-table');
-                    const companyRow = createCompanyRow(company);
-                    companyTable.querySelector('tbody').appendChild(companyRow);
+                fetch(`/companies`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: nameInput.value,
+                        board_url: boardUrlInput.value,
+                        job_posting_url_prefix: urlPrefixInput.value,
+                        scraping_method: scrapingMethodInput.value
+                    })
+                }).then(response => response.json())
+                    .then(company => {
+                        const companyTable = document.getElementById('company-table');
+                        const companyRow = createCompanyRow(company);
+                        companyTable.querySelector('tbody').appendChild(companyRow);
 
-                    nameInput.value = '';
-                    boardUrlInput.value = '';
-                    urlPrefixInput.value = '';
-                    scrapingMethodInput.value = '';
+                        nameInput.value = '';
+                        boardUrlInput.value = '';
+                        urlPrefixInput.value = '';
+                        scrapingMethodInput.value = '';
 
-                    const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
-                    testResultsModal.hide();
-                });
-        });
+                        const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
+                        testResultsModal.hide();
+                    });
+            });
+        }
 
 
 
@@ -304,36 +309,38 @@
         }
 
         const addRowBtn = document.getElementById('add-row-btn');
-        addRowBtn.addEventListener('click', function () {
-            const defaultCompanyId = firstCompanyId;
+        if (addRowBtn) {
+            addRowBtn.addEventListener('click', function () {
+                const defaultCompanyId = firstCompanyId;
 
-            fetch(`/users/current/default-search`)
-                .then(response => response.json())
-                .then(fields => {
-                    const defaultSearchRegex = fields.default_search;
+                fetch(`/users/current/default-search`)
+                    .then(response => response.json())
+                    .then(fields => {
+                        const defaultSearchRegex = fields.default_search;
 
-                    let board = {
-                        company_id: defaultCompanyId,
-                        search_regex: defaultSearchRegex
-                    };
+                        let board = {
+                            company_id: defaultCompanyId,
+                            search_regex: defaultSearchRegex
+                        };
 
-                    const tableBody = document.querySelector('#board-table tbody');
-                    const row = createBoardRow(board);
-                    tableBody.appendChild(row);
+                        const tableBody = document.querySelector('#board-table tbody');
+                        const row = createBoardRow(board);
+                        tableBody.appendChild(row);
 
-                    fetch(`/searches`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(board)
-                    }).then((response) => {
-                        response.json().then(newBoard => {
-                            row.dataset.id = newBoard.id;
+                        fetch(`/searches`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(board)
+                        }).then((response) => {
+                            response.json().then(newBoard => {
+                                row.dataset.id = newBoard.id;
+                            });
                         });
                     });
-                });
-        });
+            });
+        }
 
         function createBoardRow(board) {
             const row = document.createElement('tr');
@@ -412,84 +419,89 @@
         }
 
         const testScrapingBtn = document.getElementById('test-scraping');
-        testScrapingBtn.addEventListener('click', function () {
-            const nameInput = document.getElementById('add-company-name');
-            const boardUrlInput = document.getElementById('add-company-board-url');
-            const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
-            const scrapingMethodInput = document.getElementById('add-company-scraping-method');
-            const defaultErrorMessage = "Sorry, something went wrong.";
 
-            const spinnerContainer = document.getElementById('spinner-container');
-            spinnerContainer.style.display = 'flex';
+        if (testScrapingBtn) {
+            testScrapingBtn.addEventListener('click', function () {
+                const nameInput = document.getElementById('add-company-name');
+                const boardUrlInput = document.getElementById('add-company-board-url');
+                const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
+                const scrapingMethodInput = document.getElementById('add-company-scraping-method');
+                const defaultErrorMessage = "Sorry, something went wrong.";
 
-            fetch(`/scraping/test`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: nameInput.value,
-                    board_url: boardUrlInput.value,
-                    job_posting_url_prefix: jobPostingUrlPrefixInput.value,
-                    scraping_method: scrapingMethodInput.value
-                })
-            }).then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        const errorMessage = errorData.message || defaultErrorMessage;
-                        throw new Error(errorMessage);
+                const spinnerContainer = document.getElementById('spinner-container');
+                spinnerContainer.style.display = 'flex';
+
+                fetch(`/scraping/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: nameInput.value,
+                        board_url: boardUrlInput.value,
+                        job_posting_url_prefix: jobPostingUrlPrefixInput.value,
+                        scraping_method: scrapingMethodInput.value
+                    })
+                }).then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            const errorMessage = errorData.message || defaultErrorMessage;
+                            throw new Error(errorMessage);
+                        });
+                    }
+                    return response.json();
+                }).then(urlResults => {
+                    spinnerContainer.style.display = 'none';
+
+                    const urlResultsTableBody = document.getElementById('url-results-table').getElementsByTagName('tbody')[0];
+                    urlResultsTableBody.innerHTML = '';
+                    urlResults.forEach(url => {
+                        const tr = document.createElement('tr');
+                        const td = document.createElement('td');
+
+                        const anchor = document.createElement('a');
+                        anchor.href = url.href;
+                        anchor.textContent = url.text;
+                        td.appendChild(anchor);
+
+                        tr.appendChild(td);
+                        urlResultsTableBody.appendChild(tr);
                     });
-                }
-                return response.json();
-            }).then(urlResults => {
-                spinnerContainer.style.display = 'none';
 
-                const urlResultsTableBody = document.getElementById('url-results-table').getElementsByTagName('tbody')[0];
-                urlResultsTableBody.innerHTML = '';
-                urlResults.forEach(url => {
-                    const tr = document.createElement('tr');
-                    const td = document.createElement('td');
+                    const addCompanyModal = bootstrap.Modal.getInstance(document.getElementById('addCompanyModal'));
+                    addCompanyModal.hide();
 
-                    const anchor = document.createElement('a');
-                    anchor.href = url.href;
-                    anchor.textContent = url.text;
-                    td.appendChild(anchor);
+                    const testResultsModal = new bootstrap.Modal(document.getElementById('testResultsModal'), {});
+                    testResultsModal.show();
+                }).catch(error => {
+                    spinnerContainer.style.display = 'none';
 
-                    tr.appendChild(td);
-                    urlResultsTableBody.appendChild(tr);
+                    const addCompanyModal = document.getElementById('addCompanyModal');
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'alert alert-danger mt-2';
+                    errorContainer.textContent = error.message || defaultErrorMessage;
+
+                    const existingError = addCompanyModal.querySelector('.alert');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+
+                    addCompanyModal.querySelector('.modal-body').appendChild(errorContainer);
+
                 });
-
-                const addCompanyModal = bootstrap.Modal.getInstance(document.getElementById('addCompanyModal'));
-                addCompanyModal.hide();
-
-                const testResultsModal = new bootstrap.Modal(document.getElementById('testResultsModal'), {});
-                testResultsModal.show();
-            }).catch(error => {
-                spinnerContainer.style.display = 'none';
-
-                const addCompanyModal = document.getElementById('addCompanyModal');
-                const errorContainer = document.createElement('div');
-                errorContainer.className = 'alert alert-danger mt-2';
-                errorContainer.textContent = error.message || defaultErrorMessage;
-
-                const existingError = addCompanyModal.querySelector('.alert');
-                if (existingError) {
-                    existingError.remove();
-                }
-
-                addCompanyModal.querySelector('.modal-body').appendChild(errorContainer);
-
             });
-        });
+        }
 
         const goBackBtn = document.getElementById('go-back');
-        goBackBtn.addEventListener('click', function () {
-            const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
-            testResultsModal.hide();
+        if (goBackBtn) {
+            goBackBtn.addEventListener('click', function () {
+                const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
+                testResultsModal.hide();
 
-            const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
-            addCompanyModal.show();
-        });
+                const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+                addCompanyModal.show();
+            });
+        }
 
 
         function runCrawlJob() {
@@ -509,7 +521,10 @@
                 });
         }
 
-        document.getElementById('run-crawl-job-btn').addEventListener('click', runCrawlJob);
+        const runCrawlJobBtn = document.getElementById('run-crawl-job-btn');
+        if (runCrawlJobBtn) {
+            runCrawlJobBtn.addEventListener('click', runCrawlJob);
+        }
 
         function runEmailJob() {
             fetch('/scraping/run-email-job', {
@@ -528,7 +543,10 @@
                 });
         }
 
-        document.getElementById('run-email-job-btn').addEventListener('click', runEmailJob);
+        const runEmailJobBtn = document.getElementById('run-email-job-btn');
+        if (runEmailJobBtn) {
+            runEmailJobBtn.addEventListener('click', runCrawlJob);
+        }
     </script>
 </body>
 
