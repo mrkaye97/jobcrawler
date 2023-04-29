@@ -126,69 +126,71 @@ def crawl_for_postings(app, db):
             app.logger.info("Committing changes.")
             db.session.commit()
 
-def run_email_send_job(app):
+def run_email_send_job(app, is_manual_trigger = False):
     with app.app_context():
-        app.logger.info(f'ENV value {os.environ.get("ENV")}')
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
         ## TODO: Instead of first pulling all users and then check
         ## if the email frequency matches, just do this filter in the db in the second query
         for user in Users.query.all():
-            app.logger.info(f"Preparing to send email to {user.email}")
-            user_email_frequency = user.email_frequency_days or 7
+            if not is_manual_trigger or (is_manual_trigger and user.email == "mrkaye97@gmail.com"):
+                user_email_frequency = user.email_frequency_days or 7
 
-            if current_day % user_email_frequency == 0 or user.email == "mrkaye97@gmail.com":
-                user_search_results = Searches.\
-                    query.\
-                    filter_by(user_id = user.id).\
-                    join(Companies).\
-                    join(Postings).\
-                    join(Users).\
-                    with_entities(
-                        Users.email,
-                        Users.first_name,
-                        Companies.name.label("company_name"),
-                        Searches.search_regex,
-                        Postings.link_href,
-                        Postings.link_text,
-                    ).\
-                    all()
+                if current_day % user_email_frequency == 0 or user.email == "mrkaye97@gmail.com":
+                    app.logger.info(f"Preparing to send email to {user.email}")
+                    user_search_results = Searches.\
+                        query.\
+                        filter_by(user_id = user.id).\
+                        join(Companies).\
+                        join(Postings).\
+                        join(Users).\
+                        with_entities(
+                            Users.email,
+                            Users.first_name,
+                            Companies.name.label("company_name"),
+                            Searches.search_regex,
+                            Postings.link_href,
+                            Postings.link_text,
+                        ).\
+                        all()
 
-                if user_search_results:
-                    matching_postings = [
-                        f"{search.link_text} @ {search.company_name}: {search.link_href}"
-                        for search in user_search_results
-                        if re.search(search.search_regex, search.link_text.lower() if search.link_text else "")
-                    ]
+                    if user_search_results:
+                        matching_postings = [
+                            f"{search.link_text} @ {search.company_name}: {search.link_href}"
+                            for search in user_search_results
+                            if re.search(search.search_regex, search.link_text.lower() if search.link_text else "")
+                        ]
 
-                    if matching_postings:
+                        app.logger.info(f"Matching job postings: {matching_postings}")
 
-                        link_text = "\n".join(matching_postings)
+                        if matching_postings:
 
-                        message = f"""
-                            Hey {user.first_name},
+                            link_text = "\n".join(matching_postings)
 
-                            Here are your links for the day!
+                            message = f"""
+                                Hey {user.first_name},
 
-                            {link_text}
+                                Here are your links for the day!
 
-                            I'll send you another round of matching links in {user_email_frequency} days.
+                                {link_text}
 
-                            Have a good one!
+                                I'll send you another round of matching links in {user_email_frequency} days.
 
-                            Matt
-                        """
+                                Have a good one!
 
-                        app.logger.info(f"Email message: {message}")
+                                Matt
+                            """
 
-                        if os.environ.get("ENV") == "PROD" and user.email == "mrkaye97@gmail.com":
-                            app.logger.info(f"Sending email to {user.email}")
-                            send_email(
-                                sender_email = "mrkaye97@gmail.com",
-                                sender_name = "Matt Kaye",
-                                recipient = user.email,
-                                subject = "Your daily job feed digest",
-                                body = message
-                            )
-                        else:
-                            app.logger.info(message)
+                            app.logger.info(f"Email message: {message}")
+
+                            if os.environ.get("ENV") == "PROD":
+                                app.logger.info(f"Sending email to {user.email}")
+                                send_email(
+                                    sender_email = "mrkaye97@gmail.com",
+                                    sender_name = "Matt Kaye",
+                                    recipient = user.email,
+                                    subject = "Your daily job feed digest",
+                                    body = message
+                                )
+                            else:
+                                app.logger.info(message)

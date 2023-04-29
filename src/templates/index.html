@@ -92,8 +92,13 @@
         <tbody></tbody>
     </table>
 
+    {% if current_user.is_authenticated %}
     <button id="add-company-btn" class="btn btn-success">Add Company</button>
+    {% endif %}
+    {% if current_user.email == "mrkaye97@gmail.com" %}
     <button id="run-crawl-job-btn" class="btn btn-primary">Run Crawl Job</button>
+    <button id="run-email-job-btn" class="btn btn-primary">Run Email Job</button>
+    {% endif %}
 
 
     {% if current_user.is_authenticated %}
@@ -505,6 +510,25 @@
         }
 
         document.getElementById('run-crawl-job-btn').addEventListener('click', runCrawlJob);
+
+        function runEmailJob() {
+            fetch('/scraping/run-email-job', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+        }
+
+        document.getElementById('run-email-job-btn').addEventListener('click', runEmailJob);
     </script>
 </body>
 

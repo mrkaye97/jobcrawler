@@ -1,10 +1,9 @@
 from flask import request, render_template, redirect, url_for, flash, send_from_directory
-from flask_admin.contrib.sqla import ModelView
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
-from .jobs import get_links_selenium, get_links_soup, crawl_for_postings
+from .jobs import get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job
 from .exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
 
@@ -300,6 +299,17 @@ def test_scraping():
     return matching_links
 
 @app.route('/scraping/run-crawl-job', methods = ["POST"])
-def run_crawl_job():
+def manually_trigger_crawl_job():
     app.logger.info("Kicking off scraping job")
     crawl_for_postings(app, db)
+    app.logger.info("Finished scraping job")
+
+    return {"message": "finished"}, 200
+
+@app.route('/scraping/run-email-job', methods = ["POST"])
+def manually_trigger_email_sending_job():
+    app.logger.info("Kicking off email job")
+    run_email_send_job(app, is_manual_trigger = True)
+    app.logger.info("Finished email job")
+
+    return {"message": "finished"}, 200
