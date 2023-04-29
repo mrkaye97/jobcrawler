@@ -1,7 +1,7 @@
 ## Application Imports
-from src import db
-from src.models.searches import Searches
-from src.models.companies import Companies
+from jobcrawler import db
+from jobcrawler.models.searches import Searches
+from jobcrawler.models.companies import Companies
 
 ## Flask Imports
 from flask import request, Blueprint, current_app

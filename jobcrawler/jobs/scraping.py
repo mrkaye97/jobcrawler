@@ -2,11 +2,11 @@
 from flask import current_app
 
 ## current_application Imports
-from src.models.companies import Companies
-from src.models.postings import Postings
-from src.models.users import Users
-from src.models.searches import Searches
-from src.exceptions import ScrapingException
+from jobcrawler.models.companies import Companies
+from jobcrawler.models.postings import Postings
+from jobcrawler.models.users import Users
+from jobcrawler.models.searches import Searches
+from jobcrawler.exceptions import ScrapingException
 
 ## Imports for scraping
 import requests

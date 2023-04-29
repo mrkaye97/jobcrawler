@@ -1,4 +1,4 @@
-from src.models import db
+from jobcrawler.models import db
 
 class Postings(db.Model):
     id = db.Column(db.Integer, primary_key = True)

@@ -1,8 +1,8 @@
 ## Application Imports
-from src import db
-from src.jobs.scraping import set_chrome_options, get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job
-from src.models.companies import Companies
-from src.exceptions import CompanyExistsException, ScrapingException
+from jobcrawler import db
+from jobcrawler.jobs.scraping import set_chrome_options, get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job
+from jobcrawler.models.companies import Companies
+from jobcrawler.exceptions import CompanyExistsException, ScrapingException
 ## Flask Imports
 from flask import request, Blueprint, current_app
 

@@ -8,19 +8,19 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_migrate import Migrate
 
 ## Application
-from src.models import db
-from src.models.users import Users
-from src.models.searches import Searches
-from src.models.postings import Postings
-from src.models.companies import Companies
-from src.jobs.scraping import crawl_for_postings, run_email_send_job
-from src.routes import home_bp
-from src.routes.auth import auth_bp
-from src.routes.companies import companies_bp
-from src.routes.errors import errors_bp
-from src.routes.preferences import preferences_bp
-from src.routes.scraping import scraping_bp
-from src.routes.searches import searches_bp
+from jobcrawler.models import db
+from jobcrawler.models.users import Users
+from jobcrawler.models.searches import Searches
+from jobcrawler.models.postings import Postings
+from jobcrawler.models.companies import Companies
+from jobcrawler.jobs.scraping import crawl_for_postings, run_email_send_job
+from jobcrawler.routes import home_bp
+from jobcrawler.routes.auth import auth_bp
+from jobcrawler.routes.companies import companies_bp
+from jobcrawler.routes.errors import errors_bp
+from jobcrawler.routes.preferences import preferences_bp
+from jobcrawler.routes.scraping import scraping_bp
+from jobcrawler.routes.searches import searches_bp
 
 ## Logging
 import logging

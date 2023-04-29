@@ -6,8 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
 
 ## Application Imports
-from src import db
-from src.models.users import Users
+from jobcrawler import db
+from jobcrawler.models.users import Users
 
 auth_bp = Blueprint('auth_bp', __name__, template_folder='templates', static_folder = "static")
 
