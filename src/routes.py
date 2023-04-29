@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
-from .jobs import get_links_selenium, get_links_soup
+from .jobs import get_links_selenium, get_links_soup, crawl_for_postings
 from .exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
 
@@ -297,3 +297,8 @@ def test_scraping():
         raise Exception(f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}")
 
     return matching_links
+
+@app.route('/scraping/run-crawl-job', methods = ["POST"])
+def run_crawl_job():
+    app.logger.info("Kicking off scraping job")
+    crawl_for_postings(app, db)
