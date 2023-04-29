@@ -1,4 +1,7 @@
 from flask import Flask
+from flask_admin import Admin
+from flask_admin.menu import MenuLink
+from flask_admin.contrib.sqla import ModelView
 from config import Config
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_migrate import Migrate
@@ -10,6 +13,7 @@ import logging
 import sys
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from flask_login import current_user
 
 sched = BackgroundScheduler()
 
@@ -24,6 +28,21 @@ if os.environ.get("ENV") == "PROD":
     )
 
 app = Flask(__name__, static_folder = "static", template_folder = "templates")
+admin = Admin(app, name='jobcrawler')
+
+class AdminView(ModelView):
+    def is_accessible(self):
+        if current_user.get_id():
+            return current_user.email == "mrkaye97@gmail.com"
+        else:
+            return False
+
+admin.add_view(AdminView(Users, db.session))
+admin.add_view(AdminView(Postings, db.session))
+admin.add_view(AdminView(Companies, db.session))
+admin.add_view(AdminView(Searches, db.session))
+
+admin.add_link(MenuLink(name = 'Home', category = '', url = "/index"))
 
 app.secret_key = os.urandom(24)
 

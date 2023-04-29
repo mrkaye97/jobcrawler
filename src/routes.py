@@ -1,4 +1,5 @@
 from flask import request, render_template, redirect, url_for, flash, send_from_directory
+from flask_admin.contrib.sqla import ModelView
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
@@ -302,3 +303,5 @@ def test_scraping():
 def run_crawl_job():
     app.logger.info("Kicking off scraping job")
     crawl_for_postings(app, db)
+
+
