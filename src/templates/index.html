@@ -285,11 +285,6 @@
 
             const formData = new FormData();
 
-            console.log("Name: ", nameCell);
-            console.log("boardUrlCell: ", boardUrlCell);
-            console.log("jobPostingUrlCell: ", jobPostingUrlCell);
-            console.log("scrapingMethodSelect: ", scrapingMethodSelect);
-
             formData.append('name', nameCell.innerText);
             formData.append('board_url', boardUrlCell.innerText);
             formData.append('job_posting_url_prefix', jobPostingUrlCell.innerText);
@@ -415,6 +410,7 @@
             const boardUrlInput = document.getElementById('add-company-board-url');
             const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
             const scrapingMethodInput = document.getElementById('add-company-scraping-method');
+            const defaultErrorMessage = "Sorry, something went wrong.";
 
             const spinnerContainer = document.getElementById('spinner-container');
             spinnerContainer.style.display = 'flex';
@@ -432,7 +428,10 @@
                 })
             }).then(response => {
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    return response.json().then(errorData => {
+                        const errorMessage = errorData.message || defaultErrorMessage;
+                        throw new Error(errorMessage);
+                    });
                 }
                 return response.json();
             }).then(urlResults => {
@@ -464,15 +463,15 @@
                 const addCompanyModal = document.getElementById('addCompanyModal');
                 const errorContainer = document.createElement('div');
                 errorContainer.className = 'alert alert-danger mt-2';
-                errorContainer.textContent = 'Something went wrong. Please check your inputs and try again.';
+                errorContainer.textContent = error.message || defaultErrorMessage;
 
-                // Remove existing error message if present
                 const existingError = addCompanyModal.querySelector('.alert');
                 if (existingError) {
                     existingError.remove();
                 }
 
                 addCompanyModal.querySelector('.modal-body').appendChild(errorContainer);
+
             });
         });
 

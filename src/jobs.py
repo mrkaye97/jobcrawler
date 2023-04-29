@@ -11,6 +11,7 @@ from .models import Users, Companies, Postings, Searches
 import datetime
 import re
 from sqlalchemy import text
+from .exceptions import ScrapingException
 
 def set_chrome_options() -> Options:
     """Sets chrome options for Selenium.
@@ -29,7 +30,7 @@ def load_page(url):
     r = requests.get(url)
 
     if r.status_code == 404:
-        raise Exception(f"The following URL just 404ed: {url}")
+        raise ScrapingException(url = url, code = 400, message = f"The following URL just 404ed: {url}")
 
     return r
 

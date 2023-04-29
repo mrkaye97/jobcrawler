@@ -3,7 +3,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import *
 import json
 from flask_login import login_user, login_required, logout_user, current_user
-from .jobs import send_email, get_links_selenium, get_links_soup
+from .jobs import get_links_selenium, get_links_soup
+from .exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
 
 @app.route('/')
@@ -242,10 +243,17 @@ def handle_error(e):
     app.logger.error("Request failed.")
     app.logger.error(f"URL: {request.url}")
     app.logger.error(str(e))
+    app.logger.error(e.code)
+
+    if isinstance(e, CompanyExistsException) or isinstance(e, ScrapingException):
+        return {"message": str(e)}, 400
 
     code = 500
     if isinstance(e, HTTPException):
         code = e.code
+
+    if request.path == "/scraping/test":
+        return {"message": "Sorry, something went wrong."}, 500
 
     if code == 404:
         return render_template('404.html')
@@ -263,6 +271,12 @@ def test_scraping():
     posting_url_prefix = content.get("job_posting_url_prefix")
     board_url = content.get("board_url")
     scraping_method = content.get("scraping_method")
+    company_name = content.get("name")
+
+    existing = Companies.query.filter_by(name = company_name).count()
+
+    if existing:
+        raise CompanyExistsException(name = company_name)
 
     if scraping_method == "soup":
         links = get_links_soup(
