@@ -6,7 +6,3 @@ homepage = Blueprint('homepage', __name__, template_folder='templates', static_f
 @homepage.route('/index')
 def index():
     return render_template("index.html")
-
-@homepage.route('/favicon.ico')
-def favicon():
-    return send_from_directory(path = "favicon.ico")
