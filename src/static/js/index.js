@@ -208,3 +208,104 @@ function runEmailJob() {
             console.error('There has been a problem with your fetch operation:', error);
         });
 }
+
+function populateCompanySelect() {
+    const companySelect = document.getElementById('company-select');
+
+    console.log(companies);
+    // Clear existing options
+    companySelect.innerHTML = '';
+
+    companies.forEach(company => {
+        console.log("Company from in populateCompanySelect", company);
+        const option = document.createElement('option');
+        option.value = company.id;
+        option.text = company.name;
+        companySelect.appendChild(option);
+    });
+}
+
+function createJobSearchCard(companyId, searches) {
+    // The card container
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'col';
+    cardDiv.dataset.id = companyId;
+
+    // The card element
+    const card = document.createElement('div');
+    card.className = 'card h-100';
+
+    // Card body
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body';
+
+    // Card title
+    const cardTitle = document.createElement('h5');
+    cardTitle.className = 'card-title';
+    cardTitle.textContent = companies.find(c => c.id === companyId).name;
+    cardBody.appendChild(cardTitle);
+
+    // Card content (search links)
+    const searchList = document.createElement('ul');
+    searches.forEach(search => {
+        const listItem = document.createElement('li');
+        listItem.textContent = search.search_regex;
+        listItem.dataset.searchId = search.search_id;
+
+        // Add delete button to list item
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger btn-sm ms-2';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', function () {
+            fetch(`/searches/${listItem.dataset.searchId}`, {
+                method: 'DELETE'
+            }).then(() => {
+                listItem.remove();
+            });
+        });
+        listItem.appendChild(deleteBtn);
+
+        searchList.appendChild(listItem);
+    });
+    cardBody.appendChild(searchList);
+
+    card.appendChild(cardBody);
+    cardDiv.appendChild(card);
+
+    return cardDiv;
+}
+
+function createBoardCard(board) {
+    const colDiv = document.createElement('div');
+    colDiv.className = 'col';
+
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'card github-card';
+
+    const cardTitle = document.createElement('h4');
+    cardTitle.textContent = board.companyName;
+    cardDiv.appendChild(cardTitle);
+
+    const searchList = document.createElement('ul');
+    board.searches.forEach(search => {
+        const listItem = document.createElement('li');
+        listItem.textContent = search.search_regex;
+        searchList.appendChild(listItem);
+    });
+    cardDiv.appendChild(searchList);
+
+    const deleteBtn = document.createElement('a');
+    deleteBtn.className = 'card-btn';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.href = '#';
+    // Update the event listener with the new delete functionality
+    deleteBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+        // Delete the company and all searches associated with it
+    });
+    cardDiv.appendChild(deleteBtn);
+
+    colDiv.appendChild(cardDiv);
+
+    return colDiv;
+}

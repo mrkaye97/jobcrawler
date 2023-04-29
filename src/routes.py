@@ -102,11 +102,14 @@ def get_searches():
         order_by(Searches.id).\
         all()
 
-    result = [
-        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
-        for search in searches
-    ]
+    result = {}
+    for search in searches:
+        if not result.get(search.company_id):
+            result[search.company_id] = [{"search_id": search.search_id, "search_regex": search.search_regex}]
+        else:
+            result[search.company_id] = result[search.company_id] + [{"search_id": search.search_id, "search_regex": search.search_regex}]
 
+    app.logger.info(json.dumps(result))
     return result
 
 @app.route('/searches', methods=["POST"])
@@ -170,6 +173,7 @@ def get_companies():
     result = Companies.query.all()
 
     result = [{key: b.__dict__[key] for key in ["id", "name", "board_url", "job_posting_url_prefix", "scraping_method"]} for b in result]
+    app.logger.info(json.dumps(result))
 
     return result
 

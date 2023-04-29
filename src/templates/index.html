@@ -103,17 +103,41 @@
 
     {% if current_user.is_authenticated %}
     <h1>My Job Searches</h1>
-    <table id="board-table" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Company Name</th>
-                <th>Search Text (Supports regex)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <button id="add-row-btn" class="btn btn-success">Add Row</button>
+    <div id="job-search-cards" class="row row-cols-1 row-cols-md-3 g-4">
+        <!-- Cards will be generated here -->
+    </div>
+    <div class="text-center mt-4">
+        <button id="add-card-btn" class="btn btn-success">Add Card</button>
+    </div>
+
+    <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCardModalLabel">Add a new job search</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="company-select" class="form-label">Company</label>
+                            <select id="company-select" class="form-select">
+                                <!-- The options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="search-regex" class="form-label">Search regex</label>
+                            <input type="text" class="form-control" id="search-regex">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="save-card-btn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     <script>
@@ -127,6 +151,8 @@
                     companies = fetchedCompanies;
                     firstCompanyId = companies.length > 0 ? companies[0].id : null;
 
+                    populateCompanySelect();
+
                     const companyTableBody = document.querySelector('#company-table tbody');
                     companies.forEach(company => {
                         const row = createCompanyRow(company);
@@ -139,23 +165,25 @@
                         searching: true
                     });
                 });
+
             {% if current_user.is_authenticated %}
             fetch(`/searches`)
                 .then(response => response.json())
-                .then(boards => {
-                    const tableBody = document.querySelector('#board-table tbody');
-
-                    boards.forEach(board => {
-                        const row = createBoardRow(board);
-                        tableBody.appendChild(row);
+                .then(searchesByCompany => {
+                    const searchesArray = Object.entries(searchesByCompany).map(([companyId, searches]) => {
+                        const companyName = companies.find(company => company.id === parseInt(companyId)).name;
+                        return { companyId, companyName, searches };
                     });
 
-                    $('#board-table').DataTable({
-                        pageLength: 5,
-                        lengthChange: true,
-                        searching: true
-                    });
+                    const container = document.querySelector('.container');
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'row row-cols-1 row-cols-md-3 g-4';
+                    container.appendChild(rowDiv);
 
+                    searchesArray.forEach(search => {
+                        const card = createBoardCard(search);
+                        rowDiv.appendChild(card);
+                    });
                 });
             {% endif %}
         });
@@ -204,37 +232,69 @@
             });
         }
 
-        const addRowBtn = document.getElementById('add-row-btn');
-        if (addRowBtn) {
-            addRowBtn.addEventListener('click', function () {
+        const addCardBtn = document.getElementById('add-card-btn');
+        const addCardModal = new bootstrap.Modal(document.getElementById('addCardModal'), {});
+        if (addCardBtn) {
+            addCardBtn.addEventListener('click', function () {
+                addCardModal.show();
+            });
+        }
+
+        const saveCardBtn = document.getElementById('save-card-btn');
+        if (saveCardBtn) {
+            saveCardBtn.addEventListener('click', function () {
+                const companyId = document.getElementById('company-select').value;
+                const searchRegex = document.getElementById('search-regex').value;
                 const defaultCompanyId = firstCompanyId;
 
-                fetch(`/users/current/default-search`)
-                    .then(response => response.json())
-                    .then(fields => {
-                        const defaultSearchRegex = fields.default_search;
+                const newBoard = {
+                    company_id: companyId || defaultCompanyId,
+                    search_regex: searchRegex
+                };
 
-                        let board = {
-                            company_id: defaultCompanyId,
-                            search_regex: defaultSearchRegex
-                        };
+                fetch(`/searches`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newBoard)
+                }).then((response) => {
+                    response.json().then(savedBoard => {
+                        const rowDiv = document.querySelector('#job-search-cards');
+                        const existingCard = Array.from(rowDiv.children).find(cardDiv => cardDiv.dataset.id === savedBoard.company_id);
 
-                        const tableBody = document.querySelector('#board-table tbody');
-                        const row = createBoardRow(board);
-                        tableBody.appendChild(row);
+                        if (existingCard) {
+                            const searchList = existingCard.querySelector('ul');
+                            const listItem = document.createElement('li');
+                            listItem.textContent = savedBoard
+                            listItem.textContent = savedBoard.search_regex;
+                            listItem.dataset.searchId = savedBoard.search_id;
 
-                        fetch(`/searches`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(board)
-                        }).then((response) => {
-                            response.json().then(newBoard => {
-                                row.dataset.id = newBoard.id;
+                            // Add delete button to list item
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'btn btn-danger btn-sm ms-2';
+                            deleteBtn.textContent = 'Delete';
+                            deleteBtn.addEventListener('click', function () {
+                                fetch(`/searches/${listItem.dataset.searchId}`, {
+                                    method: 'DELETE'
+                                }).then(() => {
+                                    listItem.remove();
+                                });
                             });
-                        });
+                            listItem.appendChild(deleteBtn);
+
+                            searchList.appendChild(listItem);
+                        } else {
+                            const card = createJobSearchCard(savedBoard.company_id, [savedBoard]);
+                            rowDiv.appendChild(card);
+                        }
+
+                        // Clear the input fields and close the modal
+                        document.getElementById('company-select').value = '';
+                        document.getElementById('search-regex').value = '';
+                        addCardModal.hide();
                     });
+                });
             });
         }
 
