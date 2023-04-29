@@ -129,7 +129,7 @@
 
                     const companyTableBody = document.querySelector('#company-table tbody');
                     companies.forEach(company => {
-                        const row = createCompanyRow(company);
+                        const row = createCompanyRow(company, "{{current_user.email}}");
                         companyTableBody.appendChild(row);
                     });
 
@@ -190,7 +190,7 @@
                 }).then(response => response.json())
                     .then(company => {
                         const companyTable = document.getElementById('company-table');
-                        const companyRow = createCompanyRow(company);
+                        const companyRow = createCompanyRow(company, "{{current_user.email}}");
                         companyTable.querySelector('tbody').appendChild(companyRow);
 
                         nameInput.value = '';
