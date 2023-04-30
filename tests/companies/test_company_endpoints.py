@@ -1,8 +1,6 @@
 import json
 
-def test_getting_companies_returns_correct_keys(app):
-    client = app.test_client()
-
+def test_getting_companies_returns_correct_keys(client):
     resp = client.get("/companies")
 
     for company in json.loads(resp.data):
