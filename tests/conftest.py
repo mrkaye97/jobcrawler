@@ -9,3 +9,17 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+@pytest.fixture
+def client__logged_in(app):
+    client = app.test_client()
+
+    client.post(
+        "/signup",
+        data = {"email": 'j@bond.com', "password": '007', "first_name": "james"},
+        content_type = 'application/x-www-form-urlencoded',
+        follow_redirects = True
+    )
+
+    return client
+
