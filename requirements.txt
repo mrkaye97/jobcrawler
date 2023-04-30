@@ -38,6 +38,7 @@ prompt-toolkit==3.0.38
 psycopg2-binary==2.9.6
 PySocks==1.7.1
 pytest==7.3.1
+pytest-dotenv==0.5.2
 pytest-flask==1.2.0
 python-dateutil==2.8.2
 python-dotenv==1.0.0
