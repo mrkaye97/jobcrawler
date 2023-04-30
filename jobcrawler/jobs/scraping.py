@@ -114,7 +114,7 @@ def get_links_soup(url, example_prefix):
         if example_prefix in urljoin(url, link['href'])
     ]
 
-def crawl_for_postings(db):
+def crawl_for_postings(app, db):
 
     ## Set up Selenium
     driver = webdriver.Chrome(options=set_chrome_options())
@@ -122,7 +122,7 @@ def crawl_for_postings(db):
 
     driver.implicitly_wait(delay)
 
-    with current_app.app_context():
+    with app.app_context():
         for company in Companies.query.all():
             current_app.logger.info(f"Scraping {company.name}'s job board")
             if company.scraping_method == 'selenium':
@@ -154,8 +154,8 @@ def crawl_for_postings(db):
 
     return None
 
-def run_email_send_job(is_manual_trigger = False):
-    with current_app.app_context():
+def run_email_send_job(app, is_manual_trigger = False):
+    with app.app_context():
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
         ## TODO: Instead of first pulling all users and then check
