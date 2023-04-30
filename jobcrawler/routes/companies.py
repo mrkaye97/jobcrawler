@@ -38,7 +38,7 @@ def create_company():
         db.session.add(c)
         db.session.commit()
 
-        record = Companies.query.get(c.id)
+        record = db.session.get(Companies, c.id)
         record = record.__dict__
         del record["_sa_instance_state"]
 
