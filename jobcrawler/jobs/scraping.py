@@ -1,11 +1,11 @@
 ## Flask imports
 from flask import current_app
+from jobcrawler import db
+from sqlalchemy import text
 
 ## current_application Imports
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
-from jobcrawler.models.users import Users
-from jobcrawler.models.searches import Searches
 from jobcrawler.exceptions import ScrapingException
 
 ## Imports for scraping
@@ -154,73 +154,86 @@ def crawl_for_postings(app, db):
 
     return None
 
+def is_matching_posting(regex, text):
+    return re.search(regex.lower(), text.lower())
+
+def create_posting_advertisement(text, company_name, href):
+    clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
+    return f"{clean_link_text} @ {company_name}: {href}"
+
+
 def run_email_send_job(app, is_manual_trigger = False):
     with app.app_context():
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
-        ## TODO: Instead of first pulling all users and then check
-        ## if the email frequency matches, just do this filter in the db in the second query
-        for user in Users.query.all():
-            if not is_manual_trigger or (is_manual_trigger and user.email == "mrkaye97@gmail.com"):
-                user_email_frequency = user.email_frequency_days or 7
+        users_to_email = db.session.execute(
+            text(
+                """
+                SELECT id, email, email_frequency_days, first_name
+                FROM users
+                WHERE
+                    MOD(:current_day, email_frequency_days) = 0
+                    OR email = 'mrkaye97@gmail.com'
+                """
+            ),
+            {'current_day': current_day}
+        )
 
-                if current_day % user_email_frequency == 0 or user.email == "mrkaye97@gmail.com":
-                    current_app.logger.info(f"Preparing to send email to {user.email}")
-                    user_search_results = Searches.\
-                        query.\
-                        filter_by(user_id = user.id).\
-                        join(Companies).\
-                        join(Postings).\
-                        join(Users).\
-                        with_entities(
-                            Users.email,
-                            Users.first_name,
-                            Companies.name.label("company_name"),
-                            Searches.search_regex,
-                            Postings.link_href,
-                            Postings.link_text,
-                        ).\
-                        all()
+        for user in users_to_email.all():
+            user_searches = db.session.execute(
+                text(
+                    """
+                    SELECT
+                        u.email,
+                        u.first_name,
+                        c.name AS company_name,
+                        s.search_regex,
+                        p.link_href,
+                        p.link_text
+                    FROM searches s
+                    JOIN companies c ON c.id = s.company_id
+                    JOIN postings p ON p.company_id = c.id
+                    JOIN users u ON u.id = s.user_id
+                    WHERE s.user_id = :user_id
+                    """
+                ),
+                {'user_id': user.id}
+            ).all()
 
-                    if user_search_results:
+            current_app.logger.info(f"Preparing to send email to {user.email}")
 
-                        matching_postings = []
+            matching_postings = [
+                create_posting_advertisement(s.link_text, s.company_name, s.link_href)
+                for s in user_searches
+                if is_matching_posting(s.search_regex, s.link_text)
+            ]
 
-                        for search in user_search_results:
-                            if re.search(search.search_regex.lower(), search.link_text.lower() if search.link_text and search.search_regex else ""):
-                                clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
-                                matching_postings = matching_postings + [f"{clean_link_text} @ {search.company_name}: {search.link_href}"]
+            if matching_postings:
 
-                        current_app.logger.info(f"Matching job postings: {matching_postings}")
+                link_text = "\n  * ".join(matching_postings)
 
-                        if matching_postings:
+                message = f"""
+                    Hey {user.first_name},
 
-                            link_text = "\n".join(matching_postings)
+                    Here are your links for the day!
 
-                            message = f"""
-                                Hey {user.first_name},
+                      * {link_text}
 
-                                Here are your links for the day!
+                    I'll send you another round of matching links in {user.email_frequency_days} days.
 
-                                {link_text}
+                    Have a good one!
 
-                                I'll send you another round of matching links in {user_email_frequency} days.
+                    Matt
+                """
 
-                                Have a good one!
+                current_app.logger.info(f"Email message: {message}")
 
-                                Matt
-                            """
-
-                            current_app.logger.info(f"Email message: {message}")
-
-                            if os.environ.get("ENV") == "PROD":
-                                current_app.logger.info(f"Sending email to {user.email}")
-                                send_email(
-                                    sender_email = "mrkaye97@gmail.com",
-                                    sender_name = "Matt Kaye",
-                                    recipient = user.email,
-                                    subject = "Your daily job feed digest",
-                                    body = message
-                                )
-                            else:
-                                current_app.logger.info(message)
+                if os.environ.get("ENV") == "PROD":
+                    current_app.logger.info(f"Sending email to {user.email}")
+                    send_email(
+                        sender_email = "mrkaye97@gmail.com",
+                        sender_name = "Matt Kaye",
+                        recipient = user.email,
+                        subject = "Your daily job feed digest",
+                        body = message
+                    )
