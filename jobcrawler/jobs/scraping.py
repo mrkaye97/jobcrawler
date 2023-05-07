@@ -164,7 +164,7 @@ def create_posting_advertisement(text, company_name, href):
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
     return f"{clean_link_text} @ {company_name}: {href}"
 
-def run_email_send_job(app, is_manual_trigger = False):
+def run_email_send_job(app):
     with app.app_context():
         current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 

@@ -65,7 +65,7 @@ def manually_trigger_crawl_job():
 def manually_trigger_email_sending_job():
     current_app.logger.info("Kicking off email job")
     print("Kicking off email job")
-    run_email_send_job(current_app, is_manual_trigger = True)
+    run_email_send_job(current_app)
     current_app.logger.info("Finished email job")
 
     return {"message": "finished"}, 200
