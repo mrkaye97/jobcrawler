@@ -164,43 +164,49 @@ def create_posting_advertisement(text, company_name, href):
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
     return f"{clean_link_text} @ {company_name}: {href}"
 
+def get_users_to_email():
+    current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
+
+    users_to_email = db.session.execute(
+        text(
+            """
+            SELECT id, email, email_frequency_days, first_name
+            FROM users
+            WHERE
+                MOD(:current_day, email_frequency_days) = 0
+                OR email = 'mrkaye97@gmail.com'
+            """
+        ),
+        {'current_day': current_day}
+    )
+
+    return users_to_email
+
+def get_user_job_searches(user_id):
+    db.session.execute(
+        text(
+            """
+            SELECT
+                u.email,
+                u.first_name,
+                c.name AS company_name,
+                s.search_regex,
+                p.link_href,
+                p.link_text
+            FROM searches s
+            JOIN companies c ON c.id = s.company_id
+            JOIN postings p ON p.company_id = c.id
+            JOIN users u ON u.id = s.user_id
+            WHERE s.user_id = :user_id
+            """
+        ),
+        {'user_id': user_id}
+    ).all()
+
 def run_email_send_job(app):
     with app.app_context():
-        current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
-
-        users_to_email = db.session.execute(
-            text(
-                """
-                SELECT id, email, email_frequency_days, first_name
-                FROM users
-                WHERE
-                    MOD(:current_day, email_frequency_days) = 0
-                    OR email = 'mrkaye97@gmail.com'
-                """
-            ),
-            {'current_day': current_day}
-        )
-
-        for user in users_to_email.all():
-            user_searches = db.session.execute(
-                text(
-                    """
-                    SELECT
-                        u.email,
-                        u.first_name,
-                        c.name AS company_name,
-                        s.search_regex,
-                        p.link_href,
-                        p.link_text
-                    FROM searches s
-                    JOIN companies c ON c.id = s.company_id
-                    JOIN postings p ON p.company_id = c.id
-                    JOIN users u ON u.id = s.user_id
-                    WHERE s.user_id = :user_id
-                    """
-                ),
-                {'user_id': user.id}
-            ).all()
+        for user in get_users_to_email().all():
+            user_searches = get_user_job_searches(user.id)
 
             current_app.logger.info(f"Preparing to send email to {user.email}")
 
@@ -211,7 +217,6 @@ def run_email_send_job(app):
             ]
 
             if matching_postings:
-
                 link_text = "\n  * ".join(matching_postings)
 
                 message = f"""
