@@ -155,12 +155,14 @@ def crawl_for_postings(app, db):
     return None
 
 def is_matching_posting(regex, text):
+    if not regex or not text:
+        return False
+
     return re.search(regex.lower(), text.lower())
 
 def create_posting_advertisement(text, company_name, href):
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
     return f"{clean_link_text} @ {company_name}: {href}"
-
 
 def run_email_send_job(app, is_manual_trigger = False):
     with app.app_context():
