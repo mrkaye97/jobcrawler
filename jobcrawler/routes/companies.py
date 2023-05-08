@@ -3,7 +3,7 @@ from jobcrawler import db
 from jobcrawler.models.companies import Companies
 
 ## Flask Imports
-from flask import request, Blueprint, current_app
+from flask import request, Blueprint, current_app, render_template
 
 ## Misc Imports
 import json
@@ -13,11 +13,12 @@ companies_bp = Blueprint('companies_bp', __name__, template_folder='templates', 
 
 @companies_bp.route("/companies")
 def get_companies():
-    result = Companies.query.all()
+    companies = Companies.query
 
-    result = [{key: b.__dict__[key] for key in ["id", "name", "board_url", "job_posting_url_prefix", "scraping_method"]} for b in result]
-
-    return result
+    return render_template(
+        "companies.html",
+        companies = companies
+    )
 
 @companies_bp.route('/companies', methods=["POST"])
 def create_company():
