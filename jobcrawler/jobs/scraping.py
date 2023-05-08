@@ -149,7 +149,7 @@ def crawl_for_postings(app, db):
             existing_postings = Postings.query.filter_by(company_id = company.id).all()
 
             if existing_postings:
-                db.session.execute(text(f'delete from postings where company_id = {company.id}'))
+                db.session.execute(text(f'DELETE FROM postings WHERE company_id = {company.id}'))
 
             current_app.logger.info(f"Finished removing existing links for {company.name}")
             current_app.logger.info(f"Adding new links for {company.name}")
