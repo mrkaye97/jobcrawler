@@ -9,7 +9,6 @@ def handle_error(e):
     current_app.logger.error("Request failed.")
     current_app.logger.error(f"URL: {request.url}")
     current_app.logger.error(str(e))
-    current_app.logger.error(e.code)
 
     if isinstance(e, CompanyExistsException) or isinstance(e, ScrapingException):
         return {"message": str(e)}, 400
