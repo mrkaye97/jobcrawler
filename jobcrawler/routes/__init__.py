@@ -19,3 +19,14 @@ def favicon():
         'favicon.ico',
         mimetype='image/vnd.microsoft.icon'
     )
+
+@home_bp.route("/robots.txt")
+def robots_dot_txt():
+    return send_from_directory(
+        os.path.join(
+            current_app.root_path,
+            'static',
+            'txt'
+        ),
+        "robots.txt"
+    )

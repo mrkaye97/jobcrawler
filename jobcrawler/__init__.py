@@ -6,6 +6,7 @@ from flask_admin.contrib.sqla import ModelView
 from config import Config
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_migrate import Migrate
+from flask_sitemap import Sitemap
 
 ## Application
 from jobcrawler.models import db
@@ -49,6 +50,9 @@ def create_app(config_class = Config):
         )
 
     app = Flask(__name__, static_folder = "static", template_folder = "templates")
+
+    ext = Sitemap(app = app)
+
     admin = Admin(app, name='jobcrawler')
 
     app.register_blueprint(home_bp)
