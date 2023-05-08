@@ -94,3 +94,22 @@ def test_selenium_link_prefixing(app):
 
     driver.quit()
 
+def test_soup_link_collection(app):
+    links = get_links_soup("https://matthewrkaye.com", "https://")
+
+    hrefs = [l.get("href") for l in links]
+    texts = [l.get("text").strip() if l.get("text") else None for l in links]
+
+    assert "Cookie Preferences" in texts
+    assert "Quarto" in texts
+
+    assert "https://www.strava.com/athletes/16125633" in hrefs
+    assert "https://app.thestorygraph.com/profile/mrkaye97" in hrefs
+
+def test_soup_link_prefixing(app):
+    links = get_links_soup("https://matthewrkaye.com", "https://www.strava.com")
+
+    hrefs = [l.get("href") for l in links]
+
+    assert "https://www.strava.com/athletes/16125633" in hrefs
+    assert "https://app.thestorygraph.com/profile/mrkaye97" not in hrefs
