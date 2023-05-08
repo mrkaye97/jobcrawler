@@ -96,6 +96,17 @@ def get_links_selenium(driver, url, example_prefix):
 
     return result
 
+def extract_link_text(link, url):
+    link_text = link.text
+    link_string = link.string
+
+    if 'lever' in url:
+        return link.contents[0].text
+    elif link_text:
+        return link_text.strip()
+    else:
+        return link_string.strip()
+
 def get_links_soup(url, example_prefix):
     r = load_page(url)
 
@@ -107,7 +118,7 @@ def get_links_soup(url, example_prefix):
 
     return [
         {
-            "text": link.contents[0].text if 'lever' in url else link.string,
+            "text": extract_link_text(link, url),
             "href": urljoin(url, link['href'])
         }
         for link in links

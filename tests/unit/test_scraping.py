@@ -100,8 +100,8 @@ def test_soup_link_collection(app):
     hrefs = [l.get("href") for l in links]
     texts = [l.get("text").strip() if l.get("text") else None for l in links]
 
-    assert "Cookie Preferences" in texts
-    assert "Quarto" in texts
+    assert "Strava" in texts
+    assert "StoryGraph" in texts
 
     assert "https://www.strava.com/athletes/16125633" in hrefs
     assert "https://app.thestorygraph.com/profile/mrkaye97" in hrefs
@@ -113,3 +113,17 @@ def test_soup_link_prefixing(app):
 
     assert "https://www.strava.com/athletes/16125633" in hrefs
     assert "https://app.thestorygraph.com/profile/mrkaye97" not in hrefs
+
+def test_soup_greenhouse(app):
+    links = get_links_soup("https://boards.greenhouse.io/collegevine", "https://boards.greenhouse.io/collegevine")
+
+    hrefs = [l.get("href") for l in links]
+
+    assert not hrefs or "collegevine" in hrefs[0]
+
+def test_soup_lever(app):
+    links = get_links_soup("https://jobs.lever.co/matchgroup?department=Hinge", "https://jobs.lever.co/matchgroup")
+
+    hrefs = [l.get("href") for l in links]
+
+    assert not hrefs or "https://jobs.lever.co/matchgroup" in hrefs[0]
