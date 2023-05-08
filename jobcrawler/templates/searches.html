@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+
+<body>
+  <div class="modal fade" id="addRowModal" tabindex="-1" role="dialog" aria-labelledby="addRowModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addRowModalLabel">Add Row</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="add-row-form">
+            <div class="form-group">
+              <label for="company-name">Company Name</label>
+              <select class="form-control" id="company-name">
+                <!-- Options will be added dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="search-text">Search Text (Supports regex)</label>
+              <input type="text" class="form-control" id="search-text">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="save-row-btn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <h1>My Job Searches</h1>
+  <table id="board-table" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Company Name</th>
+        <th>Search Text (Supports regex)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="searches-tbody">
+      <!-- Rows will be rendered dynamically -->
+    </tbody>
+  </table>
+  <button id="add-row-btn" class="btn btn-success">Add Row</button>
+
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
+  <script>
+    let companies;
+    let table;
+
+    fetch('/companies/list')
+      .then(response => response.json())
+      .then(fetchedCompanies => {
+        companies = fetchedCompanies;
+      });
+
+    fetch('/searches/list')
+      .then(response => response.json())
+      .then(searches => {
+        const tableBody = document.getElementById('searches-tbody');
+        searches.forEach(search => {
+          const row = createBoardRow(search, companies);
+          tableBody.appendChild(row);
+        });
+        table = $('#board-table').DataTable({
+          pageLength: 5,
+          lengthChange: true,
+          searching: true
+        });
+      });
+
+    const addRowBtn = document.getElementById('add-row-btn');
+    const companyNameSelect = document.getElementById('company-name');
+    if (addRowBtn) {
+      addRowBtn.addEventListener('click', function () {
+        companyNameSelect.innerHTML = '';
+        companies.forEach(company => {
+          const option = document.createElement('option');
+          option.value = company.id;
+          option.text = company.name;
+          companyNameSelect.appendChild(option);
+        });
+
+        // Show the modal
+        $('#addRowModal').modal('show');
+      });
+    }
+
+    const saveRowBtn = document.getElementById('save-row-btn');
+    if (saveRowBtn) {
+      saveRowBtn.addEventListener('click', function () {
+        const defaultCompanyId = companyNameSelect.value;
+        const defaultSearchRegex = document.getElementById('search-text').value;
+
+        let board = {
+          company_id: defaultCompanyId,
+          search_regex: defaultSearchRegex
+        };
+
+        const tableBody = document.querySelector('#board-table tbody');
+        const row = createBoardRow(board, companies);
+
+        table.row.add(row).draw();
+
+        fetch(`/searches`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(board)
+        }).then((response) => {
+          response.json().then(newBoard => {
+            row.dataset.id = newBoard.id;
+          });
+        });
+
+        selectedCompanyId = companyNameSelect.value;
+
+        // Hide the modal
+        $('#addRowModal').modal('hide');
+      });
+    }
+
+    $('#addRowModal').on('hidden.bs.modal', function () {
+      companyNameSelect.value = selectedCompanyId;
+    });
+
+  </script>
+</body>
+
+{% endblock %}

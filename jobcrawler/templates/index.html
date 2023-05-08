@@ -1,366 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
 
-<body>
-    <div id="spinner-container" class="spinner-container" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
+<style>
+    .welcome-container {
+        max-width: 600px;
+        margin: 2rem auto 0;
+        text-align: center;
+        padding: 2rem 1rem;
+        background-color: transparent;
+        border-radius: 6px;
+    }
 
-    <div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addCompanyModalLabel">Add a New Company</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="add-company-name" class="form-label">Company Name</label>
-                        <input type="text" class="form-control" id="add-company-name" placeholder="Enter company name"
-                            required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="add-company-board-url" class="form-label">Board URL</label>
-                        <input type="text" class="form-control" id="add-company-board-url" placeholder="Board URL"
-                            required pattern="https?://.+" title="Please enter a valid URL">
-                    </div>
-                    <div class="mb-3">
-                        <label for="add-company-url-prefix" class="form-label">Job Posting URL Prefix</label>
-                        <input type="text" class="form-control" id="add-company-url-prefix"
-                            placeholder="Job Posting URL Prefix" required pattern="https?://.+"
-                            title="Please enter a valid URL">
-                    </div>
-                    <div class="mb-3">
-                        <label for="add-company-scraping-method" class="form-label">Scraping Method</label>
-                        <select class="form-select" id="add-company-scraping-method" required>
-                            <option value="soup">Soup</option>
-                            <option value="selenium">Selenium</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-warning" id="test-scraping">Test</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #007bff;
+        margin: 0;
+    }
 
-    <div class="modal fade" id="testResultsModal" tabindex="-1" aria-labelledby="testResultsModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="testResultsModalLabel">Test Results</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table" id="url-results-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">URLs Found</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="go-back">Go Back</button>
-                    <button type="button" class="btn btn-primary" id="confirm-add-company">Confirm</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    p {
+        font-size: 1.2rem;
+        color: #333333;
+        margin: 1rem 0;
+    }
 
-    <h1>Companies</h1>
-    <table id="company-table" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Board URL</th>
-                <th>Job Posting URL Prefix</th>
-                <th>Scraping Method</th>
-                {% if current_user.email == "mrkaye97@gmail.com" %}
-                <th>Actions</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    a {
+        color: #007bff;
+    }
+</style>
 
-    {% if current_user.is_authenticated %}
-    <button id="add-company-btn" class="btn btn-success">Add Company</button>
-    {% endif %}
-    {% if current_user.email == "mrkaye97@gmail.com" %}
-    <button id="run-crawl-job-btn" class="btn btn-primary">Run Crawl Job</button>
-    <button id="run-email-job-btn" class="btn btn-primary">Run Email Job</button>
-    {% endif %}
-
-
-    {% if current_user.is_authenticated %}
-    <h1>My Job Searches</h1>
-    <table id="board-table" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Company Name</th>
-                <th>Search Text (Supports regex)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <button id="add-row-btn" class="btn btn-success">Add Row</button>
-    {% endif %}
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-    <script>
-        let companies = [];
-        let firstCompanyId = null;
-
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch(`/companies`)
-                .then(response => response.json())
-                .then(fetchedCompanies => {
-                    companies = fetchedCompanies;
-                    firstCompanyId = companies.length > 0 ? companies[0].id : null;
-
-                    const companyTableBody = document.querySelector('#company-table tbody');
-                    companies.forEach(company => {
-                        const row = createCompanyRow(company, "{{current_user.email}}");
-                        companyTableBody.appendChild(row);
-                    });
-
-                    $('#company-table').DataTable({
-                        pageLength: 5,
-                        lengthChange: true,
-                        searching: true
-                    });
-                });
-            {% if current_user.is_authenticated %}
-            fetch(`/searches`)
-                .then(response => response.json())
-                .then(boards => {
-                    const tableBody = document.querySelector('#board-table tbody');
-
-                    boards.forEach(board => {
-                        const row = createBoardRow(board);
-                        tableBody.appendChild(row);
-                    });
-
-                    $('#board-table').DataTable({
-                        pageLength: 5,
-                        lengthChange: true,
-                        searching: true
-                    });
-
-                });
-            {% endif %}
-        });
-
-        const addCompanyBtn = document.getElementById('add-company-btn');
-        if (addCompanyBtn) {
-            addCompanyBtn.addEventListener('click', function () {
-                const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
-                addCompanyModal.show();
-            });
-        }
-
-        const confirmAddCompanyBtn = document.getElementById('confirm-add-company');
-        if (confirmAddCompanyBtn) {
-            confirmAddCompanyBtn.addEventListener('click', function () {
-                const nameInput = document.getElementById('add-company-name');
-                const boardUrlInput = document.getElementById('add-company-board-url');
-                const urlPrefixInput = document.getElementById('add-company-url-prefix');
-                const scrapingMethodInput = document.getElementById('add-company-scraping-method');
-
-                fetch(`/companies`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: nameInput.value,
-                        board_url: boardUrlInput.value,
-                        job_posting_url_prefix: urlPrefixInput.value,
-                        scraping_method: scrapingMethodInput.value
-                    })
-                }).then(response => response.json())
-                    .then(company => {
-                        const companyTable = document.getElementById('company-table');
-                        const companyRow = createCompanyRow(company, "{{current_user.email}}");
-                        companyTable.querySelector('tbody').appendChild(companyRow);
-
-                        nameInput.value = '';
-                        boardUrlInput.value = '';
-                        urlPrefixInput.value = '';
-                        scrapingMethodInput.value = '';
-
-                        const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
-                        testResultsModal.hide();
-                    });
-            });
-        }
-
-        const addRowBtn = document.getElementById('add-row-btn');
-        if (addRowBtn) {
-            addRowBtn.addEventListener('click', function () {
-                const defaultCompanyId = firstCompanyId;
-
-                fetch(`/users/current/preferences`)
-                    .then(response => response.json())
-                    .then(fields => {
-                        const defaultSearchRegex = fields.default_search;
-
-                        let board = {
-                            company_id: defaultCompanyId,
-                            search_regex: defaultSearchRegex
-                        };
-
-                        const tableBody = document.querySelector('#board-table tbody');
-                        const row = createBoardRow(board);
-                        tableBody.appendChild(row);
-
-                        fetch(`/searches`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(board)
-                        }).then((response) => {
-                            response.json().then(newBoard => {
-                                row.dataset.id = newBoard.id;
-                            });
-                        });
-                    });
-            });
-        }
-
-        const testScrapingBtn = document.getElementById('test-scraping');
-        const addCompanyModalElement = document.getElementById('addCompanyModal');
-        const addCompanyModal = bootstrap.Modal.getInstance(addCompanyModalElement);
-        let testButtonClicked = false;
-
-        if (addCompanyModalElement) {
-            addCompanyModalElement.addEventListener('hidden.bs.modal', () => {
-                if (!testButtonClicked) {
-                    const nameInput = document.getElementById('add-company-name');
-                    const boardUrlInput = document.getElementById('add-company-board-url');
-                    const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
-                    const scrapingMethodInput = document.getElementById('add-company-scraping-method');
-
-                    // Clear input fields
-                    nameInput.value = '';
-                    boardUrlInput.value = '';
-                    jobPostingUrlPrefixInput.value = '';
-                    scrapingMethodInput.value = 'soup';
-
-                    // Remove error alert if present
-                    const existingError = addCompanyModalElement.querySelector('.alert');
-                    if (existingError) {
-                        existingError.remove();
-                    }
-                }
-                testButtonClicked = false;
-            });
-        }
-
-        if (testScrapingBtn) {
-            testScrapingBtn.addEventListener('click', function () {
-                testButtonClicked = true;
-                const nameInput = document.getElementById('add-company-name');
-                const boardUrlInput = document.getElementById('add-company-board-url');
-                const jobPostingUrlPrefixInput = document.getElementById('add-company-url-prefix');
-                const scrapingMethodInput = document.getElementById('add-company-scraping-method');
-                const defaultErrorMessage = "Sorry, something went wrong.";
-
-                const spinnerContainer = document.getElementById('spinner-container');
-                spinnerContainer.style.display = 'flex';
-
-                fetch(`/scraping/test`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: nameInput.value,
-                        board_url: boardUrlInput.value,
-                        job_posting_url_prefix: jobPostingUrlPrefixInput.value,
-                        scraping_method: scrapingMethodInput.value
-                    })
-                }).then(response => {
-                    if (!response.ok) {
-                        return response.json().then(errorData => {
-                            const errorMessage = errorData.message || defaultErrorMessage;
-                            throw new Error(errorMessage);
-                        });
-                    }
-                    return response.json();
-                }).then(urlResults => {
-                    spinnerContainer.style.display = 'none';
-
-                    const urlResultsTableBody = document.getElementById('url-results-table').getElementsByTagName('tbody')[0];
-                    urlResultsTableBody.innerHTML = '';
-                    urlResults.forEach(url => {
-                        const tr = document.createElement('tr');
-                        const td = document.createElement('td');
-
-                        const anchor = document.createElement('a');
-                        anchor.href = url.href;
-                        anchor.textContent = url.text;
-                        td.appendChild(anchor);
-
-                        tr.appendChild(td);
-                        urlResultsTableBody.appendChild(tr);
-                    });
-
-                    const addCompanyModal = bootstrap.Modal.getInstance(document.getElementById('addCompanyModal'));
-                    addCompanyModal.hide();
-
-                    const testResultsModal = new bootstrap.Modal(document.getElementById('testResultsModal'), {});
-                    testResultsModal.show();
-                }).catch(error => {
-                    spinnerContainer.style.display = 'none';
-
-                    const addCompanyModal = document.getElementById('addCompanyModal');
-                    const errorContainer = document.createElement('div');
-                    errorContainer.className = 'alert alert-danger mt-2';
-                    errorContainer.textContent = error.message || defaultErrorMessage;
-
-                    const existingError = addCompanyModal.querySelector('.alert');
-                    if (existingError) {
-                        existingError.remove();
-                    }
-
-                    addCompanyModal.querySelector('.modal-body').appendChild(errorContainer);
-
-                });
-            });
-        }
-
-        const goBackBtn = document.getElementById('go-back');
-        if (goBackBtn) {
-            goBackBtn.addEventListener('click', function () {
-                const testResultsModal = bootstrap.Modal.getInstance(document.getElementById('testResultsModal'));
-                testResultsModal.hide();
-
-                const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
-                addCompanyModal.show();
-            });
-        }
-
-        const runCrawlJobBtn = document.getElementById('run-crawl-job-btn');
-        if (runCrawlJobBtn) {
-            runCrawlJobBtn.addEventListener('click', runCrawlJob);
-        }
-
-        const runEmailJobBtn = document.getElementById('run-email-job-btn');
-        if (runEmailJobBtn) {
-            runEmailJobBtn.addEventListener('click', runEmailJob);
-        }
-    </script>
-</body>
+<div class="welcome-container">
+    <h1>Hi! Welcome to Jobcrawler</h1>
+    <p>Jobcrawler is a tool to send you notifications when a company you love posts a new job that matches your
+        interests.</p>
+    <p>It's pretty simple. There's a set of companies you can select from (and you can add more!). You can create a
+        "query" by specifying a search term (accepts regex), and then the app will send you an email if the company you
+        selected posts a job that matches your specified query.</p>
+    <p>Feel free to <a href="mailto:mrkaye97@gmail.com">email me</a> or submit an issue on <a
+            href="https://github.com/mrkaye97/jobcrawler/issues">the app's Github repo</a> with
+        suggestions for improvements or new feature requests!</p>
+</div>
 
 {% endblock %}

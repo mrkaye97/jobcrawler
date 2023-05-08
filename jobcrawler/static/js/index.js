@@ -99,20 +99,19 @@ function autoSaveCompany(event) {
     });
 }
 
-function createBoardRow(board) {
+function createBoardRow(board, companies) {
     const row = document.createElement('tr');
     row.dataset.id = board.search_id;
 
     const companyNameCell = document.createElement('td');
-    const companySelect = document.createElement('select');
-    const searchCell = document.createElement('td');
+    const companySelect = document.createElement('select'); // Create a select element
 
     companies.forEach(company => {
         const option = document.createElement('option');
         option.value = company.id;
         option.text = company.name;
 
-        if (company.id === board.company_id) {
+        if (company.id === parseInt(board.company_id)) {
             option.selected = true;
         }
         companySelect.appendChild(option);
@@ -120,12 +119,13 @@ function createBoardRow(board) {
 
     companyNameCell.appendChild(companySelect);
 
+    const searchCell = document.createElement('td');
     searchCell.contentEditable = true;
-
     searchCell.innerText = board.search_regex;
 
     row.appendChild(companyNameCell);
     row.appendChild(searchCell);
+
 
     const actionsCell = document.createElement('td');
     const deleteBtn = document.createElement('button');
@@ -143,7 +143,6 @@ function createBoardRow(board) {
     actionsCell.appendChild(deleteBtn);
     row.appendChild(actionsCell);
 
-    companySelect.addEventListener('change', autoSaveBoard);
     searchCell.addEventListener('blur', autoSaveBoard);
     searchCell.addEventListener('keydown', handleEnterKey(autoSaveBoard));
 
@@ -165,6 +164,7 @@ function autoSaveBoard(event) {
         body: formData
     });
 }
+
 
 function handleEnterKey(saveFunction) {
     return function (event) {

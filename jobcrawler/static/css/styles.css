@@ -220,3 +220,27 @@ select {
     bottom: calc(50%);
     z-index: 1100;
 }
+
+footer {
+    background-color: #f8f9fa;
+    padding: 10px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+footer a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.footer-left {
+    margin-right: auto;
+}
+
+.footer-right {
+    margin-left: auto;
+}

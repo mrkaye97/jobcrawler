@@ -4,13 +4,29 @@ from jobcrawler.models.searches import Searches
 from jobcrawler.models.companies import Companies
 
 ## Flask Imports
-from flask import request, Blueprint, current_app
+from flask import request, Blueprint, current_app, render_template
 from flask_login import login_required, current_user
 
 ## Other imports
 import json
 
 searches_bp = Blueprint('searches_bp', __name__, template_folder='templates', static_folder = "static")
+
+@searches_bp.route("/searches/list")
+def list_searches():
+    searches = Searches.\
+        query.\
+        filter_by(user_id = current_user.get_id()).\
+        join(Companies).\
+        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
+        order_by(Searches.id)
+
+    result = [
+        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
+        for search in searches
+    ]
+
+    return result
 
 @searches_bp.route("/searches")
 @login_required
@@ -20,15 +36,12 @@ def get_searches():
         filter_by(user_id = current_user.get_id()).\
         join(Companies).\
         with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
-        order_by(Searches.id).\
-        all()
+        order_by(Searches.id)
 
-    result = [
-        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
-        for search in searches
-    ]
-
-    return result
+    return render_template(
+        "searches.html",
+        searches = searches
+    )
 
 @searches_bp.route('/searches', methods=["POST"])
 @login_required

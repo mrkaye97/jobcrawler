@@ -38,23 +38,27 @@
             <div class="hero-head">
                 <nav class="navbar navbar-expand">
                     <div class="container-fluid justify-content-between">
-                        <div></div>
-                        <div class="d-md-flex">
+                        <div class="d-flex mr-auto">
                             <a href="{{ url_for('home_bp.index') }}" class="btn btn-outline-primary me-2">Home</a>
-                            {% if not current_user.is_authenticated %}
-                            <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-primary me-2">Login</a>
-                            {% endif %}
-                            {% if not current_user.is_authenticated %}
-                            <a href="{{ url_for('auth_bp.signup') }}" class="btn btn-outline-primary me-2">Sign Up</a>
-                            {% endif %}
+                            <a href="{{ url_for('companies_bp.get_companies') }}" class="btn btn-outline-primary me-2">
+                                Companies
+                            </a>
                             {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('searches_bp.get_searches') }}" class="btn btn-outline-primary me-2">
+                                Searches
+                            </a>
                             <a href="{{ url_for('preferences_bp.get_preferences') }}"
                                 class="btn btn-outline-primary me-2">
                                 Preferences
                             </a>
-                            <a href="{{ url_for('auth_bp.logout') }}" class="btn btn-outline-primary">
-                                Logout
-                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex ml-auto">
+                            {% if not current_user.is_authenticated %}
+                            <a href="{{ url_for('auth_bp.login') }}" class="btn btn-outline-primary me-2">Login</a>
+                            <a href="{{ url_for('auth_bp.signup') }}" class="btn btn-outline-primary me-2">Sign Up</a>
+                            {% else %}
+                            <a href="{{ url_for('auth_bp.logout') }}" class="btn btn-outline-primary">Logout</a>
                             {% endif %}
                         </div>
                     </div>
@@ -68,6 +72,11 @@
             </div>
         </section>
     </div>
+    <footer>
+        <div class="footer-left">&copy; Matt Kaye, 2023</div>
+        <div class="footer-right"><a href="https://github.com/mrkaye97/jobcrawler">Source Code on GitHub</a></div>
+    </footer>
+
 </body>
 
 </html>

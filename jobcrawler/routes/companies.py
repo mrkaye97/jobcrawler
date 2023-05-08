@@ -10,6 +10,11 @@ import json
 
 companies_bp = Blueprint('companies_bp', __name__, template_folder='templates', static_folder = "static")
 
+@companies_bp.route("/companies/list")
+def list_companies():
+    companies = Companies.query.with_entities(Companies.id, Companies.name).all()
+
+    return [{"id": c.id, "name": c.name} for c in companies]
 
 @companies_bp.route("/companies")
 def get_companies():
