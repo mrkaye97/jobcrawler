@@ -122,7 +122,7 @@ def test_soup_greenhouse(app):
     assert not hrefs or "collegevine" in hrefs[0]
 
 def test_soup_lever(app):
-    links = get_links_soup("https://jobs.lever.co/matchgroup?department=Hinge", "https://jobs.lever.co/matchgroup")
+    links = get_links_soup("https://jobs.lever.co/matchgroup", "https://jobs.lever.co/matchgroup")
 
     hrefs = [l.get("href") for l in links]
 
