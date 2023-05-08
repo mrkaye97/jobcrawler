@@ -56,7 +56,7 @@ def send_email(sender_name, sender_email, recipient, subject, body):
     to = [sib_api_v3_sdk.SendSmtpEmailTo(email = recipient)]
 
     api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(sender = sender, to = to, subject = subject, text_content = body)
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(sender = sender, to = to, subject = subject, html_content = body)
 
     response = api_instance.send_transac_email(send_smtp_email)
 
@@ -162,7 +162,10 @@ def is_matching_posting(regex, text):
 
 def create_posting_advertisement(text, company_name, href):
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
-    return f"{clean_link_text} @ {company_name}: {href}"
+    return {
+        "text": f"{clean_link_text} @ {company_name}",
+        "href": href
+    }
 
 def get_users_to_email():
     current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
@@ -205,6 +208,27 @@ def get_user_job_searches(user_id):
 
     return result or []
 
+def generate_link_html(posting):
+    current_app.logger.info(posting)
+    return f"""
+        <li><a href="{posting.get('href')}">{posting.get('text')}</a></li>
+    """
+
+def generate_email_html(first_name, matching_postings, email_frequency_days):
+
+    links = "".join([generate_link_html(p) for p in matching_postings])
+
+    return f"""
+        <p>Hey {first_name},</p>
+        <p>Here are your links for the day!</p>
+        <ul>
+        {links}
+        </ul>
+        <p>I&#39;ll send you another round of matching links in {email_frequency_days} day{'s' if email_frequency_days > 1 else ''}.</p>
+        <p>Have a good one!</p>
+        <p>Matt</p>
+    """
+
 def run_email_send_job(app):
     with app.app_context():
         for user in get_users_to_email():
@@ -220,21 +244,11 @@ def run_email_send_job(app):
             ]
 
             if matching_postings:
-                link_text = "\n  -- ".join(matching_postings)
-
-                message = f"""
-                    Hey {user.first_name},
-
-                    Here are your links for the day!
-
-                      -- {link_text}
-
-                    I'll send you another round of matching links in {user.email_frequency_days} days.
-
-                    Have a good one!
-
-                    Matt
-                """
+                message = generate_email_html(
+                    first_name = user.first_name,
+                    matching_postings = matching_postings,
+                    email_frequency_days = user.email_frequency_days
+                )
 
                 current_app.logger.info(f"Email message: {message}")
 
@@ -244,6 +258,6 @@ def run_email_send_job(app):
                         sender_email = "mrkaye97@gmail.com",
                         sender_name = "Matt Kaye",
                         recipient = user.email,
-                        subject = "Your daily job feed digest",
+                        subject = "Your job feed digest",
                         body = message
                     )
