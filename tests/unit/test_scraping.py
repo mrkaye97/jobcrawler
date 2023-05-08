@@ -1,4 +1,4 @@
-from jobcrawler.jobs.scraping import load_page, create_posting_advertisement, is_matching_posting, get_users_to_email
+from jobcrawler.jobs.scraping import *
 from jobcrawler.exceptions import ScrapingException
 from jobcrawler import db
 import pytest
@@ -60,3 +60,20 @@ def test_users_to_email(app):
     db.session.delete(u2)
 
     db.session.commit()
+
+def test_selenium_link_collection(app):
+    from selenium import webdriver
+
+    driver = webdriver.Chrome(options=set_chrome_options())
+
+    links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com")
+
+    hrefs = [l.get("href") for l in links]
+    texts = [l.get("text").strip() for l in links]
+
+    assert "Matt Kaye" in texts
+    assert "Blog" in texts
+    assert "Code" in texts
+
+    assert "https://matthewrkaye.com/" in hrefs
+    assert "https://matthewrkaye.com/posts.html" in hrefs
