@@ -178,12 +178,12 @@ def get_users_to_email():
             """
         ),
         {'current_day': current_day}
-    )
+    ).all()
 
-    return users_to_email
+    return users_to_email or []
 
 def get_user_job_searches(user_id):
-    db.session.execute(
+    result = db.session.execute(
         text(
             """
             SELECT
@@ -203,12 +203,15 @@ def get_user_job_searches(user_id):
         {'user_id': user_id}
     ).all()
 
+    return result or []
+
 def run_email_send_job(app):
     with app.app_context():
-        for user in get_users_to_email().all():
+        for user in get_users_to_email():
             user_searches = get_user_job_searches(user.id)
 
             current_app.logger.info(f"Preparing to send email to {user.email}")
+            current_app.logger.info(f"User searches for {user.email}: {user_searches}")
 
             matching_postings = [
                 create_posting_advertisement(s.link_text, s.company_name, s.link_href)
