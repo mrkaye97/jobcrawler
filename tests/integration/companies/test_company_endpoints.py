@@ -1,10 +1,10 @@
 import json
 
 def test_getting_companies_returns_correct_keys(client):
-    resp = client.get("/companies")
+    resp = client.get("/companies/list")
 
     for company in json.loads(resp.data):
-        assert set(company.keys()) == {"board_url", "id", "job_posting_url_prefix", "name", "scraping_method"}
+        assert set(company.keys()) == {"id", "name"}
 
 def test_creating_new_company(client):
     data = {
