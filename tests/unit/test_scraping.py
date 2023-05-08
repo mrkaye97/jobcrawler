@@ -77,3 +77,20 @@ def test_selenium_link_collection(app):
 
     assert "https://matthewrkaye.com/" in hrefs
     assert "https://matthewrkaye.com/posts.html" in hrefs
+
+    driver.quit()
+
+def test_selenium_link_prefixing(app):
+    from selenium import webdriver
+
+    driver = webdriver.Chrome(options=set_chrome_options())
+
+    links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com/blog")
+
+    hrefs = [l.get("href") for l in links]
+
+    assert "https://matthewrkaye.com/" not in hrefs
+    assert "https://matthewrkaye.com/blogroll.html" in hrefs
+
+    driver.quit()
+
