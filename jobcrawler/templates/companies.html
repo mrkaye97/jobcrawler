@@ -100,7 +100,6 @@
   {% endif %}
   {% if current_user.email == "mrkaye97@gmail.com" %}
   <button id="run-crawl-job-btn" class="btn btn-primary">Run Crawl Job</button>
-  <button id="run-email-job-btn" class="btn btn-primary">Run Email Job</button>
   {% endif %}
 
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
@@ -277,11 +276,6 @@
     const runCrawlJobBtn = document.getElementById('run-crawl-job-btn');
     if (runCrawlJobBtn) {
       runCrawlJobBtn.addEventListener('click', runCrawlJob);
-    }
-
-    const runEmailJobBtn = document.getElementById('run-email-job-btn');
-    if (runEmailJobBtn) {
-      runEmailJobBtn.addEventListener('click', runEmailJob);
     }
   </script>
 </body>
