@@ -220,14 +220,14 @@ def run_email_send_job(app):
             ]
 
             if matching_postings:
-                link_text = "\n  * ".join(matching_postings)
+                link_text = "\n  -- ".join(matching_postings)
 
                 message = f"""
                     Hey {user.first_name},
 
                     Here are your links for the day!
 
-                      * {link_text}
+                      -- {link_text}
 
                     I'll send you another round of matching links in {user.email_frequency_days} days.
 
