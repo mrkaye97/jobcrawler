@@ -68,6 +68,6 @@ jobs:
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
       with:
-        token: $DIGITALOCEAN_ACCESS_TOKEN
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     - name: deploy
-      run: doctl apps create-deployment $DIGITALOCEAN_APP_ID --force-rebuild
+      run: doctl apps create-deployment ${{ secrets.DIGITALOCEAN_APP_ID }} --force-rebuild
