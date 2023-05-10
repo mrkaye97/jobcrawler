@@ -1,3 +1,3 @@
-export DATABASE_URL=postgresql://localhost/jobcrawler-test
+export DATABASE_URL=postgresql://matt@localhost/jobcrawler-test
 
 python3 -m pytest $*
