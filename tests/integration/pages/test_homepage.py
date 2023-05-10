@@ -1,6 +1,3 @@
-from jobcrawler.models.users import Users
-from jobcrawler import db
-
 def test_homepage_aliases(client):
     landing = client.get("/")
 
