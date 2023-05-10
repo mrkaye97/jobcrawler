@@ -23,9 +23,19 @@ def client(app):
 def client__logged_in(app):
     client = app.test_client()
 
+    email = 'j@bond.com'
+    password = "007"
+
     client.post(
         "/signup",
-        data = {"email": 'j@bond.com', "password": '007', "first_name": "james"},
+        data = {"email": email, "password": password, "first_name": "james"},
+        content_type = 'application/x-www-form-urlencoded',
+        follow_redirects = True
+    )
+
+    client.post(
+        "/login",
+        data = {"email": email, "password": password},
         content_type = 'application/x-www-form-urlencoded',
         follow_redirects = True
     )

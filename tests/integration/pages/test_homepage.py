@@ -20,7 +20,6 @@ def test_homepage_loads_correctly(client):
     assert landing.status_code == 200
 
 def test_buttons_intended_for_logged_in_dont_load(client__logged_in):
-
     landing = client__logged_in.get("/")
 
     html = landing.data.decode()
