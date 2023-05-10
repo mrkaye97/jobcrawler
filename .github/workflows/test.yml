@@ -57,7 +57,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     env:
       token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      token: ${{ secrets.DIGITALOCEAN_APP_ID }}
+      app_id: ${{ secrets.DIGITALOCEAN_APP_ID }}
 
     steps:
     - uses: actions/checkout@v3
