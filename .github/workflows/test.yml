@@ -56,14 +56,14 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/master'
     env:
-      token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      app_id: ${{ secrets.DIGITALOCEAN_APP_ID }}
+      DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      DIGITALOCEAN_APP_ID: ${{ secrets.DIGITALOCEAN_APP_ID }}
 
     steps:
     - uses: actions/checkout@v3
     - name: Install doctl
       uses: digitalocean/action-doctl@v2
       with:
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        token: $DIGITALOCEAN_ACCESS_TOKEN
     - name: deploy
-      run: doctl apps create-deployment ${{ secrets.DIGITALOCEAN_APP_ID }} --force-rebuild
+      run: doctl apps create-deployment $DIGITALOCEAN_APP_ID --force-rebuild
