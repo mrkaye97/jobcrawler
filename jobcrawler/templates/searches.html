@@ -27,7 +27,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button id="close-btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="button" class="btn btn-primary" id="save-row-btn">Save</button>
         </div>
       </div>
@@ -58,6 +58,15 @@
   <script>
     let companies;
     let table;
+    let defaultSearchText;
+    let selectedCompanyId;
+
+    fetch('/users/current/preferences')
+      .then(response => response.json())
+      .then(userPreferences => {
+        console.log(userPreferences);
+        defaultSearchText = userPreferences.default_search;
+      });
 
     fetch('/companies/list')
       .then(response => response.json())
@@ -92,9 +101,19 @@
           companyNameSelect.appendChild(option);
         });
 
+        const searchText = document.getElementById('search-text');
+        searchText.value = defaultSearchText;
+
         // Show the modal
         $('#addRowModal').modal('show');
       });
+    }
+
+    const closeBtn = document.getElementById('close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        $('#addRowModal').modal('hide')
+      })
     }
 
     const saveRowBtn = document.getElementById('save-row-btn');
