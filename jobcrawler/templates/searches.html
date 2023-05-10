@@ -72,6 +72,7 @@
           .then(response => response.json())
           .then(searches => {
             const searchesContainer = document.getElementById('searches-container');
+            searches = searches.sort((a, b) => (a.name > b.name) ? 1 : -1);
             searches.forEach(search => {
               const card = createBoardCard(search, companies);
               searchesContainer.appendChild(card);
