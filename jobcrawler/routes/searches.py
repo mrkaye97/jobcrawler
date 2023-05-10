@@ -43,6 +43,20 @@ def get_searches():
         searches = searches
     )
 
+@searches_bp.route("/searches/<int:id>")
+@login_required
+def get_search(id):
+    current_app.logger.info("Getting a search")
+
+    record = Searches.query.get(id)
+    record = record.__dict__
+    del record["_sa_instance_state"]
+
+    current_app.logger.info(record)
+    return record
+
+
+
 @searches_bp.route('/searches', methods=["POST"])
 @login_required
 def create_search():
@@ -75,10 +89,12 @@ def create_search():
 @login_required
 def update_search(id):
     current_app.logger.info("Updating a record")
-    current_app.logger.info(json.dumps(request.form))
 
-    company_id = request.form.get("company_id")
-    search_regex = request.form.get("search_regex")
+    content = request.json
+    current_app.logger.info(json.dumps(content))
+
+    company_id = content.get("company_id")
+    search_regex = content.get("search_regex")
 
     posting = Searches.query.get(id)
 
@@ -87,7 +103,13 @@ def update_search(id):
 
     db.session.commit()
 
-    return f"Successfully updated the record for id: {id}"
+    record = Searches.query.get(id)
+    record = record.__dict__
+    del record["_sa_instance_state"]
+
+    current_app.logger.info(json.dumps(record))
+
+    return record
 
 @searches_bp.route('/searches/<int:id>', methods = ["DELETE"])
 @login_required

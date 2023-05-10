@@ -27,7 +27,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button id="close-btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="button" class="btn btn-primary" id="save-row-btn">Save</button>
         </div>
       </div>
@@ -36,54 +36,55 @@
 
 
   <h1>My Job Searches</h1>
-  <table id="board-table" class="table table-striped">
-    <thead>
-      <tr>
-        <th>Company Name</th>
-        <th>Search Text (Supports regex)</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="searches-tbody">
-      <!-- Rows will be rendered dynamically -->
-    </tbody>
-  </table>
-  <button id="add-row-btn" class="btn btn-success">Add Row</button>
-  {% if current_user.email == "mrkaye97@gmail.com" %}
-  <button id="run-email-job-btn" class="btn btn-primary">Run Email Job</button>
-  {% endif %}
+
+  <div id="searches-container" class="d-flex flex-column align-items-center">
+    <!-- Cards will be rendered dynamically -->
+  </div>
+  <div class="button-container">
+    <button id="add-row-btn" class="btn btn-success">New Search</button>
+    {% if current_user.email == "mrkaye97@gmail.com" %}
+    <button id="run-email-job-btn" class="btn btn-primary">Run Email Job</button>
+    {% endif %}
+  </div>
 
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 
   <script>
     let companies;
     let table;
+    let defaultSearchText;
+    let selectedCompanyId;
+    let editMode = false;
+    let searchText = "";
+
+    fetch('/users/current/preferences')
+      .then(response => response.json())
+      .then(userPreferences => {
+        defaultSearchText = userPreferences.default_search;
+      });
 
     fetch('/companies/list')
       .then(response => response.json())
       .then(fetchedCompanies => {
         companies = fetchedCompanies;
-      });
 
-    fetch('/searches/list')
-      .then(response => response.json())
-      .then(searches => {
-        const tableBody = document.getElementById('searches-tbody');
-        searches.forEach(search => {
-          const row = createBoardRow(search, companies);
-          tableBody.appendChild(row);
-        });
-        table = $('#board-table').DataTable({
-          pageLength: 5,
-          lengthChange: true,
-          searching: true
-        });
+        fetch('/searches/list')
+          .then(response => response.json())
+          .then(searches => {
+            const searchesContainer = document.getElementById('searches-container');
+            searches.forEach(search => {
+              const card = createBoardCard(search, companies);
+              searchesContainer.appendChild(card);
+            });
+          });
       });
 
     const addRowBtn = document.getElementById('add-row-btn');
     const companyNameSelect = document.getElementById('company-name');
     if (addRowBtn) {
       addRowBtn.addEventListener('click', function () {
+        editMode = false;
+
         companyNameSelect.innerHTML = '';
         companies.forEach(company => {
           const option = document.createElement('option');
@@ -92,9 +93,39 @@
           companyNameSelect.appendChild(option);
         });
 
-        // Show the modal
+        searchText = document.getElementById('search-text');
+        searchText.value = defaultSearchText;
+
         $('#addRowModal').modal('show');
       });
+    }
+
+
+    const searchesContainer = document.getElementById('searches-container');
+
+    function updateModalForm(cardId) {
+      fetch(`/searches/${cardId}`)
+        .then(response => response.json())
+        .then(board => {
+          companyNameSelect.value = board.company_id;
+          searchText.value = board.search_regex;
+        });
+    }
+
+    searchesContainer.addEventListener('click', function (event) {
+      const card = event.target.closest('.card');
+      if (card) {
+        editMode = true;
+        updateModalForm(card.dataset.id);
+        $('#addRowModal').modal('show');
+      }
+    });
+
+    const closeBtn = document.getElementById('close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        $('#addRowModal').modal('hide')
+      })
     }
 
     const saveRowBtn = document.getElementById('save-row-btn');
@@ -108,22 +139,46 @@
           search_regex: defaultSearchRegex
         };
 
-        const tableBody = document.querySelector('#board-table tbody');
-        const row = createBoardRow(board, companies);
+        // Check if we're adding a new card or updating an existing one
+        let cardId;
+        if (editMode) {
+          let cardElement = document.querySelector('.modal-open .card');
+          if (cardElement) {
+            cardId = cardElement.dataset.id;
+          }
+        }
 
-        table.row.add(row).draw();
-
-        fetch(`/searches`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(board)
-        }).then((response) => {
-          response.json().then(newBoard => {
-            row.dataset.id = newBoard.id;
+        if (cardId) {
+          fetch(`/searches/${cardId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(board)
+          }).then((response) => {
+            response.json().then(updatedBoard => {
+              const card = document.querySelector(`.card[data-id='${updatedBoard.id}']`);
+              card.querySelector('.card-title').textContent = companies.find(c => c.id === updatedBoard.company_id).name;
+              card.querySelector('.card-text').textContent = updatedBoard.search_regex;
+            });
           });
-        });
+        } else {
+          const searchesContainer = document.getElementById('searches-container');
+          const card = createBoardCard(board, companies);
+          searchesContainer.appendChild(card);
+
+          fetch(`/searches`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(board)
+          }).then((response) => {
+            response.json().then(newBoard => {
+              card.dataset.id = newBoard.id;
+            });
+          });
+        }
 
         selectedCompanyId = companyNameSelect.value;
 
@@ -131,6 +186,13 @@
         $('#addRowModal').modal('hide');
       });
     }
+
+    // Clear the form when the modal is hidden
+    $('#addRowModal').on('hidden.bs.modal', function () {
+      document.getElementById('add-row-form').reset();
+      delete saveRowBtn.dataset.id;
+      editMode = false;  // Reset editMode when the modal is hidden
+    });
 
     $('#addRowModal').on('hidden.bs.modal', function () {
       companyNameSelect.value = selectedCompanyId;

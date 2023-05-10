@@ -99,54 +99,52 @@ function autoSaveCompany(event) {
     });
 }
 
-function createBoardRow(board, companies) {
-    const row = document.createElement('tr');
-    row.dataset.id = board.search_id;
+function createBoardCard(search, companies) {
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'card';
 
-    const companyNameCell = document.createElement('td');
-    const companySelect = document.createElement('select'); // Create a select element
+    const cardBody = document.createElement('div');
+    cardBody.className = 'card-body';
 
-    companies.forEach(company => {
-        const option = document.createElement('option');
-        option.value = company.id;
-        option.text = company.name;
+    const cardTitle = document.createElement('h5');
+    cardTitle.className = 'card-title';
 
-        if (company.id === parseInt(board.company_id)) {
-            option.selected = true;
-        }
-        companySelect.appendChild(option);
+    cardTitle.textContent = companies.find(c => c.id === parseInt(search.company_id)).name;
+
+    const cardText = document.createElement('p');
+    cardText.className = 'card-text';
+    cardText.textContent = search.search_regex;
+
+    cardBody.appendChild(cardTitle);
+    cardBody.appendChild(cardText);
+    cardDiv.appendChild(cardBody);
+    cardDiv.dataset.id = search.search_id;
+
+    cardDiv.addEventListener('click', function () {
+        editMode = true;
+        fetch(`/searches/${search.search_id}`)
+            .then(response => response.json())
+            .then(updatedSearch => {
+                companyNameSelect.innerHTML = '';
+                companies.forEach(company => {
+                    const option = document.createElement('option');
+                    option.value = company.id;
+                    option.text = company.name;
+                    if (company.id === updatedSearch.company_id) {
+                        option.selected = true;
+                    }
+                    companyNameSelect.appendChild(option);
+                });
+
+                const searchText = document.getElementById('search-text');
+                searchText.value = updatedSearch.search_regex;
+
+                $('#addRowModal').modal('show');
+            });
     });
 
-    companyNameCell.appendChild(companySelect);
 
-    const searchCell = document.createElement('td');
-    searchCell.contentEditable = true;
-    searchCell.innerText = board.search_regex;
-
-    row.appendChild(companyNameCell);
-    row.appendChild(searchCell);
-
-
-    const actionsCell = document.createElement('td');
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn btn-danger';
-
-    deleteBtn.innerText = 'Delete';
-    deleteBtn.addEventListener('click', function () {
-        fetch(`/searches/${row.dataset.id}`, {
-            method: 'DELETE'
-        }).then(() => {
-            row.remove();
-        });
-    });
-
-    actionsCell.appendChild(deleteBtn);
-    row.appendChild(actionsCell);
-
-    searchCell.addEventListener('blur', autoSaveBoard);
-    searchCell.addEventListener('keydown', handleEnterKey(autoSaveBoard));
-
-    return row;
+    return cardDiv;
 }
 
 function autoSaveBoard(event) {
