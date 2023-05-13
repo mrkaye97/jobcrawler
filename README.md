@@ -1,4 +1,4 @@
-## Jobcrawler
+# Jobcrawler
 
 [Jobcrawler](https://jobcrawler.matthewrkaye.com) is a simple Flask app for keeping tabs on job postings at companies you are interested in. I built it because I didn't know of anything like it, but mostly because I wanted to toy with Flask a bit and get some experience building a web app. Feel free to use it, and [please report any issues you find](https://github.com/mrkaye97/jobcrawler/issues).
 
