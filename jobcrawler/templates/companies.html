@@ -25,6 +25,18 @@
             <input type="text" class="form-control" id="add-company-board-url" placeholder="Board URL" required
               pattern="https?://.+" title="Please enter a valid URL">
           </div>
+          <div class="mb-3">
+            <label for="add-company-url-prefix" class="form-label">Job Posting URL Prefix</label>
+            <input type="text" class="form-control" id="add-company-url-prefix" placeholder="Job Posting URL Prefix"
+              required pattern="https?://.+" title="Please enter a valid URL">
+          </div>
+          <div class="mb-3">
+            <label for="add-company-scraping-method" class="form-label">Scraping Method</label>
+            <select class="form-select" id="add-company-scraping-method" required>
+              <option value="soup">Soup</option>
+              <option value="selenium">Selenium</option>
+            </select>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-warning" id="test-scraping">Test</button>
