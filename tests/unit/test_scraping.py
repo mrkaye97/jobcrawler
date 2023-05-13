@@ -1,5 +1,5 @@
 from jobcrawler.jobs.scraping import *
-from jobcrawler.exceptions import ScrapingException
+from jobcrawler.exceptions.exceptions import ScrapingException
 from jobcrawler import db
 import pytest
 

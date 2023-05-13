@@ -6,7 +6,7 @@ from sqlalchemy import text
 ## current_application Imports
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
-from jobcrawler.exceptions import ScrapingException
+from jobcrawler.exceptions.exceptions import ScrapingException
 
 ## Imports for scraping
 import requests

@@ -1,5 +1,5 @@
 from flask import request, render_template, Blueprint, current_app
-from jobcrawler.exceptions import CompanyExistsException, ScrapingException
+from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
 
 errors_bp = Blueprint('errors_bp', __name__, template_folder='templates', static_folder = "static")

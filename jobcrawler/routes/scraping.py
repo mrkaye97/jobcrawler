@@ -2,7 +2,7 @@
 from jobcrawler import db
 from jobcrawler.jobs.scraping import set_chrome_options, get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job, create_driver
 from jobcrawler.models.companies import Companies
-from jobcrawler.exceptions import CompanyExistsException, ScrapingException
+from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
 ## Flask Imports
 from flask import request, Blueprint, current_app
 
