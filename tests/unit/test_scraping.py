@@ -79,8 +79,6 @@ def test_selenium_link_collection(app):
     driver.quit()
 
 def test_selenium_link_prefixing(app):
-    from selenium import webdriver
-
     driver = create_driver()
 
     links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com/blog")

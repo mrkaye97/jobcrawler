@@ -117,6 +117,7 @@ def update_search(id):
 @searches_bp.route('/searches/<int:id>', methods = ["DELETE"])
 @login_required
 def delete_search(id):
+    current_app.logger.info("Deleting a search")
     data = db.session.get(Searches, id)
     db.session.delete(data)
     db.session.commit()

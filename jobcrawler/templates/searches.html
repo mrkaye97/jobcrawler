@@ -27,6 +27,7 @@
           </form>
         </div>
         <div class="modal-footer">
+          <button id="delete-row-btn" type="button" class="btn btn-danger" style="display: none;">Delete</button>
           <button id="close-btn" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="button" class="btn btn-primary" id="save-row-btn">Save</button>
         </div>
@@ -188,6 +189,36 @@
         $('#addRowModal').modal('hide');
       });
     }
+
+    const deleteRowBtn = document.getElementById('delete-row-btn');
+    if (deleteRowBtn) {
+      deleteRowBtn.addEventListener('click', function () {
+        // If we're not in edit mode or don't have a card ID, don't do anything
+        if (!editMode || !editingCardId) {
+          return;
+        }
+
+        fetch(`/searches/${editingCardId}`, {
+          method: 'DELETE'
+        }).then(() => {
+          // If the delete was successful, remove the card from the DOM
+          const card = document.querySelector(`.card[data-id='${editingCardId}']`);
+          card.remove();
+
+          // Hide the modal
+          $('#addRowModal').modal('hide');
+        });
+      });
+    }
+
+    $('#addRowModal').on('show.bs.modal', function () {
+      if (editMode) {
+        deleteRowBtn.style.display = 'inline-block';
+      } else {
+        deleteRowBtn.style.display = 'none';
+      }
+    });
+
 
     // Clear the form when the modal is hidden
     $('#addRowModal').on('hidden.bs.modal', function () {

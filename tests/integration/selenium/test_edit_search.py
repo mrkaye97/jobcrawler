@@ -90,6 +90,8 @@ def test_editing_cards(client__logged_in):
         "search_regex": new_search_regex
     }
 
+    cards_found = driver.find_elements(By.XPATH, '//*[@id="searches-container"]/div')
+
     actual_cards = []
     for i in range(len(cards_found)):
         actual_cards = actual_cards + [
@@ -101,3 +103,16 @@ def test_editing_cards(client__logged_in):
 
     assert initial_cards == actual_cards
 
+    driver.find_element(By.XPATH, '//*[@id="searches-container"]/div[2]/div').click()
+    driver.implicitly_wait(10)
+    middle_card_edit_modal = driver.find_element(By.CLASS_NAME, 'modal-content')
+
+    time.sleep(.25)
+
+    middle_card_edit_modal.find_element(By.XPATH, '//*[@id="delete-row-btn"]').click()
+
+    time.sleep(.25)
+
+    cards_found = driver.find_elements(By.XPATH, '//*[@id="searches-container"]/div')
+
+    assert len(cards_found) == 2
