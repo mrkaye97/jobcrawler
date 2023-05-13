@@ -15,3 +15,5 @@ This project is pretty barebones. In no particular order, things to work on are:
 3. Add lots more test coverage.
 4. Migrate the frontend to React.
 5. Use TypeScript or PureScript instead of vanilla JavaScript.
+6. Improve formatting on mobile.
+
