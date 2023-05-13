@@ -1,6 +1,7 @@
 from flask import request, render_template, Blueprint, current_app
 from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
+from sentry_sdk import capture_exception
 
 errors_bp = Blueprint('errors_bp', __name__, template_folder='templates', static_folder = "static")
 
@@ -21,6 +22,7 @@ def handle_error(e):
         return {"message": "Sorry, something went wrong."}, 500
 
     if code == 404:
+        capture_exception(e)
         return render_template('404.html')
     else:
         message = "500 - That's our bad." if code == 500 else code
