@@ -14,6 +14,7 @@ searches_bp = Blueprint('searches_bp', __name__, template_folder='templates', st
 
 @searches_bp.route("/searches/list")
 def list_searches():
+    current_app.logger.info("Listing searches")
     searches = Searches.\
         query.\
         filter_by(user_id = current_user.get_id()).\
@@ -26,11 +27,13 @@ def list_searches():
         for search in searches
     ]
 
+    current_app.logger.info(json.dumps(result))
     return result
 
 @searches_bp.route("/searches")
 @login_required
 def get_searches():
+    current_app.logger.info("Getting searches")
     searches = Searches.\
         query.\
         filter_by(user_id = current_user.get_id()).\
