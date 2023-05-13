@@ -4,7 +4,7 @@
 
 ## Stack
 
-The app is a [Flask](https://flask.palletsprojects.com/en/2.3.x/) backend with a JS frontend. It uses [Postgres](https://www.postgresql.org/) as a database and is deployed behind a Gunicorn server on [DigitalOcean](https://www.digitalocean.com/) using [Docker](https://www.docker.com/) via [GitHub Actions](https://github.com/actions). Logs are piped to [Papertrail](https://www.papertrail.com/), and errors flow into [Sentry](https://sentry.io).
+The app is a [Flask](https://flask.palletsprojects.com/en/2.3.x/) backend with a JS frontend. It uses [Postgres](https://www.postgresql.org/) as a database and is deployed behind a [Gunicorn](https://gunicorn.org/) server on [DigitalOcean](https://www.digitalocean.com/) using [Docker](https://www.docker.com/) via [GitHub Actions](https://github.com/actions). Logs are piped to [Papertrail](https://www.papertrail.com/), and errors flow into [Sentry](https://sentry.io).
 
 ## To Do
 
