@@ -117,7 +117,8 @@
       const card = event.target.closest('.card');
       if (card) {
         editMode = true;
-        updateModalForm(card.dataset.id);
+        editingCardId = card.dataset.id;
+        updateModalForm(editingCardId);
         $('#addRowModal').modal('show');
       }
     });
@@ -142,7 +143,7 @@
 
         // Check if we're adding a new card or updating an existing one
         let cardId;
-        if (editMode) {
+        if (editMode && editingCardId) {
           let cardElement = document.querySelector('.modal-open .card');
           if (cardElement) {
             cardId = cardElement.dataset.id;
@@ -150,7 +151,7 @@
         }
 
         if (cardId) {
-          fetch(`/searches/${cardId}`, {
+          fetch(`/searches/${editingCardId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json'
@@ -193,6 +194,7 @@
       document.getElementById('add-row-form').reset();
       delete saveRowBtn.dataset.id;
       editMode = false;  // Reset editMode when the modal is hidden
+      editingCardId = null;  // Clear the card ID when the modal is hidden
     });
 
     $('#addRowModal').on('hidden.bs.modal', function () {
