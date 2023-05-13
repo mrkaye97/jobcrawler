@@ -62,9 +62,7 @@ def test_users_to_email(app):
     db.session.commit()
 
 def test_selenium_link_collection(app):
-    from selenium import webdriver
-
-    driver = webdriver.Chrome(options=set_chrome_options())
+    driver = create_driver()
 
     links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com")
 
@@ -83,7 +81,7 @@ def test_selenium_link_collection(app):
 def test_selenium_link_prefixing(app):
     from selenium import webdriver
 
-    driver = webdriver.Chrome(options=set_chrome_options())
+    driver = create_driver()
 
     links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com/blog")
 

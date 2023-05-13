@@ -1,6 +1,6 @@
 ## Application Imports
 from jobcrawler import db
-from jobcrawler.jobs.scraping import set_chrome_options, get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job
+from jobcrawler.jobs.scraping import set_chrome_options, get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job, create_driver
 from jobcrawler.models.companies import Companies
 from jobcrawler.exceptions import CompanyExistsException, ScrapingException
 ## Flask Imports
@@ -15,10 +15,7 @@ scraping_bp = Blueprint('scraping_bp', __name__, template_folder='templates', st
 def test_scraping():
 
     ## Set up Selenium
-    driver = webdriver.Chrome(options=set_chrome_options())
-    delay = 3
-
-    driver.implicitly_wait(delay)
+    driver = create_driver()
 
     content = request.json
 

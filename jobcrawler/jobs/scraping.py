@@ -38,6 +38,14 @@ def set_chrome_options() -> Options:
     chrome_prefs["profile.default_content_settings"] = {"images": 2}
     return chrome_options
 
+def create_driver():
+    driver = webdriver.Chrome(options=set_chrome_options())
+    delay = 3
+
+    driver.implicitly_wait(delay)
+
+    return driver
+
 def load_page(url):
     r = requests.get(url)
 
@@ -128,10 +136,7 @@ def get_links_soup(url, example_prefix):
 def crawl_for_postings(app, db):
 
     ## Set up Selenium
-    driver = webdriver.Chrome(options=set_chrome_options())
-    delay = 3
-
-    driver.implicitly_wait(delay)
+    driver = create_driver()
 
     with app.app_context():
         for company in Companies.query.all():
