@@ -59,39 +59,21 @@ button:hover {
 }
 
 /* Make both tables the same width */
-#company-table,
-#board-table {
+#company-table {
     width: 100%;
     table-layout: fixed;
 }
 
 /* Set the fixed width of the name/company name columns */
-#company-table th:nth-child(1),
-#board-table th:nth-child(1) {
-    width: 15%;
+#company-table th:nth-child(1) {
+    width: 50%;
 }
 
 /* Set the fixed width of the board URL column */
 #company-table th:nth-child(2) {
-    width: 30%;
+    width: 50%;
 }
 
-/* Set the fixed width of the scraping method column */
-#company-table th:nth-child(3) {
-    width: 30%;
-}
-
-/* Set the fixed width of the search text column */
-#board-table th:nth-child(2) {
-    width: 70%;
-}
-
-/* Set the fixed width of the actions columns */
-#company-table th:nth-child(4),
-#company-table th:nth-child(5),
-#board-table th:nth-child(3) {
-    width: 10%;
-}
 
 .nowrap {
     width: 100%;
@@ -145,15 +127,12 @@ select {
 }
 
 #company-table th,
-#company-table td,
-#board-table th,
-#board-table td {
+#company-table td {
     vertical-align: middle;
 }
 
 /* Add padding to table cells for better spacing */
-#company-table td,
-#board-table td {
+#company-table td {
     padding: 8px;
 }
 
