@@ -1,30 +1,103 @@
-def test_homepage_aliases(client):
-    landing = client.get("/")
+import pytest
+from jobcrawler.jobs.scraping import *
+from selenium.webdriver.common.by import By
+from flask import url_for
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
+import time
 
-    assert client.get("/index").data == landing.data
+def sign_up_and_log_in(driver):
+    driver.find_element(By.XPATH, '/html/body/div/section/div[1]/nav/div/div[2]/a[1]').click()
 
-def test_homepage_loads_correctly(client):
-    landing = client.get("/")
-    html = landing.data.decode()
+    email = 'j@bond.com'
+    password = "007"
 
-    # Check that link to home page exists
-    assert "<a href=\"/index\" class=\"btn btn-outline-primary me-2\">Home</a>" in html
-    assert "<a href=\"/login\" class=\"btn btn-outline-primary me-2\">Login</a>" in html
+    ## Fill in login form
+    driver.find_element(By.XPATH, '/html/body/div/section/div[2]/div/div/div/form/div[1]/div/input').send_keys(email)
+    driver.find_element(By.XPATH, '/html/body/div/section/div[2]/div/div/div/form/div[2]/div/input').send_keys(password)
+    driver.find_element(By.XPATH, '/html/body/div/section/div[2]/div/div/div/form/button').click()
 
-    assert "Preferences" not in html
-    assert "Companies" in html
+    return driver
 
-    assert landing.status_code == 200
+def create_search(driver, company, text):
+    driver.find_element(By.XPATH, '//*[@id="add-row-btn"]').click()
 
-def test_buttons_intended_for_logged_in_dont_load(client__logged_in):
-    landing = client__logged_in.get("/")
+    driver.implicitly_wait(10)
+    modal = driver.find_element(By.CLASS_NAME, 'modal-content')
 
-    html = landing.data.decode()
-    html = "".join(html.split())
 
-    ## Preferences and Logout buttons should only show for logged-in users
-    assert "<ahref=\"/preferences\"class=\"btnbtn-outline-primaryme-2\">Preferences</a>" in html
-    assert "<ahref=\"/logout\"class=\"btnbtn-outline-primary\">Logout</a>" in html
+    WebDriverWait(modal, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-text"]'))).send_keys(text)
+    select = Select(driver.find_element(By.XPATH, '//*[@id="company-name"]'))
+    select.select_by_visible_text(company)
 
-    ## Login should not show up for logged-in users
-    assert "<a href=\"/login\"class=\"btn btn-outline-primaryme-2\">Login</a>" not in html
+    time.sleep(.25)
+
+    modal.find_element(By.XPATH, '//*[@id="save-row-btn"]').click()
+
+
+@pytest.mark.usefixtures('live_server')
+def test_editing_cards(client__logged_in):
+
+    driver = create_driver()
+
+    url = url_for('searches_bp.get_searches', _external = True)
+    driver.get(url)
+
+    sign_up_and_log_in(driver)
+
+    driver.find_element(By.CSS_SELECTOR, "body > div > section > div.hero-head > nav > div > div.d-flex.mr-auto > a:nth-child(3)").click()
+
+    initial_cards = [
+        {"company": "Foo", "search_regex": "data"},
+        {"company": "Bar", "search_regex": "product"},
+        {"company": "Baz", "search_regex": "software"},
+    ]
+
+    for c in initial_cards:
+        create_search(driver, c["company"], c["search_regex"])
+        time.sleep(.25)
+
+    cards_found = driver.find_elements(By.XPATH, '//*[@id="searches-container"]/div')
+
+    assert len(cards_found) == len(initial_cards)
+
+    actual_cards = []
+    for i in range(len(cards_found)):
+        actual_cards = actual_cards + [
+            {
+                "company": driver.find_element(By.XPATH, f'//*[@id="searches-container"]/div[{i + 1}]/div/h5').text,
+                "search_regex": driver.find_element(By.XPATH, f'//*[@id="searches-container"]/div[{i + 1}]/div/p').text
+            }
+        ]
+
+    assert initial_cards == actual_cards
+
+    driver.find_element(By.XPATH, '//*[@id="searches-container"]/div[2]/div').click()
+    driver.implicitly_wait(10)
+    middle_card_edit_modal = driver.find_element(By.CLASS_NAME, 'modal-content')
+
+    new_search_regex = "new search"
+    WebDriverWait(middle_card_edit_modal, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-text"]'))).clear()
+    WebDriverWait(middle_card_edit_modal, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-text"]'))).send_keys(new_search_regex)
+
+    time.sleep(.25)
+
+    middle_card_edit_modal.find_element(By.XPATH, '//*[@id="save-row-btn"]').click()
+
+    initial_cards[1] = {
+        "company": initial_cards[1]["company"],
+        "search_regex": new_search_regex
+    }
+
+    actual_cards = []
+    for i in range(len(cards_found)):
+        actual_cards = actual_cards + [
+            {
+                "company": driver.find_element(By.XPATH, f'//*[@id="searches-container"]/div[{i + 1}]/div/h5').text,
+                "search_regex": driver.find_element(By.XPATH, f'//*[@id="searches-container"]/div[{i + 1}]/div/p').text
+            }
+        ]
+
+    assert initial_cards == actual_cards
+

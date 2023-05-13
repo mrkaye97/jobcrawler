@@ -62,7 +62,7 @@ def update_company(id):
     scraping_method = request.form.get("scraping_method")
     url_prefix = request.form.get("job_posting_url_prefix")
 
-    company = Companies.query.get(id)
+    company = db.session.get(Companies, id)
 
     company.name = name
     company.board_url = board_url
@@ -75,7 +75,7 @@ def update_company(id):
 
 @companies_bp.route('/companies/<int:id>', methods = ["DELETE"])
 def delete_company(id):
-    data = Companies.query.get(id)
+    data = db.session.get(Companies, id)
     db.session.delete(data)
     db.session.commit()
 

@@ -28,7 +28,8 @@ def get_preferences():
 
 @preferences_bp.route('/users/current/preferences')
 def get_current_user_preferences():
-    u = Users.query.get(current_user.get_id())
+    u = db.session.get(Users, current_user.get_id())
+
 
     return {
         "default_search": u.default_search_regex,

@@ -1,12 +1,32 @@
 from jobcrawler import create_app, db
+from jobcrawler.models.companies import Companies
 import pytest
+import multiprocessing
 
-@pytest.fixture
+multiprocessing.set_start_method("fork")
+
+@pytest.fixture(scope="session")
 def app():
     app = create_app()
 
     with app.app_context():
         db.create_all()
+
+        def create_record(name):
+            record = Companies(
+                name = name,
+                board_url = "https://example.com",
+                job_posting_url_prefix = "https://example.com",
+                scraping_method = "soup"
+            )
+
+            db.session.add(record)
+
+        for n in ["Foo", "Bar", "Baz", "Qux"]:
+            create_record(n)
+
+        db.session.commit()
+
 
     yield app
 
@@ -15,11 +35,11 @@ def app():
         db.drop_all()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client(app):
     return app.test_client()
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client__logged_in(app):
     client = app.test_client()
 
@@ -42,7 +62,7 @@ def client__logged_in(app):
 
     return client
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client__superuser(app):
     client = app.test_client()
 

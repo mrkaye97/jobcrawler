@@ -99,7 +99,7 @@ def create_app(config_class = Config):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return Users.query.get(int(user_id))
+        return db.session.get(Users, user_id)
 
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):

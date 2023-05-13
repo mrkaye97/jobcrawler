@@ -48,7 +48,7 @@ def get_searches():
 def get_search(id):
     current_app.logger.info("Getting a search")
 
-    record = Searches.query.get(id)
+    record = db.session.get(Searches, id)
     record = record.__dict__
     del record["_sa_instance_state"]
 
@@ -75,7 +75,7 @@ def create_search():
         db.session.commit()
 
         id = p.id
-        record = Searches.query.get(id)
+        record = db.session.get(Searches, id)
         record = record.__dict__
         del record["_sa_instance_state"]
 
@@ -96,14 +96,14 @@ def update_search(id):
     company_id = content.get("company_id")
     search_regex = content.get("search_regex")
 
-    posting = Searches.query.get(id)
+    posting = db.session.get(Searches, id)
 
     posting.company_id = company_id
     posting.search_regex = search_regex
 
     db.session.commit()
 
-    record = Searches.query.get(id)
+    record = db.session.get(Searches, id)
     record = record.__dict__
     del record["_sa_instance_state"]
 
@@ -114,7 +114,7 @@ def update_search(id):
 @searches_bp.route('/searches/<int:id>', methods = ["DELETE"])
 @login_required
 def delete_search(id):
-    data = Searches.query.get(id)
+    data = db.session.get(Searches, id)
     db.session.delete(data)
     db.session.commit()
 
