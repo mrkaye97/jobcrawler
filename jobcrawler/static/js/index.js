@@ -1,4 +1,4 @@
-function createCompanyRow(company, email) {
+function createCompanyRow(company, is_admin) {
     const row = document.createElement('tr');
     row.dataset.id = company.id;
 
@@ -10,7 +10,7 @@ function createCompanyRow(company, email) {
     const scrapingMethodCell = document.createElement('td');
     let scrapingMethodSelect;
 
-    if (email === "mrkaye97@gmail.com") {
+    if (is_admin) {
         scrapingMethodSelect = document.createElement('select');
         const soupOption = document.createElement('option');
         const seleniumOption = document.createElement('option');
@@ -31,7 +31,7 @@ function createCompanyRow(company, email) {
         scrapingMethodCell.appendChild(scrapingMethodText);
     }
 
-    if (email === "mrkaye97@gmail.com") {
+    if (is_admin) {
         nameCell.contentEditable = true;
         boardUrlCell.contentEditable = true;
         jobPostingUrlCell.contentEditable = true;
@@ -46,7 +46,7 @@ function createCompanyRow(company, email) {
     row.appendChild(jobPostingUrlCell);
     row.appendChild(scrapingMethodCell);
 
-    if (email === "mrkaye97@gmail.com") {
+    if (is_admin) {
         const actionsCell = document.createElement('td');
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn btn-danger';

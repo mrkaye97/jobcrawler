@@ -62,16 +62,3 @@ def client__logged_in(app):
 
     return client
 
-@pytest.fixture(scope="session")
-def client__superuser(app):
-    client = app.test_client()
-
-    client.post(
-        "/signup",
-        data = {"email": 'mrkaye97@gmail.com', "password": 'superuser', "first_name": "matt"},
-        content_type = 'application/x-www-form-urlencoded',
-        follow_redirects = True
-    )
-
-    return client
-

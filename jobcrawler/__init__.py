@@ -67,7 +67,7 @@ def create_app(config_class = Config):
     class AdminView(ModelView):
         def is_accessible(self):
             if current_user.get_id():
-                return current_user.email == "mrkaye97@gmail.com"
+                return current_user.is_admin
             else:
                 return False
 

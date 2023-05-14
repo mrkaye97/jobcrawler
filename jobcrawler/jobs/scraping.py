@@ -193,7 +193,7 @@ def get_users_to_email():
             FROM users
             WHERE
                 MOD(:current_day, email_frequency_days) = 0
-                OR email = 'mrkaye97@gmail.com'
+                OR is_admin
             """
         ),
         {'current_day': current_day}

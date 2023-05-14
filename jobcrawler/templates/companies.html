@@ -94,7 +94,7 @@
   {% if current_user.is_authenticated %}
   <button id="add-company-btn" class="btn btn-success">Add Company</button>
   {% endif %}
-  {% if current_user.email == "mrkaye97@gmail.com" %}
+  {% if current_user.is_admin %}
   <button id="run-crawl-job-btn" class="btn btn-primary">Run Crawl Job</button>
   {% endif %}
 
@@ -142,7 +142,7 @@
         }).then(response => response.json())
           .then(company => {
             const companyTable = document.getElementById('company-table');
-            const companyRow = createCompanyRow(company, "{{current_user.email}}");
+            const companyRow = createCompanyRow(company, "{{current_user.is_admin}}");
             companyTable.querySelector('tbody').appendChild(companyRow);
 
             nameInput.value = '';

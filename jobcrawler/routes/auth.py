@@ -1,7 +1,7 @@
 import os
 
 ## Flask imports
-from flask import request, render_template, redirect, url_for, flash, Blueprint
+from flask import request, render_template, redirect, url_for, flash, Blueprint, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
 
@@ -20,13 +20,25 @@ def logout():
 @auth_bp.route('/login')
 def login():
     if os.environ.get('ENV') == 'DEV':
-        user_email = "mrkaye97@gmail.com"
+        user_email = os.environ.get("DEV_USER_EMAIL")
+        dev_is_admin = os.environ.get("DEV_IS_ADMIN_USER") == "True"
+
         user = Users.query.filter_by(email=user_email).first()
-        if user:
-            login_user(user)
-            return redirect(url_for('home_bp.index'))
-        else:
-            flash(f'User with email {user_email} not found.', 'danger')
+        if not user:
+            new_user = Users(
+                email = user_email,
+                first_name = "Testy",
+                password_hash = generate_password_hash("placeholder", method = 'sha256'),
+                is_admin = dev_is_admin
+            )
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            user = db.session.get(Users, new_user.id)
+
+        login_user(user)
+        return redirect(url_for('home_bp.index'))
 
     return render_template('login.html')
 
@@ -64,7 +76,7 @@ def signup_post():
         flash('Email address already exists. Please log in.')
         return redirect(url_for('auth_bp.login'))
 
-    new_user = Users(email=email, first_name=first_name, password_hash=generate_password_hash(password, method='sha256'))
+    new_user = Users(email=email, first_name=first_name, password_hash=generate_password_hash(password, method='sha256'), is_admin=False)
 
     db.session.add(new_user)
     db.session.commit()
