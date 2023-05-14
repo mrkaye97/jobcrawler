@@ -19,7 +19,7 @@ def logout():
 
 @auth_bp.route('/login')
 def login():
-    if os.environ.get('ENV') == 'DEV':
+    if os.environ.get('ENV') == 'DEV' and os.environ.get("DEV_AUTOLOGIN") == "True":
         user_email = os.environ.get("DEV_USER_EMAIL")
         dev_is_admin = os.environ.get("DEV_IS_ADMIN_USER") == "True"
 

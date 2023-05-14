@@ -100,7 +100,8 @@ def get_links_selenium(driver, url, example_prefix):
         """
 
         current_app.logger.error(message)
-        capture_message(message)
+        if os.environ.get("ENV") == "PROD" and os.environ.get("SENTRY_DSN"):
+            capture_message(message)
 
     return result
 
@@ -268,7 +269,7 @@ def run_email_send_job(app):
 
                 current_app.logger.info(f"Email message: {message}")
 
-                if os.environ.get("ENV") == "PROD":
+                if os.environ.get("ENV") == "PROD" and os.environ.get("SIB_API_KEY"):
                     current_app.logger.info(f"Sending email to {user.email}")
                     send_email(
                         sender_email = "mrkaye97@gmail.com",
