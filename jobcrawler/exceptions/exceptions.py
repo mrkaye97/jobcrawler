@@ -5,7 +5,7 @@ class ScrapingException(Exception):
         self.code = code
 
     def __str__(self):
-        return f"Getting {self.url} returned status code 404."
+        return f"Error message: {self.message}"
 
 class CompanyExistsException(Exception):
     def __init__(self, name):

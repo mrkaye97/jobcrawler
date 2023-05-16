@@ -1,13 +1,10 @@
 ## Application Imports
 from jobcrawler import db
-from jobcrawler.jobs.scraping import set_chrome_options, get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job, create_driver
+from jobcrawler.jobs.scraping import get_links_selenium, get_links_soup, crawl_for_postings, run_email_send_job, create_driver
 from jobcrawler.models.companies import Companies
 from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
 ## Flask Imports
 from flask import request, Blueprint, current_app
-
-## Selenium Imports
-from selenium import webdriver
 
 scraping_bp = Blueprint('scraping_bp', __name__, template_folder='templates', static_folder = "static")
 
@@ -44,8 +41,9 @@ def test_scraping():
         return "Could not find that scraping method", 400
 
     matching_links = [l for l in links if posting_url_prefix in l.get("href")]
+
     if not matching_links:
-        raise ScrapingException(message = f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}", code = 400)
+        raise ScrapingException(url = board_url, message = f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}", code = 400)
 
     driver.quit()
     return matching_links
