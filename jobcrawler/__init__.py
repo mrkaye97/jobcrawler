@@ -77,7 +77,7 @@ def create_app(config_class=Config):
 
     admin.add_link(MenuLink(name="Home", category="", url="/index"))
 
-    app.secret_key = os.urandom(24)
+    app.secret_key = os.environ.get("APP_SECRET_KEY") or os.urandom(24)
 
     root = logging.getLogger()
     root.setLevel(logging.INFO)
