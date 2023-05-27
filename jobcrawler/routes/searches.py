@@ -31,25 +31,25 @@ def list_searches():
         .order_by(Searches.id)
     )
 
-    result = [
-        {
-            "search_id": search.search_id,
-            "company_id": search.company_id,
-            "name": search.name,
-            "url": search.board_url,
-            "search_regex": search.search_regex,
-        }
-        for search in searches
-    ]
+    result = list(
+        map(
+            lambda x: {
+                "search_id": x.search_id,
+                "company_id": x.company_id,
+                "name": x.name,
+                "url": x.board_url,
+                "search_regex": x.search_regex,
+            },
+            searches
+        )
+    )
 
-    current_app.logger.info(json.dumps(result))
     return result
 
 
 @searches_bp.route("/searches")
 @login_required
 def get_searches():
-    current_app.logger.info("Getting searches")
     searches = (
         Searches.query.filter_by(user_id=current_user.get_id())
         .join(Companies)
@@ -69,13 +69,11 @@ def get_searches():
 @searches_bp.route("/searches/<int:id>")
 @login_required
 def get_search(id):
-    current_app.logger.info("Getting a search")
-
     record = db.session.get(Searches, id)
     record = record.__dict__
+
     del record["_sa_instance_state"]
 
-    current_app.logger.info(record)
     return record
 
 
@@ -100,8 +98,6 @@ def create_search():
         record = db.session.get(Searches, id)
         record = record.__dict__
         del record["_sa_instance_state"]
-
-        current_app.logger.info(json.dumps(record))
 
         return record
     else:
@@ -129,8 +125,6 @@ def update_search(id):
     record = db.session.get(Searches, id)
     record = record.__dict__
     del record["_sa_instance_state"]
-
-    current_app.logger.info(json.dumps(record))
 
     return record
 

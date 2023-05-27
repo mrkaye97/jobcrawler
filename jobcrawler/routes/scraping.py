@@ -1,11 +1,10 @@
 ## Application Imports
 from jobcrawler import db
 from jobcrawler.jobs.scraping import (
-    get_links_selenium,
-    get_links_soup,
     crawl_for_postings,
     run_email_send_job,
     create_driver,
+    get_links
 )
 from jobcrawler.models.companies import Companies
 from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
@@ -35,16 +34,14 @@ def test_scraping():
     if existing:
         raise CompanyExistsException(name=company_name)
 
-    if scraping_method == "soup":
-        links = get_links_soup(url=board_url, example_prefix=posting_url_prefix)
-    elif scraping_method == "selenium":
-        links = get_links_selenium(
-            driver=driver, url=board_url, example_prefix=posting_url_prefix
-        )
-    else:
-        return "Could not find that scraping method", 400
+    links = get_links(driver, existing)
 
-    matching_links = [l for l in links if posting_url_prefix in l.get("href")]
+    matching_links = list(
+        filter(
+            lambda x: posting_url_prefix in x.get("href"),
+            links
+        )
+    )
 
     if not matching_links:
         raise ScrapingException(

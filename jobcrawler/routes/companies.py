@@ -15,16 +15,17 @@ companies_bp = Blueprint(
 
 @companies_bp.route("/companies/list")
 def list_companies():
-    companies = Companies.query.with_entities(Companies.id, Companies.name).all()
-
-    return [{"id": c.id, "name": c.name} for c in companies]
+    return list(
+        map(
+            lambda x: {"id": x.id, "name": x.name},
+            Companies.query.with_entities(Companies.id, Companies.name).all()
+        )
+    )
 
 
 @companies_bp.route("/companies")
 def get_companies():
-    companies = Companies.query
-
-    return render_template("companies.html", companies=companies)
+    return render_template("companies.html", companies=Companies.query)
 
 
 @companies_bp.route("/companies", methods=["POST"])
