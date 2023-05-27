@@ -4,6 +4,11 @@ from jobcrawler import db
 import pytest
 
 from jobcrawler.models.users import Users
+from jobcrawler.models.postings import Postings
+from jobcrawler.models.searches import Searches
+from jobcrawler.models.companies import Companies
+
+from collections import namedtuple
 
 
 def test_load_page_raises_on_404():
@@ -20,47 +25,72 @@ def test_load_page_works_for_existing():
 
 
 def test_matching_postings():
-    assert is_matching_posting("foobar", "bazfoobarqux")
-    assert not is_matching_posting("foo", "bazqux")
+    Search = namedtuple("Search", "search_regex link_text")
 
-    assert is_matching_posting("(foo|bar)", "barbazqux")
-    assert not is_matching_posting("(foo|bar)", "bazqux")
+    assert is_matching_posting(Search("foobar", "bazfoobarqux"))
+    assert not is_matching_posting(Search("foo", "bazqux"))
 
-    assert is_matching_posting("(senior )?data scientist", "data scientist")
-    assert is_matching_posting("(senior )?data scientist", "senior data scientist")
+    assert is_matching_posting(Search("(foo|bar)", "barbazqux"))
+    assert not is_matching_posting(Search("(foo|bar)", "bazqux"))
+
+    assert is_matching_posting(Search("(senior )?data scientist", "data scientist"))
+    assert is_matching_posting(Search("(senior )?data scientist", "senior data scientist"))
 
     ## Missing regex or text always returns False
-    assert not is_matching_posting(None, "bazqux")
-    assert not is_matching_posting("bazqux", None)
-    assert not is_matching_posting(None, None)
+    assert not is_matching_posting(Search(None, "bazqux"))
+    assert not is_matching_posting(Search("bazqux", None))
+    assert not is_matching_posting(Search(None, None))
 
 
 def test_posting_ad_creation():
+    Search = namedtuple("Search", "link_href link_text")
+
     title = "foo bar"
-    company = "baz"
     href = "qux.com"
 
-    ad = create_posting_advertisement(title, company, href)
+    ad = create_posting_advertisement(Search(href, title))
 
     assert title in ad.get("text")
     assert href == ad.get("href")
 
 
 def test_users_to_email(app):
+    c1 = Companies(name = "test", board_url = "test.com", job_posting_url_prefix = "test.com", scraping_method = "soup")
+    db.session.add(c1)
+
     u1 = Users(email="kaye.dev", email_frequency_days=1)
     u2 = Users(email="mk.dev", email_frequency_days=1000000)
-
     db.session.add(u1)
     db.session.add(u2)
+
+    p1 = Postings(company_id = 1, link_text = "foo", link_href = "bar", created_at = datetime.datetime.now() - datetime.timedelta(days = 100))
+    db.session.add(p1)
+
     db.session.commit()
 
-    emails = [u.email for u in get_users_to_email()]
+    s1 = Searches(company_id = 1, search_regex = "foo", user_id = 1)
+    s2 = Searches(company_id = 1, search_regex = "foo", user_id = 2)
+    db.session.add(s1)
+    db.session.add(s2)
+    db.session.commit()
+
+
+    emails = [s.email for s in get_user_job_searches()]
+    print("Emails: ", emails)
 
     assert "kaye.dev" in emails
     assert "mk.dev" not in emails
 
+    ## Unwind
+    db.session.delete(s1)
+    db.session.delete(s2)
+
+    db.session.delete(p1)
+
     db.session.delete(u1)
     db.session.delete(u2)
+
+    db.session.delete(c1)
 
     db.session.commit()
 

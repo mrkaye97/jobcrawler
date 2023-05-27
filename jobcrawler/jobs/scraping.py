@@ -250,24 +250,24 @@ def get_user_job_searches() -> List[Tuple]:
         db.session.execute(
             text(
                 """
-            SELECT
-                u.id AS user_id,
-                u.email_frequency_days,
-                u.email,
-                u.first_name,
-                c.name AS company_name,
-                s.search_regex,
-                p.link_href,
-                p.link_text,
-                p.created_at
-            FROM searches s
-            JOIN companies c ON c.id = s.company_id
-            JOIN postings p ON p.company_id = c.id
-            JOIN users u ON u.id = s.user_id
-            WHERE
-                MOD(:current_day, email_frequency_days) = 0
-                OR is_admin
-            """
+                SELECT
+                    u.id AS user_id,
+                    u.email_frequency_days,
+                    u.email,
+                    u.first_name,
+                    c.name AS company_name,
+                    s.search_regex,
+                    p.link_href,
+                    p.link_text,
+                    p.created_at
+                FROM searches s
+                JOIN companies c ON c.id = s.company_id
+                JOIN postings p ON p.company_id = c.id
+                JOIN users u ON u.id = s.user_id
+                WHERE
+                    MOD(:current_day, email_frequency_days) = 0
+                    OR is_admin
+                """
             ),
             {"current_day": current_day},
         ).all()
