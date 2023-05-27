@@ -4,7 +4,7 @@ from jobcrawler.jobs.scraping import (
     crawl_for_postings,
     run_email_send_job,
     create_driver,
-    get_links
+    get_links,
 )
 from jobcrawler.models.companies import Companies
 from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
@@ -37,19 +37,14 @@ def test_scraping():
     links = get_links(
         driver,
         Companies(
-            job_posting_url_prefix = posting_url_prefix,
-            board_url = board_url,
-            scraping_method = scraping_method,
-            name = company_name
-        )
+            job_posting_url_prefix=posting_url_prefix,
+            board_url=board_url,
+            scraping_method=scraping_method,
+            name=company_name,
+        ),
     )
 
-    matching_links = list(
-        filter(
-            lambda x: posting_url_prefix in x.get("href"),
-            links
-        )
-    )
+    matching_links = list(filter(lambda x: posting_url_prefix in x.get("href"), links))
 
     if not matching_links:
         raise ScrapingException(

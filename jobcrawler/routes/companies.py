@@ -18,7 +18,7 @@ def list_companies():
     return list(
         map(
             lambda x: {"id": x.id, "name": x.name},
-            Companies.query.with_entities(Companies.id, Companies.name).all()
+            Companies.query.with_entities(Companies.id, Companies.name).all(),
         )
     )
 

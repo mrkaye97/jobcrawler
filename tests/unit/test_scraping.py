@@ -34,7 +34,9 @@ def test_matching_postings():
     assert not is_matching_posting(Search("(foo|bar)", "bazqux"))
 
     assert is_matching_posting(Search("(senior )?data scientist", "data scientist"))
-    assert is_matching_posting(Search("(senior )?data scientist", "senior data scientist"))
+    assert is_matching_posting(
+        Search("(senior )?data scientist", "senior data scientist")
+    )
 
     ## Missing regex or text always returns False
     assert not is_matching_posting(Search(None, "bazqux"))
@@ -55,7 +57,12 @@ def test_posting_ad_creation():
 
 
 def test_users_to_email(app):
-    c1 = Companies(name = "test", board_url = "test.com", job_posting_url_prefix = "test.com", scraping_method = "soup")
+    c1 = Companies(
+        name="test",
+        board_url="test.com",
+        job_posting_url_prefix="test.com",
+        scraping_method="soup",
+    )
     db.session.add(c1)
 
     u1 = Users(email="kaye.dev", email_frequency_days=1)
@@ -63,17 +70,21 @@ def test_users_to_email(app):
     db.session.add(u1)
     db.session.add(u2)
 
-    p1 = Postings(company_id = 1, link_text = "foo", link_href = "bar", created_at = datetime.datetime.now() - datetime.timedelta(days = 100))
+    p1 = Postings(
+        company_id=1,
+        link_text="foo",
+        link_href="bar",
+        created_at=datetime.datetime.now() - datetime.timedelta(days=100),
+    )
     db.session.add(p1)
 
     db.session.commit()
 
-    s1 = Searches(company_id = 1, search_regex = "foo", user_id = 1)
-    s2 = Searches(company_id = 1, search_regex = "foo", user_id = 2)
+    s1 = Searches(company_id=1, search_regex="foo", user_id=1)
+    s2 = Searches(company_id=1, search_regex="foo", user_id=2)
     db.session.add(s1)
     db.session.add(s2)
     db.session.commit()
-
 
     emails = [s.email for s in get_user_job_searches()]
     print("Emails: ", emails)

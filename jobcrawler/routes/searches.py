@@ -40,7 +40,7 @@ def list_searches():
                 "url": x.board_url,
                 "search_regex": x.search_regex,
             },
-            searches
+            searches,
         )
     )
 
