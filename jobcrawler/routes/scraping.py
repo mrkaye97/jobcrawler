@@ -60,7 +60,7 @@ def test_scraping():
 @scraping_bp.route("/scraping/run-crawl-job", methods=["POST"])
 def manually_trigger_crawl_job():
     current_app.logger.info("Kicking off scraping job")
-    crawl_for_postings(current_app, db)
+    crawl_for_postings(current_app)
     current_app.logger.info("Finished scraping job")
 
     return {"message": "finished"}, 200

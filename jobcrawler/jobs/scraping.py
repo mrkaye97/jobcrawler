@@ -3,7 +3,7 @@ from flask import current_app
 from jobcrawler import db
 from sqlalchemy import text
 
-## current_application Imports
+## Application Imports
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
 from jobcrawler.exceptions.exceptions import ScrapingException
@@ -25,7 +25,9 @@ import datetime
 import re
 from sqlalchemy import text
 from uuid import UUID
-
+from typing import List
+from itertools import groupby
+from operator import attrgetter
 
 def is_valid_uuid(uuid_to_test, version=4):
     try:
@@ -144,45 +146,51 @@ def get_links_soup(url, example_prefix):
 
     links = soup.find_all(links)
 
-    return [
-        {"text": extract_link_text(link, url), "href": urljoin(url, link["href"])}
-        for link in links
-        if example_prefix in urljoin(url, link["href"])
-        and (
-            "lever" not in url
-            or is_valid_uuid(urljoin(url, link["href"]).rsplit("/", 1)[-1])
+    useful_links = filter(
+        lambda x: example_prefix in urljoin(url, x["href"]) and (
+                "lever" not in url
+                or is_valid_uuid(urljoin(url, x["href"]).rsplit("/", 1)[-1])
+        ),
+        links
+    )
+
+    return list(
+        map(
+            lambda x: {"text": extract_link_text(x, url), "href": urljoin(url, x["href"])},
+            useful_links
         )
-    ]
+    )
 
+def get_links(driver: webdriver.Chrome, company: Companies) -> List:
+    if company.scraping_method == "selenium":
+        return get_links_selenium(
+            driver=driver,
+            url=company.board_url,
+            example_prefix=company.job_posting_url_prefix,
+        )
+    elif company.scraping_method == "soup":
+        return get_links_soup(
+            url=company.board_url, example_prefix=company.job_posting_url_prefix
+        )
+    else:
+        return []
 
-def crawl_for_postings(app, db):
+def crawl_for_postings(app):
     ## Set up Selenium
     driver = create_driver()
 
     with app.app_context():
         for company in Companies.query.all():
             current_app.logger.info(f"Scraping {company.name}'s job board")
-            if company.scraping_method == "selenium":
-                links = get_links_selenium(
-                    driver=driver,
-                    url=company.board_url,
-                    example_prefix=company.job_posting_url_prefix,
-                )
-            elif company.scraping_method == "soup":
-                links = get_links_soup(
-                    url=company.board_url, example_prefix=company.job_posting_url_prefix
-                )
-            else:
-                links = []
-
+            links = get_links(driver=driver, company=company)
             current_app.logger.info(f"Finished scraping {company.name}'s job board")
 
             existing_postings = Postings.query.filter_by(company_id=company.id).all()
-            existing_links = [p.link_href for p in existing_postings]
+            existing_links = map(lambda x: x.link_href, existing_postings)
 
             for link in links:
                 if not link.get("href") in existing_links:
-                    current_app.logger.info(link.get("href"))
+                    current_app.logger.info(f"Adding new posting for {link.get('href')}")
                     new_posting = Postings(
                         company_id=company.id,
                         link_text=link.get("text"),
@@ -203,45 +211,33 @@ def crawl_for_postings(app, db):
 
     driver.quit()
 
-    return None
 
-
-def is_matching_posting(regex, text):
-    if not regex or not text:
+def is_matching_posting(search):
+    if not search.search_regex or not search.link_text:
         return False
 
-    return re.search(regex.lower(), text.lower())
+    return re.search(search.search_regex.lower(), search.link_text.lower())
+
+def is_recent_posting(search):
+    search.created_at > (
+        datetime.datetime.now()
+        - datetime.timedelta(days=search.email_frequency_days)
+    )
+
+def create_posting_advertisement(search):
+    clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
+    return {"text": f"{clean_link_text}", "href": search.link_href}
 
 
-def create_posting_advertisement(text, company_name, href):
-    clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
-    return {"text": f"{clean_link_text}", "href": href}
-
-
-def get_users_to_email():
+def get_user_job_searches():
     current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
-    users_to_email = db.session.execute(
-        text(
-            """
-            SELECT id, email, email_frequency_days, first_name
-            FROM users
-            WHERE
-                MOD(:current_day, email_frequency_days) = 0
-                OR is_admin
-            """
-        ),
-        {"current_day": current_day},
-    ).all()
-
-    return users_to_email or []
-
-
-def get_user_job_searches(user_id):
-    result = db.session.execute(
+    return db.session.execute(
         text(
             """
             SELECT
+                u.id AS user_id,
+                u.email_frequency_days,
                 u.email,
                 u.first_name,
                 c.name AS company_name,
@@ -253,13 +249,13 @@ def get_user_job_searches(user_id):
             JOIN companies c ON c.id = s.company_id
             JOIN postings p ON p.company_id = c.id
             JOIN users u ON u.id = s.user_id
-            WHERE s.user_id = :user_id
+            WHERE
+                MOD(:current_day, email_frequency_days) = 0
+                OR is_admin
             """
         ),
-        {"user_id": user_id},
-    ).all()
-
-    return result or []
+        {"current_day": current_day}
+    ).all() or []
 
 
 def generate_link_html(posting):
@@ -300,45 +296,46 @@ def generate_email_html(first_name, matching_postings, email_frequency_days):
 
 def run_email_send_job(app):
     with app.app_context():
-        for user in get_users_to_email():
-            user_searches = get_user_job_searches(user.id)
+        searches = {email: list(data) for email, data in groupby(get_user_job_searches(), attrgetter('email'))}
 
-            current_app.logger.info(f"Preparing to send email to {user.email}")
-            current_app.logger.info(f"User searches for {user.email}: {user_searches}")
+        for email, searches in searches.items():
+            current_app.logger.info(f"Preparing to send email to {email}")
+            current_app.logger.info(f"User searches for {email}: {searches}")
 
-            matching_postings = {}
-            for search in user_searches:
-                current_app.logger.info(search)
-                if is_matching_posting(
-                    search.search_regex, search.link_text
-                ) and search.created_at > (
-                    datetime.datetime.now()
-                    - datetime.timedelta(days=user.email_frequency_days)
-                ):
-                    ad = create_posting_advertisement(
-                        search.link_text, search.company_name, search.link_href
-                    )
+            relevant_postings = filter(
+                lambda x: is_matching_posting(x) and is_recent_posting(x),
+                searches
+            )
 
-                    existing = matching_postings.get(search.company_name)
-                    matching_postings[search.company_name] = (
-                        [ad] if not existing else existing + [ad]
-                    )
+            ads = list(
+                map(
+                    lambda x: {"company_name": x.company_name, "ad": create_posting_advertisement(x)},
+                    relevant_postings
+                )
+            )
 
-            if matching_postings:
+            companies = set(
+                map(
+                    lambda x: x.get("company_name"),
+                    ads
+                )
+            )
+
+            links_by_company = {company: [ad.get("ad") for ad in ads if ad.get("company_name") == company] for company in companies}
+
+            if links_by_company:
                 message = generate_email_html(
-                    first_name=user.first_name,
-                    matching_postings=matching_postings,
-                    email_frequency_days=user.email_frequency_days,
+                    first_name=searches[0].first_name,
+                    matching_postings=links_by_company,
+                    email_frequency_days=searches[0].email_frequency_days,
                 )
 
-                current_app.logger.info(f"Email message: {message}")
-
                 if os.environ.get("ENV") == "PROD" and os.environ.get("SIB_API_KEY"):
-                    current_app.logger.info(f"Sending email to {user.email}")
+                    current_app.logger.info(f"Sending email to {email}")
                     send_email(
                         sender_email="mrkaye97@gmail.com",
                         sender_name="Matt Kaye",
-                        recipient=user.email,
+                        recipient=email,
                         subject="Your job feed digest",
                         body=message,
                     )
