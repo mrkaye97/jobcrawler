@@ -88,12 +88,14 @@
         editMode = false;
 
         companyNameSelect.innerHTML = '';
-        companies.forEach(company => {
-          const option = document.createElement('option');
-          option.value = company.id;
-          option.text = company.name;
-          companyNameSelect.appendChild(option);
-        });
+        companies
+          .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1)
+          .forEach(company => {
+            const option = document.createElement('option');
+            option.value = company.id;
+            option.text = company.name;
+            companyNameSelect.appendChild(option);
+          });
 
         searchText = document.getElementById('search-text');
         searchText.value = defaultSearchText;
