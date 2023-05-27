@@ -283,7 +283,7 @@ def generate_link_html(posting: Dict[str, str]) -> str:
 
 
 def generate_email_html(
-    first_name: str, matching_postings: Dict[List[str, str]], email_frequency_days: int
+    first_name: str, matching_postings: Dict[str, List[str]], email_frequency_days: int
 ) -> str:
     all_postings = {}
     for company, jobs in matching_postings.items():
