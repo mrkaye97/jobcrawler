@@ -34,7 +34,15 @@ def test_scraping():
     if existing:
         raise CompanyExistsException(name=company_name)
 
-    links = get_links(driver, existing)
+    links = get_links(
+        driver,
+        Companies(
+            job_posting_url_prefix = posting_url_prefix,
+            board_url = board_url,
+            scraping_method = scraping_method,
+            name = company_name
+        )
+    )
 
     matching_links = list(
         filter(
