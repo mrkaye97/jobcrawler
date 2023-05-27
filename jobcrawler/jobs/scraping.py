@@ -263,11 +263,11 @@ def generate_email_html(first_name, matching_postings, email_frequency_days):
     all_htmls = "".join(
         [
             f"""
-            <h4>{company}</h4>
-            <ul>
-            {postings}
-            </ul>
-        """
+                <h4>{company}</h4>
+                <ul>
+                {postings}
+                </ul>
+            """
             for company, postings in all_postings.items()
         ]
     )
