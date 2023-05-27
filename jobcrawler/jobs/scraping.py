@@ -244,7 +244,8 @@ def get_user_job_searches(user_id):
                 c.name AS company_name,
                 s.search_regex,
                 p.link_href,
-                p.link_text
+                p.link_text,
+                p.created_at
             FROM searches s
             JOIN companies c ON c.id = s.company_id
             JOIN postings p ON p.company_id = c.id
@@ -305,7 +306,7 @@ def run_email_send_job(app):
             matching_postings = {}
             for search in user_searches:
                 current_app.logger.info(search)
-                if is_matching_posting(search.search_regex, search.link_text):
+                if is_matching_posting(search.search_regex, search.link_text) and search.created_at > (datetime.datetime.now() - datetime.timedelta(days = user.email_frequency_days)):
                     ad = create_posting_advertisement(
                         search.link_text, search.company_name, search.link_href
                     )
@@ -324,9 +325,7 @@ def run_email_send_job(app):
 
                 current_app.logger.info(f"Email message: {message}")
 
-                if (
-                    os.environ.get("ENV") == "PROD" and os.environ.get("SIB_API_KEY")
-                ) or user.email == "mrkaye97@gmail.com":
+                if os.environ.get("ENV") == "PROD" and os.environ.get("SIB_API_KEY"):
                     current_app.logger.info(f"Sending email to {user.email}")
                     send_email(
                         sender_email="mrkaye97@gmail.com",
