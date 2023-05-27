@@ -26,12 +26,14 @@ import re
 from sqlalchemy import text
 from uuid import UUID
 
+
 def is_valid_uuid(uuid_to_test, version=4):
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
     except ValueError:
         return False
     return str(uuid_obj) == uuid_to_test
+
 
 def set_chrome_options() -> Options:
     """Sets chrome options for Selenium.
@@ -145,8 +147,10 @@ def get_links_soup(url, example_prefix):
     return [
         {"text": extract_link_text(link, url), "href": urljoin(url, link["href"])}
         for link in links
-        if example_prefix in urljoin(url, link["href"]) and (
-            'lever' not in url or is_valid_uuid(urljoin(url, link["href"]).rsplit('/', 1)[-1])
+        if example_prefix in urljoin(url, link["href"])
+        and (
+            "lever" not in url
+            or is_valid_uuid(urljoin(url, link["href"]).rsplit("/", 1)[-1])
         )
     ]
 
@@ -171,7 +175,6 @@ def crawl_for_postings(app, db):
             else:
                 links = []
 
-
             current_app.logger.info(f"Finished scraping {company.name}'s job board")
 
             existing_postings = Postings.query.filter_by(company_id=company.id).all()
@@ -183,7 +186,7 @@ def crawl_for_postings(app, db):
                     new_posting = Postings(
                         company_id=company.id,
                         link_text=link.get("text"),
-                        link_href=link.get("href")
+                        link_href=link.get("href"),
                     )
                     db.session.add(new_posting)
 
@@ -306,7 +309,12 @@ def run_email_send_job(app):
             matching_postings = {}
             for search in user_searches:
                 current_app.logger.info(search)
-                if is_matching_posting(search.search_regex, search.link_text) and search.created_at > (datetime.datetime.now() - datetime.timedelta(days = user.email_frequency_days)):
+                if is_matching_posting(
+                    search.search_regex, search.link_text
+                ) and search.created_at > (
+                    datetime.datetime.now()
+                    - datetime.timedelta(days=user.email_frequency_days)
+                ):
                     ad = create_posting_advertisement(
                         search.link_text, search.company_name, search.link_href
                     )
