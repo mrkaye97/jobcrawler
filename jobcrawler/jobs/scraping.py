@@ -24,7 +24,14 @@ import os
 import datetime
 import re
 from sqlalchemy import text
+from uuid import UUID
 
+def is_valid_uuid(uuid_to_test, version=4):
+    try:
+        uuid_obj = UUID(uuid_to_test, version=version)
+    except ValueError:
+        return False
+    return str(uuid_obj) == uuid_to_test
 
 def set_chrome_options() -> Options:
     """Sets chrome options for Selenium.
@@ -138,7 +145,9 @@ def get_links_soup(url, example_prefix):
     return [
         {"text": extract_link_text(link, url), "href": urljoin(url, link["href"])}
         for link in links
-        if example_prefix in urljoin(url, link["href"])
+        if example_prefix in urljoin(url, link["href"]) and (
+            'lever' not in url or is_valid_uuid(urljoin(url, link["href"]).rsplit('/', 1)[-1])
+        )
     ]
 
 
@@ -162,28 +171,29 @@ def crawl_for_postings(app, db):
             else:
                 links = []
 
+
             current_app.logger.info(f"Finished scraping {company.name}'s job board")
-            current_app.logger.info(f"Removing existing links for {company.name}")
 
             existing_postings = Postings.query.filter_by(company_id=company.id).all()
-
-            if existing_postings:
-                db.session.execute(
-                    text(f"DELETE FROM postings WHERE company_id = {company.id}")
-                )
-
-            current_app.logger.info(
-                f"Finished removing existing links for {company.name}"
-            )
-            current_app.logger.info(f"Adding new links for {company.name}")
+            existing_links = [p.link_href for p in existing_postings]
 
             for link in links:
-                new_posting = Postings(
-                    company_id=company.id,
-                    link_text=link["text"],
-                    link_href=link["href"],
-                )
-                db.session.add(new_posting)
+                if not link.get("href") in existing_links:
+                    current_app.logger.info(link.get("href"))
+                    new_posting = Postings(
+                        company_id=company.id,
+                        link_text=link.get("text"),
+                        link_href=link.get("href")
+                    )
+                    db.session.add(new_posting)
+
+            new_links = [l.get("href") for l in links]
+            for link in existing_links:
+                if not link in new_links:
+                    current_app.logger.info(f"Deleting record for {link}")
+                    db.session.execute(
+                        text(f"DELETE FROM postings WHERE link_href = '{link}'")
+                    )
 
             current_app.logger.info("Committing changes.")
             db.session.commit()
@@ -299,8 +309,6 @@ def run_email_send_job(app):
                     ad = create_posting_advertisement(
                         search.link_text, search.company_name, search.link_href
                     )
-
-                    current_app.logger.info(ad)
 
                     existing = matching_postings.get(search.company_name)
                     matching_postings[search.company_name] = (
