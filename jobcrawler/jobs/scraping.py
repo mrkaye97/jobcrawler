@@ -25,7 +25,6 @@ import datetime
 import re
 from sqlalchemy import text
 
-
 def set_chrome_options() -> Options:
     """Sets chrome options for Selenium.
     Chrome options for headless browser is enabled.
@@ -39,7 +38,6 @@ def set_chrome_options() -> Options:
     chrome_prefs["profile.default_content_settings"] = {"images": 2}
     return chrome_options
 
-
 def create_driver():
     driver = webdriver.Chrome(options=set_chrome_options())
     delay = 3
@@ -48,38 +46,29 @@ def create_driver():
 
     return driver
 
-
 def load_page(url):
     r = requests.get(url)
 
     if r.status_code == 404:
-        raise ScrapingException(
-            url=url, code=400, message=f"The following URL just 404ed: {url}"
-        )
+        raise ScrapingException(url = url, code = 400, message = f"The following URL just 404ed: {url}")
 
     return r
 
-
 def send_email(sender_name, sender_email, recipient, subject, body):
     configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key["api-key"] = os.environ.get("SIB_API_KEY")
+    configuration.api_key['api-key'] = os.environ.get("SIB_API_KEY")
 
     # create an instance of the API class
     api_instance = sib_api_v3_sdk.AccountApi(sib_api_v3_sdk.ApiClient(configuration))
-    sender = sib_api_v3_sdk.SendSmtpEmailSender(name=sender_name, email=sender_email)
-    to = [sib_api_v3_sdk.SendSmtpEmailTo(email=recipient)]
+    sender = sib_api_v3_sdk.SendSmtpEmailSender(name = sender_name, email = sender_email)
+    to = [sib_api_v3_sdk.SendSmtpEmailTo(email = recipient)]
 
-    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
-        sib_api_v3_sdk.ApiClient(configuration)
-    )
-    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-        sender=sender, to=to, subject=subject, html_content=body
-    )
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(sender = sender, to = to, subject = subject, html_content = body)
 
     response = api_instance.send_transac_email(send_smtp_email)
 
     return response
-
 
 def get_links_selenium(driver, url, example_prefix):
     ## Check if the page loads without 404ing
@@ -92,13 +81,16 @@ def get_links_selenium(driver, url, example_prefix):
         driver.get(url)
         current_app.logger.info(f"Finished getting {url}")
 
-        links = driver.find_elements(By.XPATH, "//a[@href]")
+        links =  driver.find_elements(By.XPATH, "//a[@href]")
 
         for link in links:
             href = link.get_attribute("href")
             current_app.logger.info(f"Found link {href}")
             if example_prefix in href:
-                result = result + [{"text": link.get_attribute("text"), "href": href}]
+                result = result + [{
+                    "text": link.get_attribute("text"),
+                    "href": href
+                }]
 
     except Exception as e:
         message = f"""
@@ -113,76 +105,63 @@ def get_links_selenium(driver, url, example_prefix):
 
     return result
 
-
 def extract_link_text(link, url):
     link_text = link.text
     link_string = link.string
 
-    if "lever" in url:
+    if 'lever' in url:
         return link.contents[0].text
     elif link_text:
         return link_text.strip()
     else:
         return link_string.strip()
 
-
 def get_links_soup(url, example_prefix):
     r = load_page(url)
 
     soup = BeautifulSoup(r.content, features="html.parser")
 
-    links = lambda tag: (getattr(tag, "name", None) == "a" and "href" in tag.attrs)
+    links = lambda tag: (getattr(tag, 'name', None) == 'a' and 'href' in tag.attrs)
 
     links = soup.find_all(links)
 
     return [
-        {"text": extract_link_text(link, url), "href": urljoin(url, link["href"])}
+        {
+            "text": extract_link_text(link, url),
+            "href": urljoin(url, link['href'])
+        }
         for link in links
-        if example_prefix in urljoin(url, link["href"])
+        if example_prefix in urljoin(url, link['href'])
     ]
 
-
 def crawl_for_postings(app, db):
+
     ## Set up Selenium
     driver = create_driver()
 
     with app.app_context():
         for company in Companies.query.all():
             current_app.logger.info(f"Scraping {company.name}'s job board")
-            if company.scraping_method == "selenium":
-                links = get_links_selenium(
-                    driver=driver,
-                    url=company.board_url,
-                    example_prefix=company.job_posting_url_prefix,
-                )
-            elif company.scraping_method == "soup":
-                links = get_links_soup(
-                    url=company.board_url, example_prefix=company.job_posting_url_prefix
-                )
+            if company.scraping_method == 'selenium':
+                links = get_links_selenium(driver = driver, url = company.board_url, example_prefix = company.job_posting_url_prefix)
+            elif company.scraping_method == 'soup':
+                links = get_links_soup(url = company.board_url, example_prefix = company.job_posting_url_prefix)
             else:
                 links = []
 
             current_app.logger.info(f"Finished scraping {company.name}'s job board")
             current_app.logger.info(f"Removing existing links for {company.name}")
 
-            existing_postings = Postings.query.filter_by(company_id=company.id).all()
+            existing_postings = Postings.query.filter_by(company_id = company.id).all()
 
             if existing_postings:
-                db.session.execute(
-                    text(f"DELETE FROM postings WHERE company_id = {company.id}")
-                )
+                db.session.execute(text(f'DELETE FROM postings WHERE company_id = {company.id}'))
 
-            current_app.logger.info(
-                f"Finished removing existing links for {company.name}"
-            )
+            current_app.logger.info(f"Finished removing existing links for {company.name}")
             current_app.logger.info(f"Adding new links for {company.name}")
 
             for link in links:
-                new_posting = Postings(
-                    company_id=company.id,
-                    link_text=link["text"],
-                    link_href=link["href"],
-                )
+                new_posting = Postings(company_id = company.id, link_text = link["text"], link_href = link["href"])
                 db.session.add(new_posting)
 
             current_app.logger.info("Committing changes.")
@@ -192,22 +171,18 @@ def crawl_for_postings(app, db):
 
     return None
 
-
 def is_matching_posting(regex, text):
     if not regex or not text:
         return False
 
     return re.search(regex.lower(), text.lower())
 
-
 def create_posting_advertisement(text, company_name, href):
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
     return {
-        "company": company_name,
-        "text": f"{clean_link_text} @ {company_name}",
-        "href": href,
+        "text": f"{clean_link_text}",
+        "href": href
     }
-
 
 def get_users_to_email():
     current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
@@ -222,11 +197,10 @@ def get_users_to_email():
                 OR is_admin
             """
         ),
-        {"current_day": current_day},
+        {'current_day': current_day}
     ).all()
 
     return users_to_email or []
-
 
 def get_user_job_searches(user_id):
     result = db.session.execute(
@@ -246,33 +220,44 @@ def get_user_job_searches(user_id):
             WHERE s.user_id = :user_id
             """
         ),
-        {"user_id": user_id},
+        {'user_id': user_id}
     ).all()
 
     return result or []
 
-
 def generate_link_html(posting):
-    current_app.logger.info(posting)
+    current_app.logger.info(f"Posting: {posting}")
     return f"""
         <li><a href="{posting.get('href')}">{posting.get('text')}</a></li>
     """
 
-
 def generate_email_html(first_name, matching_postings, email_frequency_days):
-    links = "".join([generate_link_html(p) for p in matching_postings])
+    all_postings = {}
+    for company, jobs in matching_postings.items():
+        all_postings[company] = "".join([generate_link_html(job) for job in jobs])
+
+
+    all_htmls = "".join([
+        f"""
+            <h4>{company}</h4>
+            <ul>
+            {postings}
+            </ul>
+        """
+        for company, postings
+        in all_postings.items()
+    ])
 
     return f"""
         <p>Hey {first_name},</p>
         <p>Here are your links for the day!</p>
-        <ul>
-        {links}
-        </ul>
+        <br>
+        {all_htmls}
+        <br>
         <p>I&#39;ll send you another round of matching links in {email_frequency_days} day{'s' if email_frequency_days > 1 else ''}.</p>
         <p>Have a good one!</p>
         <p>Matt</p>
     """
-
 
 def run_email_send_job(app):
     with app.app_context():
@@ -284,31 +269,34 @@ def run_email_send_job(app):
 
             matching_postings = {}
             for search in user_searches:
+                current_app.logger.info(search)
                 if is_matching_posting(search.search_regex, search.link_text):
                     ad = create_posting_advertisement(
-                        search.link_text, search.company_name, search.link_href
+                        search.link_text,
+                        search.company_name,
+                        search.link_href
                     )
 
+                    current_app.logger.info(ad)
+
                     existing = matching_postings.get(search.company_name)
-                    matching_postings[search.company_name] = (
-                        [ad] if not existing else existing + [ad]
-                    )
+                    matching_postings[search.company_name] = [ad] if not existing else existing + [ad]
 
             if matching_postings:
                 message = generate_email_html(
-                    first_name=user.first_name,
-                    matching_postings=matching_postings,
-                    email_frequency_days=user.email_frequency_days,
+                    first_name = user.first_name,
+                    matching_postings = matching_postings,
+                    email_frequency_days = user.email_frequency_days
                 )
 
                 current_app.logger.info(f"Email message: {message}")
 
-                if os.environ.get("ENV") == "PROD" and os.environ.get("SIB_API_KEY"):
+                if (os.environ.get("ENV") == "PROD" and os.environ.get("SIB_API_KEY")) or user.email == "mrkaye97@gmail.com":
                     current_app.logger.info(f"Sending email to {user.email}")
                     send_email(
-                        sender_email="mrkaye97@gmail.com",
-                        sender_name="Matt Kaye",
-                        recipient=user.email,
-                        subject="Your job feed digest",
-                        body=message,
+                        sender_email = "mrkaye97@gmail.com",
+                        sender_name = "Matt Kaye",
+                        recipient = user.email,
+                        subject = "Your job feed digest",
+                        body = message
                     )

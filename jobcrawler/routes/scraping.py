@@ -69,7 +69,6 @@ def manually_trigger_crawl_job():
 @scraping_bp.route("/scraping/run-email-job", methods=["POST"])
 def manually_trigger_email_sending_job():
     current_app.logger.info("Kicking off email job")
-    print("Kicking off email job")
     run_email_send_job(current_app)
     current_app.logger.info("Finished email job")
 
