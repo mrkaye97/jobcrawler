@@ -1,7 +1,8 @@
 ## Flask imports
-from flask import current_app
+from flask import current_app, Flask
 from jobcrawler import db
-from sqlalchemy import text
+from sqlalchemy import text, db
+from typing import List, Dict
 
 ## current_application Imports
 from jobcrawler.models.companies import Companies
@@ -27,7 +28,7 @@ from sqlalchemy import text
 from uuid import UUID
 
 
-def is_valid_uuid(uuid_to_test, version=4):
+def is_valid_uuid(uuid_to_test: str, version: int = 4) -> bool:
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
     except ValueError:
@@ -49,7 +50,7 @@ def set_chrome_options() -> Options:
     return chrome_options
 
 
-def create_driver():
+def create_driver() -> webdriver.Chrome:
     driver = webdriver.Chrome(options=set_chrome_options())
     delay = 3
 
@@ -58,7 +59,7 @@ def create_driver():
     return driver
 
 
-def load_page(url):
+def load_page(url: str) -> requests.Response:
     r = requests.get(url)
 
     if r.status_code == 404:
@@ -69,7 +70,9 @@ def load_page(url):
     return r
 
 
-def send_email(sender_name, sender_email, recipient, subject, body):
+def send_email(
+    sender_name: str, sender_email: str, recipient: str, subject: str, body: str
+) -> None:
     configuration = sib_api_v3_sdk.Configuration()
     configuration.api_key["api-key"] = os.environ.get("SIB_API_KEY")
 
@@ -90,10 +93,10 @@ def send_email(sender_name, sender_email, recipient, subject, body):
     return response
 
 
-def get_links_selenium(driver, url, example_prefix):
-    ## Check if the page loads without 404ing
+def get_links_selenium(
+    driver: webdriver.Chrome, url: str, example_prefix: str
+) -> List[Dict[str, str]]:
     load_page(url)
-
     result = []
 
     try:
@@ -102,20 +105,23 @@ def get_links_selenium(driver, url, example_prefix):
         current_app.logger.info(f"Finished getting {url}")
 
         links = driver.find_elements(By.XPATH, "//a[@href]")
-
-        for link in links:
-            href = link.get_attribute("href")
-            current_app.logger.info(f"Found link {href}")
-            if example_prefix in href:
-                result = result + [{"text": link.get_attribute("text"), "href": href}]
+        result = list(
+            map(
+                lambda link: {
+                    "text": link.get_attribute("text"),
+                    "href": link.get_attribute("href"),
+                },
+                filter(
+                    lambda link: example_prefix in link.get_attribute("href"), links
+                ),
+            )
+        )
 
     except Exception as e:
         message = f"""
             Failed to get links for {url}.
-
             Error: {traceback.format_exc()}
         """
-
         current_app.logger.error(message)
         if os.environ.get("ENV") == "PROD" and os.environ.get("SENTRY_DSN"):
             capture_message(message)
@@ -123,7 +129,7 @@ def get_links_selenium(driver, url, example_prefix):
     return result
 
 
-def extract_link_text(link, url):
+def extract_link_text(link: str, url: str) -> str:
     link_text = link.text
     link_string = link.string
 
@@ -135,90 +141,97 @@ def extract_link_text(link, url):
         return link_string.strip()
 
 
-def get_links_soup(url, example_prefix):
+def get_links_soup(url: str, example_prefix: str) -> List[Dict[str, str]]:
     r = load_page(url)
-
     soup = BeautifulSoup(r.content, features="html.parser")
 
     links = lambda tag: (getattr(tag, "name", None) == "a" and "href" in tag.attrs)
-
     links = soup.find_all(links)
+    full_links = map(lambda link: urljoin(url, link["href"]), links)
+
+    valid_links = filter(
+        lambda link: example_prefix in link
+        and ("lever" not in url or is_valid_uuid(link.rsplit("/", 1)[-1])),
+        full_links,
+    )
 
     return [
-        {"text": extract_link_text(link, url), "href": urljoin(url, link["href"])}
-        for link in links
-        if example_prefix in urljoin(url, link["href"])
-        and (
-            "lever" not in url
-            or is_valid_uuid(urljoin(url, link["href"]).rsplit("/", 1)[-1])
-        )
+        {"text": extract_link_text(link, url), "href": link} for link in valid_links
     ]
 
 
-def crawl_for_postings(app, db):
-    ## Set up Selenium
+def crawl_for_postings(app: Flask, db) -> None:
     driver = create_driver()
 
     with app.app_context():
-        for company in Companies.query.all():
+        companies = Companies.query.all()
+
+        def handle_company(company: Companies) -> None:
             current_app.logger.info(f"Scraping {company.name}'s job board")
-            if company.scraping_method == "selenium":
-                links = get_links_selenium(
+            links = (
+                get_links_selenium(
                     driver=driver,
                     url=company.board_url,
                     example_prefix=company.job_posting_url_prefix,
                 )
-            elif company.scraping_method == "soup":
-                links = get_links_soup(
-                    url=company.board_url, example_prefix=company.job_posting_url_prefix
+                if company.scraping_method == "selenium"
+                else (
+                    get_links_soup(
+                        url=company.board_url,
+                        example_prefix=company.job_posting_url_prefix,
+                    )
+                    if company.scraping_method == "soup"
+                    else []
                 )
-            else:
-                links = []
+            )
 
             current_app.logger.info(f"Finished scraping {company.name}'s job board")
-
             existing_postings = Postings.query.filter_by(company_id=company.id).all()
-            existing_links = [p.link_href for p in existing_postings]
+            existing_links = {p.link_href for p in existing_postings}
 
-            for link in links:
-                if not link.get("href") in existing_links:
-                    current_app.logger.info(link.get("href"))
-                    new_posting = Postings(
-                        company_id=company.id,
-                        link_text=link.get("text"),
-                        link_href=link.get("href"),
-                    )
-                    db.session.add(new_posting)
+            new_links = [
+                link["href"] for link in links if link["href"] not in existing_links
+            ]
+            deleted_links = [link for link in existing_links if link not in new_links]
 
-            new_links = [l.get("href") for l in links]
-            for link in existing_links:
-                if not link in new_links:
-                    current_app.logger.info(f"Deleting record for {link}")
-                    db.session.execute(
-                        text(f"DELETE FROM postings WHERE link_href = '{link}'")
-                    )
+            for link in new_links:
+                current_app.logger.info(link)
+                new_posting = Postings(
+                    company_id=company.id,
+                    link_text=link.get("text"),
+                    link_href=link.get("href"),
+                )
+                db.session.add(new_posting)
+
+            for link in deleted_links:
+                current_app.logger.info(f"Deleting record for {link}")
+                db.session.execute(
+                    text(f"DELETE FROM postings WHERE link_href = '{link}'")
+                )
 
             current_app.logger.info("Committing changes.")
             db.session.commit()
+
+        list(map(handle_company, companies))
 
     driver.quit()
 
     return None
 
 
-def is_matching_posting(regex, text):
+def is_matching_posting(regex: str, text: str) -> bool:
     if not regex or not text:
         return False
 
     return re.search(regex.lower(), text.lower())
 
 
-def create_posting_advertisement(text, company_name, href):
+def create_posting_advertisement(text: str, href: str) -> Dict[str, str]:
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", text)
     return {"text": f"{clean_link_text}", "href": href}
 
 
-def get_users_to_email():
+def get_users_to_email() -> List:
     current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
     users_to_email = db.session.execute(
@@ -237,7 +250,7 @@ def get_users_to_email():
     return users_to_email or []
 
 
-def get_user_job_searches(user_id):
+def get_user_job_searches(user_id: int) -> List:
     result = db.session.execute(
         text(
             """
@@ -262,27 +275,31 @@ def get_user_job_searches(user_id):
     return result or []
 
 
-def generate_link_html(posting):
+def generate_link_html(posting: Dict[str, str]) -> str:
     current_app.logger.info(f"Posting: {posting}")
     return f"""
         <li><a href="{posting.get('href')}">{posting.get('text')}</a></li>
     """
 
 
-def generate_email_html(first_name, matching_postings, email_frequency_days):
-    all_postings = {}
-    for company, jobs in matching_postings.items():
-        all_postings[company] = "".join([generate_link_html(job) for job in jobs])
+def generate_postings_html(postings: List[Dict[str, str]]) -> str:
+    return "".join([generate_link_html(posting) for posting in postings])
 
-    all_htmls = "".join(
+
+def generate_email_html(
+    first_name: str,
+    matching_postings: Dict[str, List[Dict[str, str]]],
+    email_frequency_days: int,
+) -> str:
+    postings_html = "\n".join(
         [
             f"""
-                <h4>{company}</h4>
-                <ul>
-                {postings}
-                </ul>
-            """
-            for company, postings in all_postings.items()
+            <h4>{company}</h4>
+            <ul>
+            {generate_postings_html(postings)}
+            </ul>
+        """
+            for company, postings in matching_postings.items()
         ]
     )
 
@@ -290,11 +307,10 @@ def generate_email_html(first_name, matching_postings, email_frequency_days):
         <p>Hey {first_name},</p>
         <p>Here are your links for the day!</p>
         <br>
-        {all_htmls}
+        {postings_html}
         <br>
-        <p>I&#39;ll send you another round of matching links in {email_frequency_days} day{'s' if email_frequency_days > 1 else ''}.</p>
-        <p>Have a good one!</p>
-        <p>Matt</p>
+        <p>I'll send you another round of matching links in {email_frequency_days} day(s).</p>
+        <p>If you have any feedback, reply to this email and let me know!</p>
     """
 
 
