@@ -6,6 +6,7 @@ class Postings(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), index=True)
     link_text = db.Column(db.String(2048), index=True)
     link_href = db.Column(db.String(2048), index=True)
+    created_at = db.Column(db.DateTime, default=db.func.now(), nullable = False)
 
     def __repr__(self):
         return "<Posting {}>".format(self.id)
