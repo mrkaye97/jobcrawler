@@ -233,9 +233,7 @@ def is_matching_posting(search: Tuple) -> bool:
 
 
 def is_recent_posting(search: Tuple) -> bool:
-    search.created_at > (
-        datetime.datetime.now() - datetime.timedelta(days=search.email_frequency_days)
-    )
+    return search.created_at >  (datetime.datetime.now() - datetime.timedelta(days=search.email_frequency_days))
 
 
 def create_posting_advertisement(search: Tuple) -> bool:

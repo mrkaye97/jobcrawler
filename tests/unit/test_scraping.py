@@ -87,7 +87,6 @@ def test_users_to_email(app):
     db.session.commit()
 
     emails = [s.email for s in get_user_job_searches()]
-    print("Emails: ", emails)
 
     assert "kaye.dev" in emails
     assert "mk.dev" not in emails
