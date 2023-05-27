@@ -29,6 +29,7 @@ from typing import List, Dict, Tuple
 from itertools import groupby
 from operator import attrgetter
 
+
 def is_valid_uuid(uuid_to_test, version=4):
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
@@ -71,7 +72,9 @@ def load_page(url: str) -> requests.Response:
     return r
 
 
-def send_email(sender_name: str, sender_email: str, recipient: str, subject: str, body: str) -> requests.Response:
+def send_email(
+    sender_name: str, sender_email: str, recipient: str, subject: str, body: str
+) -> requests.Response:
     configuration = sib_api_v3_sdk.Configuration()
     configuration.api_key["api-key"] = os.environ.get("SIB_API_KEY")
 
@@ -92,7 +95,9 @@ def send_email(sender_name: str, sender_email: str, recipient: str, subject: str
     return response
 
 
-def get_links_selenium(driver: webdriver.Chrome, url: str, example_prefix: str) -> List[Dict[str, str]]:
+def get_links_selenium(
+    driver: webdriver.Chrome, url: str, example_prefix: str
+) -> List[Dict[str, str]]:
     ## Check if the page loads without 404ing
     load_page(url)
 
@@ -147,19 +152,24 @@ def get_links_soup(url: str, example_prefix: str) -> List[Dict[str, str]]:
     links = soup.find_all(links)
 
     useful_links = filter(
-        lambda x: example_prefix in urljoin(url, x["href"]) and (
-                "lever" not in url
-                or is_valid_uuid(urljoin(url, x["href"]).rsplit("/", 1)[-1])
+        lambda x: example_prefix in urljoin(url, x["href"])
+        and (
+            "lever" not in url
+            or is_valid_uuid(urljoin(url, x["href"]).rsplit("/", 1)[-1])
         ),
-        links
+        links,
     )
 
     return list(
         map(
-            lambda x: {"text": extract_link_text(x, url), "href": urljoin(url, x["href"])},
-            useful_links
+            lambda x: {
+                "text": extract_link_text(x, url),
+                "href": urljoin(url, x["href"]),
+            },
+            useful_links,
         )
     )
+
 
 def get_links(driver: webdriver.Chrome, company: Companies) -> List:
     if company.scraping_method == "selenium":
@@ -174,6 +184,7 @@ def get_links(driver: webdriver.Chrome, company: Companies) -> List:
         )
     else:
         return []
+
 
 def crawl_for_postings(app: Flask) -> None:
     ## Set up Selenium
@@ -190,7 +201,9 @@ def crawl_for_postings(app: Flask) -> None:
 
             for link in links:
                 if not link.get("href") in existing_links:
-                    current_app.logger.info(f"Adding new posting for {link.get('href')}")
+                    current_app.logger.info(
+                        f"Adding new posting for {link.get('href')}"
+                    )
                     new_posting = Postings(
                         company_id=company.id,
                         link_text=link.get("text"),
@@ -218,11 +231,12 @@ def is_matching_posting(search: Tuple) -> bool:
 
     return re.search(search.search_regex.lower(), search.link_text.lower())
 
+
 def is_recent_posting(search: Tuple) -> bool:
     search.created_at > (
-        datetime.datetime.now()
-        - datetime.timedelta(days=search.email_frequency_days)
+        datetime.datetime.now() - datetime.timedelta(days=search.email_frequency_days)
     )
+
 
 def create_posting_advertisement(search: Tuple) -> bool:
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
@@ -232,9 +246,10 @@ def create_posting_advertisement(search: Tuple) -> bool:
 def get_user_job_searches() -> List[Tuple]:
     current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
-    return db.session.execute(
-        text(
-            """
+    return (
+        db.session.execute(
+            text(
+                """
             SELECT
                 u.id AS user_id,
                 u.email_frequency_days,
@@ -253,9 +268,11 @@ def get_user_job_searches() -> List[Tuple]:
                 MOD(:current_day, email_frequency_days) = 0
                 OR is_admin
             """
-        ),
-        {"current_day": current_day}
-    ).all() or []
+            ),
+            {"current_day": current_day},
+        ).all()
+        or []
+    )
 
 
 def generate_link_html(posting: Dict[str, str]) -> str:
@@ -265,7 +282,9 @@ def generate_link_html(posting: Dict[str, str]) -> str:
     """
 
 
-def generate_email_html(first_name: str, matching_postings: Dict[List[str, str]], email_frequency_days: int) -> str:
+def generate_email_html(
+    first_name: str, matching_postings: Dict[List[str, str]], email_frequency_days: int
+) -> str:
     all_postings = {}
     for company, jobs in matching_postings.items():
         all_postings[company] = "".join([generate_link_html(job) for job in jobs])
@@ -296,31 +315,36 @@ def generate_email_html(first_name: str, matching_postings: Dict[List[str, str]]
 
 def run_email_send_job(app: Flask) -> None:
     with app.app_context():
-        searches = {email: list(data) for email, data in groupby(get_user_job_searches(), attrgetter('email'))}
+        searches = {
+            email: list(data)
+            for email, data in groupby(get_user_job_searches(), attrgetter("email"))
+        }
 
         for email, searches in searches.items():
             current_app.logger.info(f"Preparing to send email to {email}")
 
             relevant_postings = filter(
-                lambda x: is_matching_posting(x) and is_recent_posting(x),
-                searches
+                lambda x: is_matching_posting(x) and is_recent_posting(x), searches
             )
 
             ads = list(
                 map(
-                    lambda x: {"company_name": x.company_name, "ad": create_posting_advertisement(x)},
-                    relevant_postings
+                    lambda x: {
+                        "company_name": x.company_name,
+                        "ad": create_posting_advertisement(x),
+                    },
+                    relevant_postings,
                 )
             )
 
-            companies = set(
-                map(
-                    lambda x: x.get("company_name"),
-                    ads
-                )
-            )
+            companies = set(map(lambda x: x.get("company_name"), ads))
 
-            links_by_company = {company: [ad.get("ad") for ad in ads if ad.get("company_name") == company] for company in companies}
+            links_by_company = {
+                company: [
+                    ad.get("ad") for ad in ads if ad.get("company_name") == company
+                ]
+                for company in companies
+            }
 
             if links_by_company:
                 message = generate_email_html(
