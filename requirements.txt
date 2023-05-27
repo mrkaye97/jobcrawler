@@ -5,6 +5,7 @@ async-generator==1.10
 attrs==23.1.0
 beautifulsoup4==4.12.2
 billiard==3.6.4.0
+black==23.3.0
 blinker==1.6.2
 bs4==0.0.1
 certifi==2022.12.7
@@ -35,16 +36,19 @@ Jinja2==3.1.2
 kombu==5.2.4
 Mako==1.2.4
 MarkupSafe==2.1.2
+mypy-extensions==1.0.0
 outcome==1.2.0
 packaging==23.1
 pathspec==0.11.1
 pipreqs==0.4.13
+platformdirs==3.5.1
 pluggy==1.0.0
 prompt-toolkit==3.0.38
 psycopg2-binary==2.9.6
 PySocks==1.7.1
 pytest==7.3.1
 pytest-dotenv==0.5.2
+pytest-env==0.8.1
 pytest-flask==1.2.0
 pytest-flask-sqlalchemy==1.1.0
 pytest-mock==3.10.0
@@ -64,7 +68,7 @@ SQLAlchemy==2.0.9
 tomli==2.0.1
 trio==0.22.0
 trio-websocket==0.10.2
-typing_extensions==4.5.0
+typing-extensions==4.5.0
 tzdata==2023.3
 tzlocal==4.3
 urllib3==1.26.15
