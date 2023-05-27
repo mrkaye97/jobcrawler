@@ -10,41 +10,61 @@ from flask_login import login_required, current_user
 ## Other imports
 import json
 
-searches_bp = Blueprint('searches_bp', __name__, template_folder='templates', static_folder = "static")
+searches_bp = Blueprint(
+    "searches_bp", __name__, template_folder="templates", static_folder="static"
+)
+
 
 @searches_bp.route("/searches/list")
 def list_searches():
     current_app.logger.info("Listing searches")
-    searches = Searches.\
-        query.\
-        filter_by(user_id = current_user.get_id()).\
-        join(Companies).\
-        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
-        order_by(Searches.id)
+    searches = (
+        Searches.query.filter_by(user_id=current_user.get_id())
+        .join(Companies)
+        .with_entities(
+            Searches.id.label("search_id"),
+            Companies.id.label("company_id"),
+            Companies.name,
+            Companies.board_url,
+            Searches.search_regex,
+        )
+        .order_by(Searches.id)
+    )
 
     result = [
-        {"search_id": search.search_id, "company_id": search.company_id, "name": search.name, "url": search.board_url, "search_regex": search.search_regex}
+        {
+            "search_id": search.search_id,
+            "company_id": search.company_id,
+            "name": search.name,
+            "url": search.board_url,
+            "search_regex": search.search_regex,
+        }
         for search in searches
     ]
 
     current_app.logger.info(json.dumps(result))
     return result
 
+
 @searches_bp.route("/searches")
 @login_required
 def get_searches():
     current_app.logger.info("Getting searches")
-    searches = Searches.\
-        query.\
-        filter_by(user_id = current_user.get_id()).\
-        join(Companies).\
-        with_entities(Searches.id.label("search_id"), Companies.id.label("company_id"), Companies.name, Companies.board_url, Searches.search_regex).\
-        order_by(Searches.id)
-
-    return render_template(
-        "searches.html",
-        searches = searches
+    searches = (
+        Searches.query.filter_by(user_id=current_user.get_id())
+        .join(Companies)
+        .with_entities(
+            Searches.id.label("search_id"),
+            Companies.id.label("company_id"),
+            Companies.name,
+            Companies.board_url,
+            Searches.search_regex,
+        )
+        .order_by(Searches.id)
     )
+
+    return render_template("searches.html", searches=searches)
+
 
 @searches_bp.route("/searches/<int:id>")
 @login_required
@@ -59,8 +79,7 @@ def get_search(id):
     return record
 
 
-
-@searches_bp.route('/searches', methods=["POST"])
+@searches_bp.route("/searches", methods=["POST"])
 @login_required
 def create_search():
     content = request.json
@@ -73,7 +92,7 @@ def create_search():
     user_id = current_user.get_id()
 
     if company_id and search_regex:
-        p = Searches(company_id = company_id, search_regex = search_regex, user_id = user_id)
+        p = Searches(company_id=company_id, search_regex=search_regex, user_id=user_id)
         db.session.add(p)
         db.session.commit()
 
@@ -88,7 +107,8 @@ def create_search():
     else:
         return "Failed", 400
 
-@searches_bp.route('/searches/<int:id>', methods=["PUT"])
+
+@searches_bp.route("/searches/<int:id>", methods=["PUT"])
 @login_required
 def update_search(id):
     current_app.logger.info("Updating a record")
@@ -114,7 +134,8 @@ def update_search(id):
 
     return record
 
-@searches_bp.route('/searches/<int:id>', methods = ["DELETE"])
+
+@searches_bp.route("/searches/<int:id>", methods=["DELETE"])
 @login_required
 def delete_search(id):
     current_app.logger.info("Deleting a search")

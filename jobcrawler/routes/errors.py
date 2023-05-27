@@ -4,7 +4,10 @@ from werkzeug.exceptions import HTTPException
 from sentry_sdk import capture_exception
 import os
 
-errors_bp = Blueprint('errors_bp', __name__, template_folder='templates', static_folder = "static")
+errors_bp = Blueprint(
+    "errors_bp", __name__, template_folder="templates", static_folder="static"
+)
+
 
 @errors_bp.app_errorhandler(Exception)
 def handle_error(e):
@@ -26,7 +29,7 @@ def handle_error(e):
         if os.environ.get("ENV") == "PROD" and os.environ.get("SENTRY_DSN"):
             capture_exception(e)
 
-        return render_template('404.html')
+        return render_template("404.html")
     else:
         message = "500 - That's our bad." if code == 500 else code
-        return render_template("error.html", error_message = message)
+        return render_template("error.html", error_message=message)

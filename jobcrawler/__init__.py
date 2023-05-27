@@ -34,9 +34,10 @@ from flask_login import current_user, LoginManager
 ## Misc
 import os
 
-def create_app(config_class = Config):
+
+def create_app(config_class=Config):
     ## Set up the background scheduler
-    sched = BackgroundScheduler(timezone = "UTC")
+    sched = BackgroundScheduler(timezone="UTC")
 
     ## Set up Sentry
     if os.environ.get("ENV") == "PROD":
@@ -45,15 +46,14 @@ def create_app(config_class = Config):
             integrations=[
                 FlaskIntegration(),
             ],
-
-            traces_sample_rate=1.0
+            traces_sample_rate=1.0,
         )
 
-    app = Flask(__name__, static_folder = "static", template_folder = "templates")
+    app = Flask(__name__, static_folder="static", template_folder="templates")
 
-    ext = Sitemap(app = app)
+    ext = Sitemap(app=app)
 
-    admin = Admin(app, name='jobcrawler')
+    admin = Admin(app, name="jobcrawler")
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp)
@@ -62,7 +62,6 @@ def create_app(config_class = Config):
     app.register_blueprint(preferences_bp)
     app.register_blueprint(scraping_bp)
     app.register_blueprint(searches_bp)
-
 
     class AdminView(ModelView):
         def is_accessible(self):
@@ -76,7 +75,7 @@ def create_app(config_class = Config):
     admin.add_view(AdminView(Companies, db.session))
     admin.add_view(AdminView(Searches, db.session))
 
-    admin.add_link(MenuLink(name = 'Home', category = '', url = "/index"))
+    admin.add_link(MenuLink(name="Home", category="", url="/index"))
 
     app.secret_key = os.urandom(24)
 
@@ -88,13 +87,13 @@ def create_app(config_class = Config):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    if __name__ != '__main__':
-        gunicorn_logger = logging.getLogger('gunicorn.error')
+    if __name__ != "__main__":
+        gunicorn_logger = logging.getLogger("gunicorn.error")
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.setLevel(gunicorn_logger.level)
 
     login_manager = LoginManager()
-    login_manager.login_view = 'auth_bp.login'
+    login_manager.login_view = "auth_bp.login"
     login_manager.init_app(app)
 
     @login_manager.user_loader
@@ -103,12 +102,13 @@ def create_app(config_class = Config):
 
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):
-        @sched.scheduled_job(trigger = 'cron', hour = 23, id = 'crawl')
+
+        @sched.scheduled_job(trigger="cron", hour=23, id="crawl")
         def crawl():
             app.logger.info("Kicking off scraping job")
             crawl_for_postings(app, db)
 
-        @sched.scheduled_job(trigger = "cron", hour = 0, id = "send_emails")
+        @sched.scheduled_job(trigger="cron", hour=0, id="send_emails")
         def send_emails():
             app.logger.info("Kicking off email sending job")
             run_email_send_job(app)

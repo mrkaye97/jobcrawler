@@ -5,9 +5,11 @@ import pytest
 
 from jobcrawler.models.users import Users
 
+
 def test_load_page_raises_on_404():
     with pytest.raises(ScrapingException):
         load_page("https://matthewrkaye.com/foobarbaz")
+
 
 def test_load_page_works_for_existing():
     r = load_page("https://matthewrkaye.com")
@@ -15,6 +17,7 @@ def test_load_page_works_for_existing():
     ## Check that my about page is loaded correctly
     assert "Matt" in r.text
     assert "Strava" in r.text
+
 
 def test_matching_postings():
     assert is_matching_posting("foobar", "bazfoobarqux")
@@ -31,6 +34,7 @@ def test_matching_postings():
     assert not is_matching_posting("bazqux", None)
     assert not is_matching_posting(None, None)
 
+
 def test_posting_ad_creation():
     title = "foo bar"
     company = "baz"
@@ -43,9 +47,10 @@ def test_posting_ad_creation():
     assert company in ad.get("text")
     assert href == ad.get("href")
 
+
 def test_users_to_email(app):
-    u1 = Users(email = "kaye.dev", email_frequency_days = 1)
-    u2 = Users(email = "mk.dev", email_frequency_days = 1000000)
+    u1 = Users(email="kaye.dev", email_frequency_days=1)
+    u2 = Users(email="mk.dev", email_frequency_days=1000000)
 
     db.session.add(u1)
     db.session.add(u2)
@@ -61,10 +66,13 @@ def test_users_to_email(app):
 
     db.session.commit()
 
+
 def test_selenium_link_collection(app):
     driver = create_driver()
 
-    links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com")
+    links = get_links_selenium(
+        driver, "https://matthewrkaye.com", "https://matthewrkaye.com"
+    )
 
     hrefs = [l.get("href") for l in links]
     texts = [l.get("text").strip() for l in links]
@@ -78,10 +86,13 @@ def test_selenium_link_collection(app):
 
     driver.quit()
 
+
 def test_selenium_link_prefixing(app):
     driver = create_driver()
 
-    links = get_links_selenium(driver, "https://matthewrkaye.com", "https://matthewrkaye.com/blog")
+    links = get_links_selenium(
+        driver, "https://matthewrkaye.com", "https://matthewrkaye.com/blog"
+    )
 
     hrefs = [l.get("href") for l in links]
 
@@ -89,6 +100,7 @@ def test_selenium_link_prefixing(app):
     assert "https://matthewrkaye.com/blogroll.html" in hrefs
 
     driver.quit()
+
 
 def test_soup_link_collection(app):
     links = get_links_soup("https://matthewrkaye.com", "https://")
@@ -102,6 +114,7 @@ def test_soup_link_collection(app):
     assert "https://www.strava.com/athletes/16125633" in hrefs
     assert "https://app.thestorygraph.com/profile/mrkaye97" in hrefs
 
+
 def test_soup_link_prefixing(app):
     links = get_links_soup("https://matthewrkaye.com", "https://www.strava.com")
 
@@ -110,15 +123,22 @@ def test_soup_link_prefixing(app):
     assert "https://www.strava.com/athletes/16125633" in hrefs
     assert "https://app.thestorygraph.com/profile/mrkaye97" not in hrefs
 
+
 def test_soup_greenhouse(app):
-    links = get_links_soup("https://boards.greenhouse.io/collegevine", "https://boards.greenhouse.io/collegevine")
+    links = get_links_soup(
+        "https://boards.greenhouse.io/collegevine",
+        "https://boards.greenhouse.io/collegevine",
+    )
 
     hrefs = [l.get("href") for l in links]
 
     assert not hrefs or "collegevine" in hrefs[0]
 
+
 def test_soup_lever(app):
-    links = get_links_soup("https://jobs.lever.co/matchgroup", "https://jobs.lever.co/matchgroup")
+    links = get_links_soup(
+        "https://jobs.lever.co/matchgroup", "https://jobs.lever.co/matchgroup"
+    )
 
     hrefs = [l.get("href") for l in links]
 

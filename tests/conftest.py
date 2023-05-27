@@ -5,6 +5,7 @@ import multiprocessing
 
 multiprocessing.set_start_method("fork")
 
+
 @pytest.fixture(scope="session")
 def app():
     app = create_app()
@@ -14,10 +15,10 @@ def app():
 
         def create_record(name):
             record = Companies(
-                name = name,
-                board_url = "https://example.com",
-                job_posting_url_prefix = "https://example.com",
-                scraping_method = "soup"
+                name=name,
+                board_url="https://example.com",
+                job_posting_url_prefix="https://example.com",
+                scraping_method="soup",
             )
 
             db.session.add(record)
@@ -26,7 +27,6 @@ def app():
             create_record(n)
 
         db.session.commit()
-
 
     yield app
 
@@ -39,26 +39,26 @@ def app():
 def client(app):
     return app.test_client()
 
+
 @pytest.fixture(scope="session")
 def client__logged_in(app):
     client = app.test_client()
 
-    email = 'j@bond.com'
+    email = "j@bond.com"
     password = "007"
 
     client.post(
         "/signup",
-        data = {"email": email, "password": password, "first_name": "james"},
-        content_type = 'application/x-www-form-urlencoded',
-        follow_redirects = True
+        data={"email": email, "password": password, "first_name": "james"},
+        content_type="application/x-www-form-urlencoded",
+        follow_redirects=True,
     )
 
     client.post(
         "/login",
-        data = {"email": email, "password": password},
-        content_type = 'application/x-www-form-urlencoded',
-        follow_redirects = True
+        data={"email": email, "password": password},
+        content_type="application/x-www-form-urlencoded",
+        follow_redirects=True,
     )
 
     return client
-

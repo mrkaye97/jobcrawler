@@ -8,7 +8,10 @@ from flask import request, Blueprint, current_app, render_template
 ## Misc Imports
 import json
 
-companies_bp = Blueprint('companies_bp', __name__, template_folder='templates', static_folder = "static")
+companies_bp = Blueprint(
+    "companies_bp", __name__, template_folder="templates", static_folder="static"
+)
+
 
 @companies_bp.route("/companies/list")
 def list_companies():
@@ -16,18 +19,16 @@ def list_companies():
 
     return [{"id": c.id, "name": c.name} for c in companies]
 
+
 @companies_bp.route("/companies")
 def get_companies():
     companies = Companies.query
 
-    return render_template(
-        "companies.html",
-        companies = companies
-    )
+    return render_template("companies.html", companies=companies)
 
-@companies_bp.route('/companies', methods=["POST"])
+
+@companies_bp.route("/companies", methods=["POST"])
 def create_company():
-
     content = request.json
 
     current_app.logger.info("Creating a new company")
@@ -39,7 +40,12 @@ def create_company():
     scraping_method = content.get("scraping_method")
 
     if name and board_url:
-        c = Companies(name = name, board_url = board_url, job_posting_url_prefix = url_prefix, scraping_method = scraping_method)
+        c = Companies(
+            name=name,
+            board_url=board_url,
+            job_posting_url_prefix=url_prefix,
+            scraping_method=scraping_method,
+        )
 
         db.session.add(c)
         db.session.commit()
@@ -52,7 +58,8 @@ def create_company():
     else:
         return "Failed", 400
 
-@companies_bp.route('/companies/<int:id>', methods=["PUT"])
+
+@companies_bp.route("/companies/<int:id>", methods=["PUT"])
 def update_company(id):
     current_app.logger.info("Updating a record")
     current_app.logger.info(json.dumps(request.form))
@@ -73,7 +80,8 @@ def update_company(id):
 
     return f"Successfully updated the record for id: {id}"
 
-@companies_bp.route('/companies/<int:id>', methods = ["DELETE"])
+
+@companies_bp.route("/companies/<int:id>", methods=["DELETE"])
 def delete_company(id):
     data = db.session.get(Companies, id)
     db.session.delete(data)
