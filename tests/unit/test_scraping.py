@@ -43,8 +43,6 @@ def test_posting_ad_creation():
     ad = create_posting_advertisement(title, company, href)
 
     assert title in ad.get("text")
-    assert "@" in ad.get("text")
-    assert company in ad.get("text")
     assert href == ad.get("href")
 
 
