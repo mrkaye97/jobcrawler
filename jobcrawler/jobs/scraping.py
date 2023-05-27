@@ -1,5 +1,5 @@
 ## Flask imports
-from flask import current_app
+from flask import current_app, Flask
 from jobcrawler import db
 from sqlalchemy import text
 
@@ -25,7 +25,7 @@ import datetime
 import re
 from sqlalchemy import text
 from uuid import UUID
-from typing import List
+from typing import List, Dict, Tuple
 from itertools import groupby
 from operator import attrgetter
 
@@ -51,7 +51,7 @@ def set_chrome_options() -> Options:
     return chrome_options
 
 
-def create_driver():
+def create_driver() -> webdriver.Chrome:
     driver = webdriver.Chrome(options=set_chrome_options())
     delay = 3
 
@@ -60,7 +60,7 @@ def create_driver():
     return driver
 
 
-def load_page(url):
+def load_page(url: str) -> requests.Response:
     r = requests.get(url)
 
     if r.status_code == 404:
@@ -71,7 +71,7 @@ def load_page(url):
     return r
 
 
-def send_email(sender_name, sender_email, recipient, subject, body):
+def send_email(sender_name: str, sender_email: str, recipient: str, subject: str, body: str) -> requests.Response:
     configuration = sib_api_v3_sdk.Configuration()
     configuration.api_key["api-key"] = os.environ.get("SIB_API_KEY")
 
@@ -92,7 +92,7 @@ def send_email(sender_name, sender_email, recipient, subject, body):
     return response
 
 
-def get_links_selenium(driver, url, example_prefix):
+def get_links_selenium(driver: webdriver.Chrome, url: str, example_prefix: str) -> List[Dict[str, str]]:
     ## Check if the page loads without 404ing
     load_page(url)
 
@@ -125,7 +125,7 @@ def get_links_selenium(driver, url, example_prefix):
     return result
 
 
-def extract_link_text(link, url):
+def extract_link_text(link: str, url: str) -> str:
     link_text = link.text
     link_string = link.string
 
@@ -137,7 +137,7 @@ def extract_link_text(link, url):
         return link_string.strip()
 
 
-def get_links_soup(url, example_prefix):
+def get_links_soup(url: str, example_prefix: str) -> List[Dict[str, str]]:
     r = load_page(url)
 
     soup = BeautifulSoup(r.content, features="html.parser")
@@ -175,7 +175,7 @@ def get_links(driver: webdriver.Chrome, company: Companies) -> List:
     else:
         return []
 
-def crawl_for_postings(app):
+def crawl_for_postings(app: Flask) -> None:
     ## Set up Selenium
     driver = create_driver()
 
@@ -212,24 +212,24 @@ def crawl_for_postings(app):
     driver.quit()
 
 
-def is_matching_posting(search):
+def is_matching_posting(search: Tuple) -> bool:
     if not search.search_regex or not search.link_text:
         return False
 
     return re.search(search.search_regex.lower(), search.link_text.lower())
 
-def is_recent_posting(search):
+def is_recent_posting(search: Tuple) -> bool:
     search.created_at > (
         datetime.datetime.now()
         - datetime.timedelta(days=search.email_frequency_days)
     )
 
-def create_posting_advertisement(search):
+def create_posting_advertisement(search: Tuple) -> bool:
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
     return {"text": f"{clean_link_text}", "href": search.link_href}
 
 
-def get_user_job_searches():
+def get_user_job_searches() -> List[Tuple]:
     current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
 
     return db.session.execute(
@@ -258,14 +258,14 @@ def get_user_job_searches():
     ).all() or []
 
 
-def generate_link_html(posting):
+def generate_link_html(posting: Dict[str, str]) -> str:
     current_app.logger.info(f"Posting: {posting}")
     return f"""
         <li><a href="{posting.get('href')}">{posting.get('text')}</a></li>
     """
 
 
-def generate_email_html(first_name, matching_postings, email_frequency_days):
+def generate_email_html(first_name: str, matching_postings: Dict[List[str, str]], email_frequency_days: int) -> str:
     all_postings = {}
     for company, jobs in matching_postings.items():
         all_postings[company] = "".join([generate_link_html(job) for job in jobs])
@@ -294,13 +294,12 @@ def generate_email_html(first_name, matching_postings, email_frequency_days):
     """
 
 
-def run_email_send_job(app):
+def run_email_send_job(app: Flask) -> None:
     with app.app_context():
         searches = {email: list(data) for email, data in groupby(get_user_job_searches(), attrgetter('email'))}
 
         for email, searches in searches.items():
             current_app.logger.info(f"Preparing to send email to {email}")
-            current_app.logger.info(f"User searches for {email}: {searches}")
 
             relevant_postings = filter(
                 lambda x: is_matching_posting(x) and is_recent_posting(x),
