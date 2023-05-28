@@ -94,6 +94,15 @@ def send_email(
 
     return response
 
+def strip_scheme(url):
+    return re.sub(r'^http(s)?:\/\/', '', url)
+
+
+def link_is_job_posting(prefix: str, url: str) -> bool:
+    prefix = strip_scheme(prefix)
+    url = strip_scheme(url)
+
+    return prefix in url
 
 def get_links_selenium(
     driver: webdriver.Chrome, url: str, example_prefix: str
@@ -113,7 +122,7 @@ def get_links_selenium(
         for link in links:
             href = link.get_attribute("href")
             current_app.logger.info(f"Found link {href}")
-            if example_prefix in href:
+            if link_is_job_posting(example_prefix, href):
                 result = result + [{"text": link.get_attribute("text"), "href": href}]
 
     except Exception as e:

@@ -34,7 +34,7 @@ def test_scraping():
     if existing:
         raise CompanyExistsException(name=company_name)
 
-    links = get_links(
+    matching_links = get_links(
         driver,
         Companies(
             job_posting_url_prefix=posting_url_prefix,
@@ -43,8 +43,6 @@ def test_scraping():
             name=company_name,
         ),
     )
-
-    matching_links = list(filter(lambda x: posting_url_prefix in x.get("href"), links))
 
     if not matching_links:
         raise ScrapingException(
