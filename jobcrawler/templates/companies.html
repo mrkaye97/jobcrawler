@@ -73,6 +73,23 @@
     </div>
   </div>
 
+  <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="infoModalLabel">Important Information</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          First time adding a new company? Not to worry! Here are some helpful tips.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="got-it-btn">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <h1>Companies</h1>
   <table id="company-table" class="table table-striped">
     <thead>
@@ -107,14 +124,30 @@
     });
   </script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      console.log("{{ current_user.email }}");
-      console.log("{{ current_user }}");
-    });
-
     const addCompanyBtn = document.getElementById('add-company-btn');
     if (addCompanyBtn) {
       addCompanyBtn.addEventListener('click', function () {
+        user_id = "{{current_user.id}}"
+        fetch(`/flags/add-company/${user_id}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data === true) {
+              const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
+              addCompanyModal.show();
+            } else {
+              const infoModal = new bootstrap.Modal(document.getElementById('infoModal'), {});
+              infoModal.show();
+            }
+          });
+      });
+    }
+
+    const gotItBtn = document.getElementById('got-it-btn');
+    if (gotItBtn) {
+      gotItBtn.addEventListener('click', function () {
+        const infoModal = bootstrap.Modal.getInstance(document.getElementById('infoModal'));
+        infoModal.hide();
+
         const addCompanyModal = new bootstrap.Modal(document.getElementById('addCompanyModal'), {});
         addCompanyModal.show();
       });

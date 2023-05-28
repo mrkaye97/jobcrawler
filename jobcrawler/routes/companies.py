@@ -3,7 +3,7 @@ from jobcrawler import db
 from jobcrawler.models.companies import Companies
 
 ## Flask Imports
-from flask import request, Blueprint, current_app, render_template
+from flask import request, Blueprint, current_app, render_template, jsonify
 
 ## Misc Imports
 import json
@@ -12,6 +12,9 @@ companies_bp = Blueprint(
     "companies_bp", __name__, template_folder="templates", static_folder="static"
 )
 
+@companies_bp.route("/flags/add-company/<int:user_id>")
+def has_seen_company_tips_modal(user_id):
+    return jsonify(True)
 
 @companies_bp.route("/companies/list")
 def list_companies():
