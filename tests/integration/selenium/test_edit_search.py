@@ -88,7 +88,7 @@ def test_editing_cards(client__logged_in):
             }
         ]
 
-    if os.environ.get("CI") != "true":
+    if os.getenv("GITHUB_ACTIONS") != "true":
         assert initial_cards == actual_cards
 
     driver.find_element(By.XPATH, '//*[@id="searches-container"]/div[2]/div').click()
@@ -127,7 +127,7 @@ def test_editing_cards(client__logged_in):
             }
         ]
 
-    if os.environ.get("CI") != "true":
+    if os.getenv("GITHUB_ACTIONS") != "true":
         assert initial_cards == actual_cards
 
     driver.find_element(By.XPATH, '//*[@id="searches-container"]/div[2]/div').click()
