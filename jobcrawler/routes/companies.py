@@ -13,6 +13,7 @@ companies_bp = Blueprint(
     "companies_bp", __name__, template_folder="templates", static_folder="static"
 )
 
+
 @companies_bp.route("/flags/add-company/<int:user_id>")
 def has_seen_company_tips_modal(user_id):
     user = db.session.get(Users, user_id)
