@@ -238,6 +238,7 @@ footer a {
     border: thin solid #333;
     box-shadow: 5px 5px 10px #888;
     margin-bottom: 1rem;
+    cursor: pointer;
 }
 
 .button-container {
