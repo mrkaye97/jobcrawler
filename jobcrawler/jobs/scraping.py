@@ -170,6 +170,7 @@ def get_links_soup(url: str, example_prefix: str) -> List[Dict[str, str]]:
         )
     )
 
+
 def deduplicate_links(links: List[Dict[str, str]]) -> List[Dict[str, str]]:
     return [dict(x) for x in set(tuple(link.items()) for link in links)]
 
@@ -191,7 +192,6 @@ def get_links(driver: webdriver.Chrome, company: Companies) -> List:
     return deduplicate_links(links)
 
 
-
 def crawl_for_postings(app: Flask) -> None:
     ## Set up Selenium
     driver = create_driver()
@@ -210,7 +210,6 @@ def crawl_for_postings(app: Flask) -> None:
             ## Get the new links we're going to add (from the scraping we just did)
             new_links = set(map(lambda x: x.get("href"), links))
 
-
             for link in existing_links:
                 ## If there's a link in the database that isn't in
                 ## the set we just scraped, that means that job
@@ -221,7 +220,6 @@ def crawl_for_postings(app: Flask) -> None:
                     db.session.execute(
                         text(f"DELETE FROM postings WHERE link_href = '{link}'")
                     )
-
 
             for link in links:
                 ## If the new link doesn't yet exist in the db
@@ -251,7 +249,9 @@ def is_matching_posting(search: Tuple) -> bool:
 
 
 def is_recent_posting(search: Tuple) -> bool:
-    return search.created_at >  (datetime.datetime.now() - datetime.timedelta(days=search.email_frequency_days))
+    return search.created_at > (
+        datetime.datetime.now() - datetime.timedelta(days=search.email_frequency_days)
+    )
 
 
 def create_posting_advertisement(search: Tuple) -> bool:
