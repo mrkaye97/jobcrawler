@@ -214,7 +214,7 @@ def crawl_for_postings(app: Flask) -> None:
             new_links = [l.get("href") for l in links]
             for link in existing_links:
                 if not link in new_links:
-                    current_app.logger.info(f"Deleting record for {link}")
+                    current_app.logger.info(f"Deleting records for {link}")
                     db.session.execute(
                         text(f"DELETE FROM postings WHERE link_href = '{link}'")
                     )
