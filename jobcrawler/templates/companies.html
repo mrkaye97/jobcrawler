@@ -2,6 +2,16 @@
 {% block content %}
 
 <body>
+  <style>
+    .modal-lg {
+      max-width: 50%;
+    }
+
+    li:not(:last-child) {
+      margin-bottom: 5px;
+    }
+  </style>
+
   <div id="spinner-container" class="spinner-container" style="display: none;">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -74,14 +84,38 @@
   </div>
 
   <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="infoModalLabel">Important Information</h5>
+          <h2 class="modal-title" id="infoModalLabel">First time adding a new company?</h2>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          First time adding a new company? Not to worry! Here are some helpful tips.
+          <h4>Not to worry! Here are some helpful tips:</h4>
+          <br>
+          <ol>
+            <li>The job board URL is sometims a bit tricky to find. If you can, it's better to find the company's Lever,
+              Greenhouse, etc. page instead of trying to scrape their self-hosted jobs site directly. For instance,
+              Spotify has <a href="https://www.lifeatspotify.com/jobs">this very pretty job page</a>. But with a bit of
+              digging, you can also find <a href="https://jobs.lever.co/spotify">this Lever page</a>, which is much
+              easier to scrape. Many companies have their boards set up similarly.</li>
+            <li>Sometimes a company will have a (e.g.) "Greenhouse" job board, where the links are hosted on Greenhouse
+              but the board itself redirects you to some other site (usually just their own careers page). For instance,
+              Vox does this. If you navigate to <a href="https://www.voxmedia.com/pages/careers-jobs">their jobs
+                page</a> and click a link, it'll take you to Greenhouse (i.e. a posting with a URL starting with
+              "https://boards.greenhouse.io/voxmedia/jobs/"), <a href="https://boards.greenhouse.io/voxmedia/jobs">but
+                if you try to go to that page you'll be redirected back to their main jobs page</a>.
+              In this case, you can't do much but use Selenium (the scraping method) to scrape their main jobs page,
+              unfortunately.</li>
+            <li>Some job pages are not friendly for scraping without lots of custom logic. For instance, <a
+                href="https://www.ibm.com/careers/us-en/search/">IBM has a multi-page job site</a>. In situations like
+              these, I'd recommend adding some search parameters to your search, and then reflecting that in the company
+              name. For instance, you might add "IBM: Data, US" as the company name, with
+              <a
+                href="https://www.ibm.com/careers/us-en/search/?filters=department:Data%20%26%20Analytics,primary_country:US">https://www.ibm.com/careers/us-en/search/?filters=department:Data%20%26%20Analytics,primary_country:US</a>
+              as the URL.
+            </li>
+          </ol>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary" id="got-it-btn">Got it!</button>
