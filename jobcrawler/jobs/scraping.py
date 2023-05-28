@@ -28,6 +28,7 @@ from uuid import UUID
 from typing import List, Dict, Tuple
 from itertools import groupby
 from operator import attrgetter
+import time
 
 
 def is_valid_uuid(uuid_to_test, version=4):
@@ -118,6 +119,8 @@ def get_links_selenium(
         current_app.logger.info(f"Getting {url}")
         driver.get(url)
         current_app.logger.info(f"Finished getting {url}")
+
+        time.sleep(3)
 
         links = driver.find_elements(By.XPATH, "//a[@href]")
 
