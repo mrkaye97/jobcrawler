@@ -20,8 +20,8 @@ def has_seen_company_tips_modal(user_id):
     if user.has_seen_add_company_helper_modal:
         return jsonify(True)
     else:
-        # user.has_seen_add_company_helper_modal = True
-        # db.session.commit()
+        user.has_seen_add_company_helper_modal = True
+        db.session.commit()
 
         return jsonify(False)
 
