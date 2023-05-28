@@ -10,6 +10,7 @@ class Users(UserMixin, db.Model):
     email_frequency_days = db.Column(db.Integer, nullable=False, default=7)
     default_search_regex = db.Column(db.String, nullable=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    has_seen_add_company_helper_modal = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return "<User {}>".format(self.email)
