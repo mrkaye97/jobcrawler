@@ -161,7 +161,7 @@ def get_links_soup(url: str, example_prefix: str) -> List[Dict[str, str]]:
     links = soup.find_all(links)
 
     useful_links = filter(
-        lambda x: example_prefix in urljoin(url, x["href"])
+        lambda x: link_is_job_posting(example_prefix, urljoin(url, x["href"]))
         and (
             "lever" not in url
             or is_valid_uuid(urljoin(url, x["href"]).rsplit("/", 1)[-1])
