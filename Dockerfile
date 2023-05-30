@@ -43,4 +43,5 @@ CMD flask db upgrade && \
     --timeout 180 \
     --bind 0.0.0.0:${PORT} \
     --log-level=info \
+    --access-logfile '-' \
     --preload
