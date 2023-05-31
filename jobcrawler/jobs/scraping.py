@@ -7,6 +7,7 @@ from sqlalchemy import text
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
 from jobcrawler.exceptions.exceptions import ScrapingException
+from jobcrawler.models.users import Users
 
 ## Imports for scraping
 import requests
@@ -412,3 +413,14 @@ def run_email_send_job(app: Flask) -> None:
                         body=message,
                     )
                     current_app.logger.info(f"Sent email to {email}")
+                    current_app.logger.info(f"Updating last_received_email_at for {email}")
+
+                    user = Users.query.filter_by(email=email).first()
+
+                    user.last_received_email_at = datetime.datetime.now()
+                    db.session.commit()
+
+                    current_app.logger.info(f"Updated last_received_email_at for {email}")
+
+
+
