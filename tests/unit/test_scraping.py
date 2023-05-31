@@ -11,9 +11,10 @@ from jobcrawler.models.companies import Companies
 from collections import namedtuple
 
 
-def test_load_page_raises_on_404():
-    with pytest.raises(ScrapingException):
-        load_page("https://matthewrkaye.com/foobarbaz")
+def test_load_page_404s():
+    response = load_page("https://matthewrkaye.com/foobarbaz")
+    assert response.status_code == 404
+
 
 
 def test_load_page_works_for_existing():
@@ -65,8 +66,10 @@ def test_users_to_email(app):
     )
     db.session.add(c1)
 
-    u1 = Users(email="kaye.dev", email_frequency_days=1)
-    u2 = Users(email="mk.dev", email_frequency_days=1000000)
+    ## Last received an email four days ago
+    last_received_email_at=datetime.datetime.now() - datetime.timedelta(days = 4)
+    u1 = Users(email="kaye.dev", email_frequency_days=1, last_received_email_at=last_received_email_at)
+    u2 = Users(email="mk.dev", email_frequency_days=1000, last_received_email_at=last_received_email_at)
     db.session.add(u1)
     db.session.add(u2)
 
@@ -74,7 +77,7 @@ def test_users_to_email(app):
         company_id=1,
         link_text="foo",
         link_href="bar",
-        created_at=datetime.datetime.now() - datetime.timedelta(days=100),
+        created_at=datetime.datetime.now() - datetime.timedelta(days=3),
     )
     db.session.add(p1)
 
@@ -87,7 +90,6 @@ def test_users_to_email(app):
     db.session.commit()
 
     emails = [s.email for s in get_user_job_searches()]
-
     assert "kaye.dev" in emails
     assert "mk.dev" not in emails
 
