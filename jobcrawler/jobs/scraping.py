@@ -63,7 +63,16 @@ def create_driver() -> webdriver.Chrome:
 
 
 def load_page(url: str) -> requests.Response:
-    r = requests.get(url)
+    try:
+        r = requests.get(url)
+    except:
+        capture_exception(
+            ScrapingException(
+                url=url, code=400, message=f"There was an error loading {url}"
+            )
+        )
+
+        return None
 
     if r.status_code == 404:
         capture_exception(
@@ -159,6 +168,9 @@ def extract_link_text(link: str, url: str) -> str:
 
 def get_links_soup(url: str, example_prefix: str) -> List[Dict[str, str]]:
     r = load_page(url)
+
+    if not r:
+        return []
 
     soup = BeautifulSoup(r.content, features="html.parser")
 
