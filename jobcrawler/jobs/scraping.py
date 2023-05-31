@@ -302,7 +302,10 @@ def get_user_job_searches() -> List[Tuple]:
                 JOIN postings p ON p.company_id = c.id
                 JOIN users u ON u.id = s.user_id
                 WHERE
-                    p.created_at > u.last_received_email_at
+                    (
+                        u.last_received_email_at IS NULL
+                        OR p.created_at > u.last_received_email_at
+                    )
                     AND (
                         -- Convert days to seconds and select users
                         -- who haven't received an email more recently than their
