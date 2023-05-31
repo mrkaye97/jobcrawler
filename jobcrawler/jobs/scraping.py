@@ -355,7 +355,9 @@ def generate_email_html(
     first_name: str, matching_postings: Dict[str, List[str]], email_frequency_days: int
 ) -> str:
     all_postings = {}
-    for company, jobs in matching_postings.items():
+
+    ## Sort the keys so the email comes back in alphabetical order
+    for company, jobs in {key: value for key, value in sorted(matching_postings.items())}.items():
         all_postings[company] = "".join([generate_link_html(job) for job in jobs])
 
     all_htmls = "".join(
