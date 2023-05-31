@@ -9,6 +9,7 @@ from flask_login import login_required, current_user
 
 ## Other imports
 import json
+import datetime
 
 searches_bp = Blueprint(
     "searches_bp", __name__, template_folder="templates", static_folder="static"
@@ -119,6 +120,7 @@ def update_search(id):
 
     posting.company_id = company_id
     posting.search_regex = search_regex
+    posting.updated_at = datetime.datetime.now()
 
     db.session.commit()
 

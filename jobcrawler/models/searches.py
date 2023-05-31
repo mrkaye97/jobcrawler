@@ -6,6 +6,8 @@ class Searches(db.Model):
     company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), index=True)
     search_regex = db.Column(db.String(256), unique=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), index=True)
+    created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False)
+    updated_at = db.Column(db.DateTime, default=db.func.now(), nullable=False)
 
     def __repr__(self):
         return f"Company : {self.company}, URL: {self.url}, search: {self.search_regex}"
