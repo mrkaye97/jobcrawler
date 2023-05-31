@@ -277,7 +277,20 @@ def is_matching_posting(search: Tuple) -> bool:
 
 
 def create_posting_advertisement(search: Tuple) -> bool:
-    clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
+
+    ## Naive algorithm for adding a space between two
+    ## words that are probably supposed to be separate
+    prev = ""
+    link_text = ""
+    for char in search.link_text:
+        if prev.islower() and char.isupper():
+            link_text = link_text + " - "
+
+        link_text = link_text + char
+        prev = char
+
+    clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", link_text)
+
     return {"text": f"{clean_link_text}", "href": search.link_href}
 
 
