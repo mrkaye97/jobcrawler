@@ -371,8 +371,7 @@ def run_email_send_job(app: Flask) -> None:
         }
 
         for email, searches in searches.items():
-            current_app.logger.info(f"Preparing to send email to {email}")
-
+            current_app.logger.info(f"Collecting relevant links for {email}")
             relevant_postings = filter(
                 lambda x: is_matching_posting(x) and is_recent_posting(x), searches
             )
@@ -396,6 +395,8 @@ def run_email_send_job(app: Flask) -> None:
                 for company in companies
             }
 
+            current_app.logger.info(f"Collected relevant links for {email}. Found the following {links_by_company}")
+
             if links_by_company:
                 message = generate_email_html(
                     first_name=searches[0].first_name,
@@ -412,3 +413,4 @@ def run_email_send_job(app: Flask) -> None:
                         subject="Your job feed digest",
                         body=message,
                     )
+                    current_app.logger.info(f"Sent email to {email}")
