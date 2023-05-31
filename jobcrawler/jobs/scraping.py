@@ -287,8 +287,6 @@ def create_posting_advertisement(search: Tuple) -> bool:
 
 
 def get_user_job_searches() -> List[Tuple]:
-    current_day = (datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).days
-
     return (
         db.session.execute(
             text(
@@ -308,11 +306,20 @@ def get_user_job_searches() -> List[Tuple]:
                 JOIN postings p ON p.company_id = c.id
                 JOIN users u ON u.id = s.user_id
                 WHERE
-                    MOD(:current_day, email_frequency_days) = 0
+                    -- Convert days to seconds and select users
+                    -- who haven't received an email more recently than their
+                    -- last email frequency period
+                    -- In other words, if you want to receive an email every 7
+                    -- days and it's been more than 7 days since you got an email
+                    -- we should send you one
+                    -- NOW() - last_received_email_at gives us the amount of time since
+                    -- you last got an email.
+                    -- If that's a bigger amount of time than your email frequency,
+                    -- then we should send you an email.
+                    EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
                     OR is_admin
                 """
-            ),
-            {"current_day": current_day},
+            )
         ).all()
         or []
     )
