@@ -18,7 +18,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
 ## Misc Imports
-from sentry_sdk import capture_message
+from sentry_sdk import capture_message, capture_exception
 import sib_api_v3_sdk
 import os
 import datetime
@@ -66,10 +66,11 @@ def load_page(url: str) -> requests.Response:
     r = requests.get(url)
 
     if r.status_code == 404:
-        raise ScrapingException(
-            url=url, code=400, message=f"The following URL just 404ed: {url}"
+        capture_exception(
+            ScrapingException(
+                url=url, code=400, message=f"The following URL just 404ed: {url}"
+            )
         )
-
     return r
 
 

@@ -13,6 +13,7 @@ class Users(UserMixin, db.Model):
     has_seen_add_company_helper_modal = db.Column(
         db.Boolean, nullable=False, default=False
     )
+    last_received_email_at = db.Column(db.DateTime, nullable = True)
 
     def __repr__(self):
         return "<User {}>".format(self.email)

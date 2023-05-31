@@ -12,6 +12,9 @@ from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingExc
 ## Flask Imports
 from flask import request, Blueprint, current_app
 
+## Sentry
+from sentry_sdk import capture_exception
+
 scraping_bp = Blueprint(
     "scraping_bp", __name__, template_folder="templates", static_folder="static"
 )
@@ -45,10 +48,12 @@ def test_scraping():
     )
 
     if not matching_links:
-        raise ScrapingException(
-            url=board_url,
-            message=f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}",
-            code=400,
+        capture_exception(
+            ScrapingException(
+                url=board_url,
+                message=f"No links found matching {posting_url_prefix} at {board_url} with scraping method {scraping_method}",
+                code=400,
+            )
         )
 
     driver.quit()
