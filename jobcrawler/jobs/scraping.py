@@ -288,9 +288,7 @@ def create_posting_advertisement(search: Tuple) -> bool:
         link_text = link_text + char
         prev = char
 
-    clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", link_text)
-
-    return {"text": f"{clean_link_text}", "href": search.link_href}
+    return {"text": f"{link_text}", "href": search.link_href}
 
 
 def get_user_job_searches() -> List[Tuple]:
