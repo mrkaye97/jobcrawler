@@ -275,12 +275,6 @@ def is_matching_posting(search: Tuple) -> bool:
     return re.search(search.search_regex.lower(), search.link_text.lower())
 
 
-def is_recent_posting(search: Tuple) -> bool:
-    return search.created_at > (
-        datetime.datetime.now() - datetime.timedelta(days=search.email_frequency_days)
-    )
-
-
 def create_posting_advertisement(search: Tuple) -> bool:
     clean_link_text = re.sub(r"(\w)([A-Z])", r"\1 - \2", search.link_text)
     return {"text": f"{clean_link_text}", "href": search.link_href}
@@ -296,6 +290,7 @@ def get_user_job_searches() -> List[Tuple]:
                     u.email_frequency_days,
                     u.email,
                     u.first_name,
+                    u.last_received_email_at,
                     c.name AS company_name,
                     s.search_regex,
                     p.link_href,
@@ -306,18 +301,21 @@ def get_user_job_searches() -> List[Tuple]:
                 JOIN postings p ON p.company_id = c.id
                 JOIN users u ON u.id = s.user_id
                 WHERE
-                    -- Convert days to seconds and select users
-                    -- who haven't received an email more recently than their
-                    -- last email frequency period
-                    -- In other words, if you want to receive an email every 7
-                    -- days and it's been more than 7 days since you got an email
-                    -- we should send you one
-                    -- NOW() - last_received_email_at gives us the amount of time since
-                    -- you last got an email.
-                    -- If that's a bigger amount of time than your email frequency,
-                    -- then we should send you an email.
-                    EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
-                    OR is_admin
+                    p.created_at > u.last_received_email_at
+                    AND (
+                        -- Convert days to seconds and select users
+                        -- who haven't received an email more recently than their
+                        -- last email frequency period
+                        -- In other words, if you want to receive an email every 7
+                        -- days and it's been more than 7 days since you got an email
+                        -- we should send you one
+                        -- NOW() - last_received_email_at gives us the amount of time since
+                        -- you last got an email.
+                        -- If that's a bigger amount of time than your email frequency,
+                        -- then we should send you an email.
+                        EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
+                        OR is_admin
+                    )
                 """
             )
         ).all()
@@ -326,7 +324,6 @@ def get_user_job_searches() -> List[Tuple]:
 
 
 def generate_link_html(posting: Dict[str, str]) -> str:
-    current_app.logger.info(f"Posting: {posting}")
     return f"""
         <li><a href="{posting.get('href')}">{posting.get('text')}</a></li>
     """
@@ -373,7 +370,7 @@ def run_email_send_job(app: Flask) -> None:
         for email, searches in searches.items():
             current_app.logger.info(f"Collecting relevant links for {email}")
             relevant_postings = filter(
-                lambda x: is_matching_posting(x) and is_recent_posting(x), searches
+                lambda x: is_matching_posting(x), searches
             )
 
             ads = list(
@@ -395,7 +392,8 @@ def run_email_send_job(app: Flask) -> None:
                 for company in companies
             }
 
-            current_app.logger.info(f"Collected relevant links for {email}. Found the following {links_by_company}")
+
+            current_app.logger.info(f"Collected relevant links for {email}. Found the following postings {links_by_company}")
 
             if links_by_company:
                 message = generate_email_html(
