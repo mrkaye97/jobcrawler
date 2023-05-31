@@ -16,7 +16,6 @@ def test_load_page_404s():
     assert response.status_code == 404
 
 
-
 def test_load_page_works_for_existing():
     r = load_page("https://matthewrkaye.com")
 
@@ -67,9 +66,17 @@ def test_users_to_email(app):
     db.session.add(c1)
 
     ## Last received an email four days ago
-    last_received_email_at=datetime.datetime.now() - datetime.timedelta(days = 4)
-    u1 = Users(email="kaye.dev", email_frequency_days=1, last_received_email_at=last_received_email_at)
-    u2 = Users(email="mk.dev", email_frequency_days=1000, last_received_email_at=last_received_email_at)
+    last_received_email_at = datetime.datetime.now() - datetime.timedelta(days=4)
+    u1 = Users(
+        email="kaye.dev",
+        email_frequency_days=1,
+        last_received_email_at=last_received_email_at,
+    )
+    u2 = Users(
+        email="mk.dev",
+        email_frequency_days=1000,
+        last_received_email_at=last_received_email_at,
+    )
     db.session.add(u1)
     db.session.add(u2)
 

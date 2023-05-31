@@ -277,7 +277,6 @@ def is_matching_posting(search: Tuple) -> bool:
 
 
 def create_posting_advertisement(search: Tuple) -> bool:
-
     ## Naive algorithm for adding a space between two
     ## words that are probably supposed to be separate
     prev = ""
@@ -394,9 +393,7 @@ def run_email_send_job(app: Flask) -> None:
 
         for email, searches in searches.items():
             current_app.logger.info(f"Collecting relevant links for {email}")
-            relevant_postings = filter(
-                lambda x: is_matching_posting(x), searches
-            )
+            relevant_postings = filter(lambda x: is_matching_posting(x), searches)
 
             ads = list(
                 map(
@@ -417,8 +414,9 @@ def run_email_send_job(app: Flask) -> None:
                 for company in companies
             }
 
-
-            current_app.logger.info(f"Collected relevant links for {email}. Found the following postings {links_by_company}")
+            current_app.logger.info(
+                f"Collected relevant links for {email}. Found the following postings {links_by_company}"
+            )
 
             if links_by_company:
                 message = generate_email_html(
@@ -437,14 +435,15 @@ def run_email_send_job(app: Flask) -> None:
                         body=message,
                     )
                     current_app.logger.info(f"Sent email to {email}")
-                    current_app.logger.info(f"Updating last_received_email_at for {email}")
+                    current_app.logger.info(
+                        f"Updating last_received_email_at for {email}"
+                    )
 
                     user = Users.query.filter_by(email=email).first()
 
                     user.last_received_email_at = datetime.datetime.now()
                     db.session.commit()
 
-                    current_app.logger.info(f"Updated last_received_email_at for {email}")
-
-
-
+                    current_app.logger.info(
+                        f"Updated last_received_email_at for {email}"
+                    )
