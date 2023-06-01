@@ -6,7 +6,11 @@ from jobcrawler import db
 from jobcrawler.models.companies import Companies
 from jobcrawler.jobs.scraping import load_page
 
-def test_links() -> None:
+## Sentry
+from sentry_sdk import capture_message
+
+def test_for_dead_links() -> list:
+    dead_links = []
     for company in Companies.query.all():
         current_app.logger.info(f"Testing board URL for {company.name}")
         result = load_page(company.board_url)
@@ -15,3 +19,8 @@ def test_links() -> None:
             current_app.logger.info(f"Found a dead link at {company.board_url}")
             company.board_url_is_dead_link = True
             db.session.commit()
+
+            dead_links = dead_links + [(company.name, company.board_url)]
+
+    capture_message(f"Found dead links for the following: {dead_links}")
+    return dead_links
