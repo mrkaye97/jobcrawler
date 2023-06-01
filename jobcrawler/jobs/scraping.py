@@ -76,6 +76,7 @@ def load_page(url: str) -> requests.Response:
                 url=url, code=400, message=f"The following URL just 404ed: {url}"
             )
         )
+
     return r
 
 

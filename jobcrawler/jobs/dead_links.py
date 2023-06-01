@@ -9,13 +9,15 @@ from jobcrawler.jobs.scraping import load_page
 ## Sentry
 from sentry_sdk import capture_message
 
-def test_for_dead_links() -> list:
+from typing import List, Tuple
+
+def test_for_dead_links() -> List[Tuple[str, str]]:
     dead_links = []
     for company in Companies.query.all():
         current_app.logger.info(f"Testing board URL for {company.name}")
         result = load_page(company.board_url)
 
-        if not result or result.status_code != 200:
+        if result is None or result.status_code != 200:
             current_app.logger.info(f"Found a dead link at {company.board_url}")
             company.board_url_is_dead_link = True
             db.session.commit()
