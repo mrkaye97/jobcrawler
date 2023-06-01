@@ -322,7 +322,7 @@ def get_user_job_searches() -> List[Tuple]:
 
                         -- If the search was updated or created more recently
                         -- than the last email, we'll include it
-                        OR s.updated_at > u.last_received_email_at
+                        OR s.updated_at > u.last_received_email_at                        
                     )
                     AND (
                         -- Convert days to seconds and select users
@@ -335,7 +335,10 @@ def get_user_job_searches() -> List[Tuple]:
                         -- you last got an email.
                         -- If that's a bigger amount of time than your email frequency,
                         -- then we should send you an email.
-                        EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
+                        (
+                          u.last_received_email_at IS NULL
+                          OR EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
+                        )
                         OR is_admin
                     )
                 """
