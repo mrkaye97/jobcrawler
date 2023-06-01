@@ -23,7 +23,7 @@ import os
 import re
 from sqlalchemy import text
 from uuid import UUID
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import time
 
 
@@ -295,7 +295,7 @@ def get_user_job_searches() -> List[Tuple]:
 
                         -- If the search was updated or created more recently
                         -- than the last email, we'll include it
-                        OR s.updated_at > u.last_received_email_at                        
+                        OR s.updated_at > u.last_received_email_at
                     )
                     AND (
                         -- Convert days to seconds and select users

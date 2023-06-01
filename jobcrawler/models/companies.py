@@ -7,6 +7,7 @@ class Companies(db.Model):
     board_url = db.Column(db.String(2048), nullable=False)
     job_posting_url_prefix = db.Column(db.String(2048), nullable=True)
     scraping_method = db.Column(db.String(64), nullable=False, default="soup")
+    board_url_is_dead_link = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return "<Company {}>".format(self.name)

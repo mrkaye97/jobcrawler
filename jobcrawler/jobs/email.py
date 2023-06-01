@@ -111,6 +111,7 @@ def get_user_job_searches() -> List[Tuple]:
                         EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
                         OR is_admin
                     )
+                    AND NOT c.board_url_is_dead_link
                 """
             )
         ).all()
