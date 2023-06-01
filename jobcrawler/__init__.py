@@ -16,6 +16,7 @@ from jobcrawler.models.postings import Postings
 from jobcrawler.models.companies import Companies
 from jobcrawler.jobs.scraping import crawl_for_postings
 from jobcrawler.jobs.email import run_email_send_job
+from jobcrawler.jobs.dead_links import test_for_dead_links
 from jobcrawler.routes import home_bp
 from jobcrawler.routes.auth import auth_bp
 from jobcrawler.routes.companies import companies_bp
@@ -113,6 +114,11 @@ def create_app(config_class=Config):
         def send_emails():
             app.logger.info("Kicking off email sending job")
             run_email_send_job(app)
+
+        @sched.scheduled_job(trigger="cron", hour=10, id="check_dead_links")
+        def check_dead_links():
+            app.logger.info("Kicking off dead link checking job")
+            test_for_dead_links()
 
         sched.start()
 
