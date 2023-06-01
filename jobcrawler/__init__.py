@@ -14,7 +14,8 @@ from jobcrawler.models.users import Users
 from jobcrawler.models.searches import Searches
 from jobcrawler.models.postings import Postings
 from jobcrawler.models.companies import Companies
-from jobcrawler.jobs.scraping import crawl_for_postings, run_email_send_job
+from jobcrawler.jobs.scraping import crawl_for_postings
+from jobcrawler.jobs.email import run_email_send_job
 from jobcrawler.routes import home_bp
 from jobcrawler.routes.auth import auth_bp
 from jobcrawler.routes.companies import companies_bp

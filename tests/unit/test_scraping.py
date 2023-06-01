@@ -1,7 +1,6 @@
 from jobcrawler.jobs.scraping import *
-from jobcrawler.exceptions.exceptions import ScrapingException
+from jobcrawler.jobs.email import *
 from jobcrawler import db
-import pytest
 
 from jobcrawler.models.users import Users
 from jobcrawler.models.postings import Postings

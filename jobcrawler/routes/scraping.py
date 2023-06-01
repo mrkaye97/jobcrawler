@@ -2,10 +2,10 @@
 from jobcrawler import db
 from jobcrawler.jobs.scraping import (
     crawl_for_postings,
-    run_email_send_job,
     create_driver,
     get_links,
 )
+from jobcrawler.jobs.email import run_email_send_job
 from jobcrawler.models.companies import Companies
 from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
 

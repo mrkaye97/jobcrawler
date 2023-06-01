@@ -7,7 +7,6 @@ from sqlalchemy import text
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
 from jobcrawler.exceptions.exceptions import ScrapingException
-from jobcrawler.models.users import Users
 
 ## Imports for scraping
 import requests
@@ -20,15 +19,11 @@ from selenium.webdriver.chrome.options import Options
 
 ## Misc Imports
 from sentry_sdk import capture_message, capture_exception
-import sib_api_v3_sdk
 import os
-import datetime
 import re
 from sqlalchemy import text
 from uuid import UUID
-from typing import List, Dict, Tuple
-from itertools import groupby
-from operator import attrgetter
+from typing import List, Dict
 import time
 
 
@@ -83,28 +78,6 @@ def load_page(url: str) -> requests.Response:
         )
     return r
 
-
-def send_email(
-    sender_name: str, sender_email: str, recipient: str, subject: str, body: str
-) -> requests.Response:
-    configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key["api-key"] = os.environ.get("SIB_API_KEY")
-
-    # create an instance of the API class
-    api_instance = sib_api_v3_sdk.AccountApi(sib_api_v3_sdk.ApiClient(configuration))
-    sender = sib_api_v3_sdk.SendSmtpEmailSender(name=sender_name, email=sender_email)
-    to = [sib_api_v3_sdk.SendSmtpEmailTo(email=recipient)]
-
-    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
-        sib_api_v3_sdk.ApiClient(configuration)
-    )
-    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-        sender=sender, to=to, subject=subject, html_content=body
-    )
-
-    response = api_instance.send_transac_email(send_smtp_email)
-
-    return response
 
 
 def strip_scheme(url):
