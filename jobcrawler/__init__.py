@@ -118,7 +118,7 @@ def create_app(config_class=Config):
         @sched.scheduled_job(trigger="cron", hour=10, id="check_dead_links")
         def check_dead_links():
             app.logger.info("Kicking off dead link checking job")
-            test_for_dead_links()
+            test_for_dead_links(app)
 
         sched.start()
 
