@@ -86,12 +86,10 @@ def get_user_job_searches() -> List[Tuple]:
                 JOIN users u ON u.id = s.user_id
                 WHERE
                     (
-                        -- If you've never gotten an email, we'll send one
-                        u.last_received_email_at IS NULL
-
+                        -- If you've never gotten an email or
                         -- If the posting was created more recently
                         -- than your last one, we'll include it
-                        OR p.created_at > u.last_received_email_at
+                        p.created_at > COALESCE(u.last_received_email_at, '2023-01-01 00:00:00')
 
                         -- If the search was updated or created more recently
                         -- than the last email, we'll include it
@@ -108,7 +106,7 @@ def get_user_job_searches() -> List[Tuple]:
                         -- you last got an email.
                         -- If that's a bigger amount of time than your email frequency,
                         -- then we should send you an email.
-                        EXTRACT(epoch FROM NOW() - u.last_received_email_at) > (24 * 60 * 60 * u.email_frequency_days)
+                        EXTRACT(epoch FROM NOW() - COALESCE(u.last_received_email_at, '2023-01-01 00:00:00')) > (24 * 60 * 60 * u.email_frequency_days)
                         OR is_admin
                     )
                     AND NOT c.board_url_is_dead_link
