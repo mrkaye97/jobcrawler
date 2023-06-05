@@ -4,7 +4,7 @@ from jobcrawler import db
 
 ## Application Imports
 from jobcrawler.models.companies import Companies
-from jobcrawler.jobs.scraping import load_page, create_driver
+from jobcrawler.jobs.scraping import load_page
 
 ## Sentry
 from sentry_sdk import capture_message
@@ -14,12 +14,11 @@ from typing import List, Tuple
 def test_for_dead_links(app: Flask) -> List[Tuple[str, str]]:
     with app.app_context():
         dead_links = []
-        driver = create_driver()
 
         for company in Companies.query.all():
             url = company.board_url
             current_app.logger.info(f"Testing board URL for {company.name}")
-            result = driver.get(url) if company.scraping_method == "selenium" else load_page(url)
+            result = load_page(url)
 
             if result is None or result.status_code != 200:
                 current_app.logger.info(f"Found a dead link at {url}")
