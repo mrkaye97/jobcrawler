@@ -100,6 +100,12 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return db.session.get(Users, user_id)
 
+    @app.teardown_request
+    def teardown_request(exception):
+        if exception:
+            db.session.rollback()
+        db.session.remove()
+
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):
         app.logger.info("Creating scraping jobs")
