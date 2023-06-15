@@ -7,6 +7,7 @@ from sqlalchemy import text
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
 from jobcrawler.exceptions.exceptions import ScrapingException
+from jobcrawler.jobs.scheduler import sched
 
 ## Imports for scraping
 import requests
@@ -25,6 +26,7 @@ from sqlalchemy import text
 from uuid import UUID
 from typing import List, Dict
 import time
+import random
 
 
 def is_valid_uuid(uuid_to_test, version=4):
@@ -80,7 +82,6 @@ def load_page(url: str) -> requests.Response:
     return r
 
 
-
 def strip_scheme(url):
     return re.sub(r"^http(s)?:\/\/", "", url)
 
@@ -111,7 +112,6 @@ def get_links_selenium(
 
         for link in links:
             href = link.get_attribute("href")
-            current_app.logger.info(f"Found link {href}")
             if link_is_job_posting(example_prefix, href):
                 result = result + [{"text": link.get_attribute("text"), "href": href}]
 
@@ -194,50 +194,62 @@ def get_links(driver: webdriver.Chrome, company: Companies) -> List:
     return deduplicate_links(links)
 
 
-def crawl_for_postings(app: Flask) -> None:
-    ## Set up Selenium
+def crawl_for_postings(company: Companies, app: Flask) -> None:
     driver = create_driver()
 
     with app.app_context():
-        for company in Companies.query.all():
-            current_app.logger.info(f"Scraping {company.name}'s job board")
-            links = get_links(driver=driver, company=company)
-            current_app.logger.info(f"Finished scraping {company.name}'s job board")
-            ## Get the postings for the company that already exist in the db
-            existing_postings = Postings.query.filter_by(company_id=company.id).all()
+        current_app.logger.info(f"Scraping {company.name}'s job board")
+        links = get_links(driver=driver, company=company)
+        current_app.logger.info(f"Finished scraping {company.name}'s job board")
 
-            ## Get the links for the company that already exist in the db
-            existing_links = set(map(lambda x: x.link_href, existing_postings))
+        ## Get the postings for the company that already exist in the db
+        existing_postings = Postings.query.filter_by(company_id=company.id).all()
 
-            ## Get the new links we're going to add (from the scraping we just did)
-            new_links = set(map(lambda x: x.get("href"), links))
+        ## Get the links for the company that already exist in the db
+        existing_links = set(map(lambda x: x.link_href, existing_postings))
 
-            for link in existing_links:
-                ## If there's a link in the database that isn't in
-                ## the set we just scraped, that means that job
-                ## has been taken down. In that case, we should delete
-                ## the no-longer-open job from the db
-                if not link in new_links:
-                    current_app.logger.info(f"Deleting records for {link}")
-                    db.session.execute(
-                        text(f"DELETE FROM postings WHERE link_href = '{link}'")
-                    )
+        ## Get the new links we're going to add (from the scraping we just did)
+        new_links = set(map(lambda x: x.get("href"), links))
 
-            for link in links:
-                ## If the new link doesn't yet exist in the db
-                ## we add it
-                if not link.get("href") in existing_links:
-                    current_app.logger.info(
-                        f"Adding new posting for {link.get('href')}"
-                    )
-                    new_posting = Postings(
-                        company_id=company.id,
-                        link_text=link.get("text"),
-                        link_href=link.get("href"),
-                    )
-                    db.session.add(new_posting)
+        for link in existing_links:
+            ## If there's a link in the database that isn't in
+            ## the set we just scraped, that means that job
+            ## has been taken down. In that case, we should delete
+            ## the no-longer-open job from the db
+            if not link in new_links:
+                current_app.logger.info(f"Deleting records for {link}")
+                db.session.execute(
+                    text(f"DELETE FROM postings WHERE link_href = '{link}'")
+                )
 
-            current_app.logger.info("Committing changes.")
-            db.session.commit()
+        for link in links:
+            ## If the new link doesn't yet exist in the db
+            ## we add it
+            if not link.get("href") in existing_links:
+                current_app.logger.info(f"Adding new posting for {link.get('href')}")
+                new_posting = Postings(
+                    company_id=company.id,
+                    link_text=link.get("text"),
+                    link_href=link.get("href"),
+                )
+                db.session.add(new_posting)
+
+        current_app.logger.info("Committing changes.")
+        db.session.commit()
 
     driver.quit()
+
+
+def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
+    with app.app_context():
+        companies = Companies.query.all()
+
+    for company in companies:
+        sched.add_job(
+            func=crawl_for_postings,
+            kwargs={"company": company, "app": app},
+            trigger="cron",
+            hour=random.randint(0, 22),
+            minute=random.randint(0, 59),
+            second=random.randint(0, 59),
+        )

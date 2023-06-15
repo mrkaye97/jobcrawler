@@ -129,7 +129,9 @@ def generate_email_html(
     all_postings = {}
 
     ## Sort the keys so the email comes back in alphabetical order
-    for company, jobs in {key: value for key, value in sorted(matching_postings.items())}.items():
+    for company, jobs in {
+        key: value for key, value in sorted(matching_postings.items())
+    }.items():
         all_postings[company] = "".join([generate_link_html(job) for job in jobs])
 
     all_htmls = "".join(
