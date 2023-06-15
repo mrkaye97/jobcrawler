@@ -11,6 +11,7 @@ from sentry_sdk import capture_message
 
 from typing import List, Tuple
 
+
 def test_for_dead_links(app: Flask) -> List[Tuple[str, str]]:
     with app.app_context():
         dead_links = []
@@ -27,7 +28,9 @@ def test_for_dead_links(app: Flask) -> List[Tuple[str, str]]:
 
                 dead_links = dead_links + [(company.name, url)]
             elif company.board_url_is_dead_link:
-                current_app.logger.info(f"Found working link for {url}. Resetting `is_dead_link` to False.")
+                current_app.logger.info(
+                    f"Found working link for {url}. Resetting `is_dead_link` to False."
+                )
 
                 company.board_url_is_dead_link = False
                 db.session.commit()

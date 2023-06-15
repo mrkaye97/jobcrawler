@@ -24,6 +24,7 @@ from jobcrawler.routes.preferences import preferences_bp
 from jobcrawler.routes.scraping import scraping_bp
 from jobcrawler.routes.searches import searches_bp
 from jobcrawler.jobs.scheduler import sched
+from jobcrawler.jobs.scraping import create_scraping_jobs
 
 ## Logging
 import logging
@@ -101,10 +102,10 @@ def create_app(config_class=Config):
 
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):
-        @sched.scheduled_job(trigger="cron", hour=23, id="crawl")
-        def crawl():
-            app.logger.info("Kicking off scraping job")
-            crawl_for_postings(app)
+        app.logger.info("Creating scraping jobs")
+        create_scraping_jobs(app=app)
+
+        sched.print_jobs()
 
         @sched.scheduled_job(trigger="cron", hour=0, id="send_emails")
         def send_emails():
