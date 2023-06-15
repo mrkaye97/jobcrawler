@@ -113,7 +113,6 @@ def get_links_selenium(
 
         for link in links:
             href = link.get_attribute("href")
-            current_app.logger.info(f"Found link {href}")
             if link_is_job_posting(example_prefix, href):
                 result = result + [{"text": link.get_attribute("text"), "href": href}]
 
@@ -249,7 +248,6 @@ def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
         companies = Companies.query.all()
 
     for company in companies:
-        app.logger.info(f"Adding job for {company.name}")
         sched.add_job(
             func=crawl_for_postings,
             kwargs={

@@ -105,8 +105,6 @@ def create_app(config_class=Config):
         app.logger.info("Creating scraping jobs")
         create_scraping_jobs(app=app)
 
-        sched.print_jobs()
-
         @sched.scheduled_job(trigger="cron", hour=0, id="send_emails")
         def send_emails():
             app.logger.info("Kicking off email sending job")
