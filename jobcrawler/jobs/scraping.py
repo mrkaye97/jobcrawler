@@ -82,7 +82,6 @@ def load_page(url: str) -> requests.Response:
     return r
 
 
-
 def strip_scheme(url):
     return re.sub(r"^http(s)?:\/\/", "", url)
 
@@ -196,7 +195,6 @@ def get_links(driver: webdriver.Chrome, company: Companies) -> List:
 
 
 def crawl_for_postings(company: Companies, app: Flask) -> None:
-
     driver = create_driver()
 
     with app.app_context():
@@ -228,9 +226,7 @@ def crawl_for_postings(company: Companies, app: Flask) -> None:
             ## If the new link doesn't yet exist in the db
             ## we add it
             if not link.get("href") in existing_links:
-                current_app.logger.info(
-                    f"Adding new posting for {link.get('href')}"
-                )
+                current_app.logger.info(f"Adding new posting for {link.get('href')}")
                 new_posting = Postings(
                     company_id=company.id,
                     link_text=link.get("text"),
@@ -243,6 +239,7 @@ def crawl_for_postings(company: Companies, app: Flask) -> None:
 
     driver.quit()
 
+
 def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
     with app.app_context():
         companies = Companies.query.all()
@@ -250,12 +247,9 @@ def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
     for company in companies:
         sched.add_job(
             func=crawl_for_postings,
-            kwargs={
-                "company": company,
-                "app": app
-            },
+            kwargs={"company": company, "app": app},
             trigger="cron",
             hour=random.randint(0, 22),
             minute=random.randint(0, 59),
-            second=random.randint(0, 59)
+            second=random.randint(0, 59),
         )
