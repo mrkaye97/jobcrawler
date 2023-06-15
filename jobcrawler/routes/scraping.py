@@ -1,16 +1,14 @@
 ## Application Imports
 from jobcrawler import db
 from jobcrawler.jobs.scraping import (
-    crawl_for_postings,
     create_driver,
     get_links,
 )
-from jobcrawler.jobs.email import run_email_send_job
 from jobcrawler.models.companies import Companies
 from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
 
 ## Flask Imports
-from flask import request, Blueprint, current_app
+from flask import request, Blueprint
 
 ## Sentry
 from sentry_sdk import capture_exception
@@ -59,20 +57,3 @@ def test_scraping():
     driver.quit()
     return matching_links
 
-
-@scraping_bp.route("/scraping/run-crawl-job", methods=["POST"])
-def manually_trigger_crawl_job():
-    current_app.logger.info("Kicking off scraping job")
-    crawl_for_postings(current_app)
-    current_app.logger.info("Finished scraping job")
-
-    return {"message": "finished"}, 200
-
-
-@scraping_bp.route("/scraping/run-email-job", methods=["POST"])
-def manually_trigger_email_sending_job():
-    current_app.logger.info("Kicking off email job")
-    run_email_send_job(current_app)
-    current_app.logger.info("Finished email job")
-
-    return {"message": "finished"}, 200

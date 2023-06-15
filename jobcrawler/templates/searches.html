@@ -37,9 +37,6 @@
 
   <div class="button-container">
     <button id="add-row-btn" class="btn btn-success">New Search</button>
-    {% if current_user.is_admin %}
-    <button id="run-email-job-btn" class="btn btn-primary">Run Email Job</button>
-    {% endif %}
   </div>
   <br>
   <div id="searches-container" class="d-flex flex-column align-items-center">
@@ -232,10 +229,6 @@
       companyNameSelect.value = selectedCompanyId;
     });
 
-    const runEmailJobBtn = document.getElementById('run-email-job-btn');
-    if (runEmailJobBtn) {
-      runEmailJobBtn.addEventListener('click', runEmailJob);
-    }
   </script>
 </body>
 
