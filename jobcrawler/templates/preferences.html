@@ -14,7 +14,10 @@
             {% for i in range(1, 8) %}
             <option value="{{ i }}" {% if current_user.email_frequency_days==i %}selected{% endif %}>{{ i }}</option>
             {% endfor %}
+            <option value=999999999 {% if current_user.email_frequency_days==999999999 %}selected{% endif %}>Don't Send
+                Me Emails
         </select>
+        </option>
     </div>
     <div class="mb-3">
         <label for="default_search_regex" class="form-label">Default Search Regex</label>
