@@ -4,7 +4,6 @@ from flask_admin import Admin
 from flask_admin.menu import MenuLink
 from flask_admin.contrib.sqla import ModelView
 from config import Config
-from apscheduler.schedulers.background import BackgroundScheduler
 from flask_migrate import Migrate
 from flask_sitemap import Sitemap
 
@@ -24,6 +23,7 @@ from jobcrawler.routes.errors import errors_bp
 from jobcrawler.routes.preferences import preferences_bp
 from jobcrawler.routes.scraping import scraping_bp
 from jobcrawler.routes.searches import searches_bp
+from jobcrawler.jobs.scheduler import sched
 
 ## Logging
 import logging
@@ -38,9 +38,6 @@ import os
 
 
 def create_app(config_class=Config):
-    ## Set up the background scheduler
-    sched = BackgroundScheduler(timezone="UTC")
-
     ## Set up Sentry
     if os.environ.get("ENV") == "PROD":
         sentry_sdk.init(
@@ -104,22 +101,7 @@ def create_app(config_class=Config):
 
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):
-
-        @sched.scheduled_job(trigger="cron", hour=23, id="crawl")
-        def crawl():
-            app.logger.info("Kicking off scraping job")
-            crawl_for_postings(app)
-
-        @sched.scheduled_job(trigger="cron", hour=0, id="send_emails")
-        def send_emails():
-            app.logger.info("Kicking off email sending job")
-            run_email_send_job(app)
-
-        @sched.scheduled_job(trigger="cron", hour=10, id="check_dead_links")
-        def check_dead_links():
-            app.logger.info("Kicking off dead link checking job")
-            test_for_dead_links(app)
-
         sched.start()
+
 
     return app
