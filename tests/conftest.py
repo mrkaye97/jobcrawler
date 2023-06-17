@@ -1,5 +1,5 @@
 from jobcrawler import create_app, db
-from jobcrawler.models.companies import Companies
+from jobcrawler.core.models import Companies
 import pytest
 import multiprocessing
 

@@ -1,7 +1,6 @@
 ## Application Imports
 from jobcrawler import db
-from jobcrawler.models.searches import Searches
-from jobcrawler.models.companies import Companies
+from jobcrawler.core.models import Companies, Searches
 
 ## Flask Imports
 from flask import request, Blueprint, current_app, render_template

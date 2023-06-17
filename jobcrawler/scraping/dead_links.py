@@ -3,7 +3,7 @@ from flask import current_app
 from jobcrawler import db
 
 ## Application Imports
-from jobcrawler.models.companies import Companies
+from jobcrawler.core.models import Companies
 from jobcrawler.scraping.scraping import load_page
 from jobcrawler.extensions.scheduler import sched
 

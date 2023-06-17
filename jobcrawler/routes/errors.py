@@ -1,5 +1,5 @@
 from flask import request, render_template, Blueprint, current_app
-from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
+from jobcrawler.core.exceptions import CompanyExistsException, ScrapingException
 from werkzeug.exceptions import HTTPException
 from sentry_sdk import capture_exception
 import os

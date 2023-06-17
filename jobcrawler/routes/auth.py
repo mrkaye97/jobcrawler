@@ -8,14 +8,13 @@ from flask import (
     url_for,
     flash,
     Blueprint,
-    current_app,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user
 
 ## Application Imports
 from jobcrawler import db
-from jobcrawler.models.users import Users
+from jobcrawler.core.models import Users
 
 auth_bp = Blueprint(
     "auth_bp", __name__, template_folder="templates", static_folder="static"

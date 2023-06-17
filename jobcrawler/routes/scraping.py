@@ -1,11 +1,7 @@
 ## Application Imports
-from jobcrawler import db
-from jobcrawler.scraping.scraping import (
-    create_driver,
-    get_links,
-)
-from jobcrawler.models.companies import Companies
-from jobcrawler.exceptions.exceptions import CompanyExistsException, ScrapingException
+from jobcrawler.scraping.scraping import create_driver, get_links
+from jobcrawler.core.models import Companies
+from jobcrawler.core.exceptions import CompanyExistsException, ScrapingException
 
 ## Flask Imports
 from flask import request, Blueprint

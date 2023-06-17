@@ -1,11 +1,8 @@
 from flask_admin import Admin
 from flask_admin.menu import MenuLink
 from flask_admin.contrib.sqla import ModelView
-from jobcrawler.models.users import Users
-from jobcrawler.models.searches import Searches
-from jobcrawler.models.postings import Postings
-from jobcrawler.models.companies import Companies
-from jobcrawler.models import db
+from jobcrawler.core.models import *
+from jobcrawler.core import db
 from flask_login import current_user
 
 
