@@ -1,10 +1,11 @@
 ## Flask imports
-from flask import current_app, Flask
+from flask import current_app
 from jobcrawler import db
 
 ## Application Imports
 from jobcrawler.models.companies import Companies
 from jobcrawler.jobs.scraping import load_page
+from jobcrawler.extensions.scheduler import sched
 
 ## Sentry
 from sentry_sdk import capture_message
@@ -12,10 +13,10 @@ from sentry_sdk import capture_message
 from typing import List, Tuple
 
 
-def test_for_dead_links(app: Flask) -> List[Tuple[str, str]]:
-    with app.app_context():
-        dead_links = []
-
+def test_for_dead_links() -> List[Tuple[str, str]]:
+    dead_links = []
+    with sched.app.app_context():
+        current_app.logger.info("Kicking off dead link checking job")
         for company in Companies.query.all():
             url = company.board_url
             current_app.logger.info(f"Testing board URL for {company.name}")
@@ -36,4 +37,5 @@ def test_for_dead_links(app: Flask) -> List[Tuple[str, str]]:
                 db.session.commit()
 
         capture_message(f"Found dead links for the following: {dead_links}")
-        return dead_links
+
+    return dead_links

@@ -56,4 +56,3 @@ def test_scraping():
 
     driver.quit()
     return matching_links
-
