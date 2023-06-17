@@ -6,6 +6,8 @@ from jobcrawler import db
 from jobcrawler.core.models import Companies
 from jobcrawler.scraping.postings import load_page
 from jobcrawler.extensions.scheduler import sched
+from jobcrawler.email.email import send_email
+from sqlalchemy import text
 
 ## Sentry
 from sentry_sdk import capture_message
@@ -39,3 +41,35 @@ def test_for_dead_links() -> List[Tuple[str, str]]:
         capture_message(f"Found dead links for the following: {dead_links}")
 
     return dead_links
+
+
+def send_dead_links_notification_email() -> None:
+    with sched.app.app_context():
+        current_app.logger.info("Running dead link notification job")
+        dead_links = db.session.execute(
+            text("SELECT name, board_url FROM companies WHERE board_url_is_dead_link;")
+        ).all()
+
+        if dead_links:
+            dead_link_html_list = "\n".join(
+                [f'<li><a href="{l.board_url}">{l.name}</a></li>' for l in dead_links]
+            )
+            current_app.logger.info(dead_link_html_list)
+
+            send_email(
+                "Matt",
+                "mrkaye97@gmail.com",
+                "mrkaye97@gmail.com",
+                "Dead Links Report",
+                f"""
+                Hey Matt,
+
+                I found some dead links this week. You might want to check them out to get them back online.
+
+                <ul>
+                {dead_link_html_list}
+                </ul>
+
+                Thanks!
+                """,
+            )
