@@ -1,9 +1,10 @@
 ## Application Imports
 from jobcrawler import db
-from jobcrawler.core.models import Companies, Users
+from jobcrawler.core.models import Companies, Users, Searches
 
 ## Flask Imports
 from flask import request, Blueprint, current_app, render_template, jsonify
+from flask_login import current_user
 
 ## Misc Imports
 import json
@@ -62,6 +63,17 @@ def create_company():
         )
 
         db.session.add(c)
+
+        default_search_regex = current_user.default_search_regex
+        if default_search_regex:
+            s = Searches(
+                company_id=c.id,
+                search_regex=default_search_regex,
+                user_id=current_user.get_id()
+            )
+
+            db.session.add(s)
+
         db.session.commit()
 
         record = db.session.get(Companies, c.id)
