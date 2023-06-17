@@ -8,12 +8,14 @@ from jobcrawler.models.companies import Companies
 from jobcrawler.models import db
 from flask_login import current_user
 
+
 class AdminView(ModelView):
     def is_accessible(self):
         if current_user.get_id():
             return current_user.is_admin
         else:
             return False
+
 
 admin = Admin(name="jobcrawler")
 

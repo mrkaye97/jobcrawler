@@ -248,7 +248,7 @@ def create_scraping_jobs() -> None:
 
         for company in companies:
             sched.add_job(
-                id = f"scrape-{company.id}",
+                id=f"scrape-{company.id}",
                 func=crawl_for_postings,
                 kwargs={"company": company},
                 trigger="cron",

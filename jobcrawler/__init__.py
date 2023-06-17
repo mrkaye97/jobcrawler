@@ -30,6 +30,7 @@ from jobcrawler.extensions.migrate import migrate
 from jobcrawler.extensions.login_manager import login_manager
 from jobcrawler.extensions.sitemap import sitemap
 
+
 def create_app(config_class=Config):
     ## Set up Sentry
     if os.environ.get("ENV") == "PROD":
@@ -72,16 +73,13 @@ def create_app(config_class=Config):
             db.session.rollback()
         db.session.remove()
 
-
     if __name__ != "__main__":
         gunicorn_logger = logging.getLogger("gunicorn.error")
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.setLevel(gunicorn_logger.level)
 
-
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):
-
         app.logger.info("Creating scraping jobs")
         create_scraping_jobs()
 
