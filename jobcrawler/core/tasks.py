@@ -10,16 +10,16 @@ import random
 with sched.app.app_context():
     companies = Companies.query.all()
 
-    for company in companies:
-        sched.add_job(
-            id=f"scrape-{company.id}",
-            func=crawl_for_postings,
-            kwargs={"company": company},
-            trigger="cron",
-            hour=random.randint(0, 22),
-            minute=random.randint(0, 59),
-            second=random.randint(0, 59),
-        )
+for company in companies:
+    sched.add_job(
+        id=f"scrape-{company.id}",
+        func=crawl_for_postings,
+        kwargs={"company": company},
+        trigger="cron",
+        hour=random.randint(0, 22),
+        minute=random.randint(0, 59),
+        second=random.randint(0, 59),
+    )
 
 sched.add_job(
     id="send_emails",
