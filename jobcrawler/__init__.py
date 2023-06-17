@@ -71,7 +71,7 @@ def create_app(config_class=Config):
         db.session.remove()
 
     if not os.environ.get("PYTEST_CURRENT_TEST"):
-        from jobcrawler.jobs import tasks
+        from jobcrawler import tasks
 
     if __name__ != "__main__":
         gunicorn_logger = logging.getLogger("gunicorn.error")
