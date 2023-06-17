@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 ## Application Imports
 from jobcrawler.models.users import Users
-
+from jobcrawler.extensions.scheduler import sched
 
 ## Misc Imports
 import requests
@@ -158,8 +158,9 @@ def generate_email_html(
     """
 
 
-def run_email_send_job(app: Flask) -> None:
-    with app.app_context():
+def run_email_send_job() -> None:
+    with sched.app.app_context():
+        current_app.logger.info("Kicking off email sending job")
         searches = {
             email: list(data)
             for email, data in groupby(get_user_job_searches(), attrgetter("email"))

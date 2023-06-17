@@ -1,5 +1,5 @@
 ## Flask imports
-from flask import current_app, Flask
+from flask import current_app
 from jobcrawler.models import db
 from sqlalchemy import text
 
