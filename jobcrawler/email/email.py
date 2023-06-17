@@ -1,10 +1,10 @@
 ## Flask imports
-from flask import current_app, Flask
+from flask import current_app
 from jobcrawler import db
 from sqlalchemy import text
 
 ## Application Imports
-from jobcrawler.models.users import Users
+from jobcrawler.core.models import Users
 from jobcrawler.extensions.scheduler import sched
 
 ## Misc Imports

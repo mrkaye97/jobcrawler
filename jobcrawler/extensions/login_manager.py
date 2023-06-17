@@ -1,6 +1,5 @@
 from flask_login import LoginManager
-from jobcrawler.models.users import Users
-from jobcrawler.models import db
+from jobcrawler.core.models import db, Users
 
 login_manager = LoginManager()
 login_manager.login_view = "auth_bp.login"

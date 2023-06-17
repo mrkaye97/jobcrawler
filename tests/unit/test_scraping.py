@@ -1,11 +1,8 @@
-from jobcrawler.jobs.scraping import *
-from jobcrawler.jobs.email import *
+from jobcrawler.scraping.postings import *
+from jobcrawler.email.email import *
 from jobcrawler import db
 
-from jobcrawler.models.users import Users
-from jobcrawler.models.postings import Postings
-from jobcrawler.models.searches import Searches
-from jobcrawler.models.companies import Companies
+from jobcrawler.core.models import *
 
 from collections import namedtuple
 

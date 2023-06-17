@@ -1,5 +1,5 @@
 import pytest
-from jobcrawler.jobs.scraping import *
+from jobcrawler.scraping.postings import *
 from selenium.webdriver.common.by import By
 from flask import url_for
 from selenium.webdriver.support import expected_conditions as EC
