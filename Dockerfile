@@ -41,7 +41,7 @@ RUN poetry install --no-root
 
 CMD poetry run flask db upgrade && \
     poetry run gunicorn app:app \
-    --workers 2 \
+    --workers 1 \
     --timeout 0 \
     --bind 0.0.0.0:${PORT} \
     --log-level=info \
