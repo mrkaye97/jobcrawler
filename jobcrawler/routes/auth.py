@@ -86,6 +86,8 @@ def signup_post():
     email = request.form.get("email")
     first_name = request.form.get("first_name")
     password = request.form.get("password")
+    default_search_regex = request.form.get("default_search_regex")
+    email_frequency_days = request.form.get("email_frequency_days")
 
     user = Users.query.filter_by(email=email).first()
 
@@ -98,6 +100,8 @@ def signup_post():
         first_name=first_name,
         password_hash=generate_password_hash(password, method="sha256"),
         is_admin=False,
+        default_search_regex=default_search_regex,
+        email_frequency_days=email_frequency_days
     )
 
     db.session.add(new_user)
