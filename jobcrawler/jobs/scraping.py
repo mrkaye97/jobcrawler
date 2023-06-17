@@ -242,7 +242,7 @@ def crawl_for_postings(company: Companies) -> None:
     driver.quit()
 
 
-def create_scraping_jobs() -> List[Dict[str, str]]:
+def create_scraping_jobs() -> None:
     with sched.app.app_context():
         companies = Companies.query.all()
 

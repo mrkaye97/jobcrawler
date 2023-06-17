@@ -96,6 +96,4 @@ def create_app(config_class=Config):
             app.logger.info("Kicking off dead link checking job")
             test_for_dead_links(app)
 
-
-
     return app
