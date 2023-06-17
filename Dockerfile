@@ -1,4 +1,4 @@
-FROM python:3.10.7-slim-buster
+FROM python:3.11-slim-buster
 
 # set work directory
 WORKDIR /usr/src/app
