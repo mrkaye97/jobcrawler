@@ -7,7 +7,7 @@ from sqlalchemy import text
 from jobcrawler.models.companies import Companies
 from jobcrawler.models.postings import Postings
 from jobcrawler.exceptions.exceptions import ScrapingException
-from jobcrawler.jobs.scheduler import sched
+from jobcrawler.extensions.scheduler import sched
 
 ## Imports for scraping
 import requests
