@@ -42,13 +42,18 @@ def test_for_dead_links() -> List[Tuple[str, str]]:
 
     return dead_links
 
+
 def send_dead_links_notification_email() -> None:
     with sched.app.app_context():
         current_app.logger.info("Running dead link notification job")
-        dead_links = db.session.execute(text("SELECT name, board_url FROM companies WHERE board_url_is_dead_link;")).all()
+        dead_links = db.session.execute(
+            text("SELECT name, board_url FROM companies WHERE board_url_is_dead_link;")
+        ).all()
 
         if dead_links:
-            dead_link_html_list = "\n".join([f"<li><a href=\"{l.board_url}\">{l.name}</a></li>" for l in dead_links])
+            dead_link_html_list = "\n".join(
+                [f'<li><a href="{l.board_url}">{l.name}</a></li>' for l in dead_links]
+            )
             current_app.logger.info(dead_link_html_list)
 
             send_email(
@@ -66,5 +71,5 @@ def send_dead_links_notification_email() -> None:
                 </ul>
 
                 Thanks!
-                """
+                """,
             )
