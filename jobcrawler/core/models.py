@@ -1,6 +1,7 @@
-from jobcrawler.core import db
 from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 
+db = SQLAlchemy()
 
 class Companies(db.Model):
     id = db.Column(db.Integer, primary_key=True)

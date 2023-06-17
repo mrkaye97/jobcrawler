@@ -2,7 +2,6 @@ from flask_admin import Admin
 from flask_admin.menu import MenuLink
 from flask_admin.contrib.sqla import ModelView
 from jobcrawler.core.models import *
-from jobcrawler.core import db
 from flask_login import current_user
 
 

@@ -3,7 +3,7 @@ from flask import Flask
 from config import Config
 
 ## Application
-from jobcrawler.core import db
+from jobcrawler.core.models import db
 from jobcrawler.routes import home_bp
 from jobcrawler.routes.auth import auth_bp
 from jobcrawler.routes.companies import companies_bp

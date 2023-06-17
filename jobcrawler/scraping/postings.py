@@ -1,10 +1,9 @@
 ## Flask imports
 from flask import current_app
-from jobcrawler.core import db
 from sqlalchemy import text
 
 ## Application Imports
-from jobcrawler.core.models import Companies, Postings
+from jobcrawler.core.models import db, Companies, Postings
 from jobcrawler.core.exceptions import ScrapingException
 from jobcrawler.extensions.scheduler import sched
 
