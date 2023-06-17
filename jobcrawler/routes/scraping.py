@@ -1,6 +1,6 @@
 ## Application Imports
 from jobcrawler import db
-from jobcrawler.jobs.scraping import (
+from jobcrawler.scraping.scraping import (
     create_driver,
     get_links,
 )

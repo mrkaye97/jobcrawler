@@ -1,5 +1,5 @@
-from jobcrawler.jobs.scraping import *
-from jobcrawler.jobs.email import *
+from jobcrawler.scraping.scraping import *
+from jobcrawler.email.email import *
 from jobcrawler import db
 
 from jobcrawler.models.users import Users

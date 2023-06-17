@@ -4,7 +4,7 @@ from jobcrawler import db
 
 ## Application Imports
 from jobcrawler.models.companies import Companies
-from jobcrawler.jobs.scraping import load_page
+from jobcrawler.scraping.scraping import load_page
 from jobcrawler.extensions.scheduler import sched
 
 ## Sentry
