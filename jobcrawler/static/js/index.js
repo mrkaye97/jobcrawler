@@ -1,4 +1,4 @@
-function createCompanyRow(company, is_admin) {
+function createCompanyRow(company) {
     const row = document.createElement('tr');
     row.dataset.id = company.id;
 
