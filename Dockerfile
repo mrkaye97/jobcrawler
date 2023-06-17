@@ -44,5 +44,4 @@ CMD poetry run flask db upgrade && \
     --timeout 0 \
     --bind 0.0.0.0:${PORT} \
     --log-level=info \
-    --access-logfile '-' \
-    --preload
+    --access-logfile '-'

@@ -9,5 +9,4 @@ poetry run gunicorn app:app \
     --timeout 180 \
     --bind 127.0.0.1:5000 \
     --log-level=info \
-    --access-logfile '-' \
-    --preload
+    --access-logfile '-'
