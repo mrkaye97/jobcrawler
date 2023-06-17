@@ -1,3 +1,3 @@
-from apscheduler.schedulers.background import BackgroundScheduler
+from flask_apscheduler import APScheduler
 
-sched = BackgroundScheduler(timezone="UTC", job_defaults={"max_instances": 4})
+sched = APScheduler()

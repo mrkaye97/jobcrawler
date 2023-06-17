@@ -1,6 +1,6 @@
 ## Flask imports
 from flask import current_app, Flask
-from jobcrawler import db
+from jobcrawler.models import db
 from sqlalchemy import text
 
 ## Application Imports
@@ -27,6 +27,8 @@ from uuid import UUID
 from typing import List, Dict
 import time
 import random
+
+from jobcrawler.extensions.scheduler import sched
 
 
 def is_valid_uuid(uuid_to_test, version=4):
@@ -194,10 +196,10 @@ def get_links(driver: webdriver.Chrome, company: Companies) -> List:
     return deduplicate_links(links)
 
 
-def crawl_for_postings(company: Companies, app: Flask) -> None:
+def crawl_for_postings(company: Companies) -> None:
     driver = create_driver()
 
-    with app.app_context():
+    with sched.app.app_context():
         current_app.logger.info(f"Scraping {company.name}'s job board")
         links = get_links(driver=driver, company=company)
         current_app.logger.info(f"Finished scraping {company.name}'s job board")
@@ -241,15 +243,16 @@ def crawl_for_postings(company: Companies, app: Flask) -> None:
 
 
 def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
-    with app.app_context():
+    with sched.app.app_context():
         companies = Companies.query.all()
 
-    for company in companies:
-        sched.add_job(
-            func=crawl_for_postings,
-            kwargs={"company": company, "app": app},
-            trigger="cron",
-            hour=random.randint(0, 22),
-            minute=random.randint(0, 59),
-            second=random.randint(0, 59),
-        )
+        for company in companies:
+            sched.add_job(
+                id = f"scrape-{company.id}",
+                func=crawl_for_postings,
+                kwargs={"company": company},
+                trigger="cron",
+    #            hour=random.randint(0, 22),
+    #            minute=random.randint(0, 59),
+                second=random.randint(0, 59),
+            )

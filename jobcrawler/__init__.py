@@ -63,6 +63,9 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     sitemap.init_app(app)
 
+    sched.init_app(app)
+    sched.start()
+
     @app.teardown_request
     def teardown_request(exception):
         if exception:
@@ -78,19 +81,22 @@ def create_app(config_class=Config):
 
     ## Don't run the scheduler in pytest session
     if not os.environ.get("PYTEST_CURRENT_TEST"):
-        app.logger.info("Creating scraping jobs")
-        create_scraping_jobs(app=app)
 
-        @sched.scheduled_job(trigger="cron", hour=0, id="send_emails")
+        app.logger.info("Creating scraping jobs")
+        with sched.app.app_context():
+            create_scraping_jobs(app=app)
+
+        @sched.task(trigger="cron", hour=0, id="send_emails")
         def send_emails():
             app.logger.info("Kicking off email sending job")
-            run_email_send_job(app)
+            with sched.app.app_context():
+                run_email_send_job(app)
 
-        @sched.scheduled_job(trigger="cron", hour=10, id="check_dead_links")
+        @sched.task(trigger="cron", hour=10, id="check_dead_links")
         def check_dead_links():
             app.logger.info("Kicking off dead link checking job")
             test_for_dead_links(app)
 
-        sched.start()
+
 
     return app
