@@ -78,5 +78,4 @@ def create_app(config_class=Config):
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.setLevel(gunicorn_logger.level)
 
-
     return app
