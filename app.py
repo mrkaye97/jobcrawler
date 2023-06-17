@@ -1,4 +1,7 @@
 from jobcrawler import create_app
-from config import Config
+from config import *
+import os
 
-app = create_app(Config)
+config = ProductionConfig if os.environ.get("ENV") == "PROD" else DevelopmentConfig
+
+app = create_app(config)

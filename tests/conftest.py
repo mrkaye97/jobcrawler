@@ -2,13 +2,14 @@ from jobcrawler import create_app, db
 from jobcrawler.core.models import Companies
 import pytest
 import multiprocessing
+from config import TestingConfig
 
 multiprocessing.set_start_method("fork")
 
 
 @pytest.fixture(scope="session")
 def app():
-    app = create_app()
+    app = create_app(TestingConfig)
 
     with app.app_context():
         db.create_all()

@@ -29,6 +29,7 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 
 # Set display port as an environment variable
 ENV DISPLAY=:99
+ENV ENV=PROD
 
 RUN pip install poetry==${POETRY_VERSION} && \
     poetry config virtualenvs.path --unset && \
