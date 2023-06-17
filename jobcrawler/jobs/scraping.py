@@ -26,7 +26,6 @@ from sqlalchemy import text
 from uuid import UUID
 from typing import List, Dict
 import time
-import random
 
 from jobcrawler.extensions.scheduler import sched
 
@@ -240,19 +239,3 @@ def crawl_for_postings(company: Companies) -> None:
         db.session.commit()
 
     driver.quit()
-
-
-def create_scraping_jobs() -> None:
-    with sched.app.app_context():
-        companies = Companies.query.all()
-
-        for company in companies:
-            sched.add_job(
-                id=f"scrape-{company.id}",
-                func=crawl_for_postings,
-                kwargs={"company": company},
-                trigger="cron",
-                hour=random.randint(0, 22),
-                minute=random.randint(0, 59),
-                second=random.randint(0, 59),
-            )

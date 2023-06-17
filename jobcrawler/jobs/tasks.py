@@ -1,17 +1,36 @@
 from jobcrawler.jobs.email import run_email_send_job
 from jobcrawler.jobs.dead_links import test_for_dead_links
-from jobcrawler.jobs.scraping import create_scraping_jobs
+from jobcrawler.jobs.scraping import crawl_for_postings
 
+from jobcrawler.models.companies import Companies
 from jobcrawler.extensions.scheduler import sched
 
-create_scraping_jobs()
+import random
 
+with sched.app.app_context():
+    companies = Companies.query.all()
 
-@sched.task(trigger="cron", hour=0, id="send_emails")
-def send_emails():
-    run_email_send_job()
+    for company in companies:
+        sched.add_job(
+            id=f"scrape-{company.id}",
+            func=crawl_for_postings,
+            kwargs={"company": company},
+            trigger="cron",
+            hour=random.randint(0, 22),
+            minute=random.randint(0, 59),
+            second=random.randint(0, 59),
+        )
 
+sched.add_job(
+    id="send_emails",
+    func=run_email_send_job,
+    trigger="cron",
+    hour=0
+)
 
-@sched.task(trigger="cron", hour=10, id="check_dead_links")
-def check_dead_links():
-    test_for_dead_links()
+sched.add_job(
+    id="check_dead_links",
+    func=test_for_dead_links,
+    trigger="cron",
+    hour=10
+)
