@@ -6,6 +6,7 @@ for env_file in (".env", ".flaskenv"):
     if os.path.exists(env):
         load_dotenv(env)
 
+
 class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
@@ -15,13 +16,15 @@ class Config(object):
 
     TESTING = False
 
+
 class ProductionConfig(Config):
     pass
+
 
 class DevelopmentConfig(Config):
     pass
 
-class TestingConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'postgresql://matt@localhost/jobcrawler-test'
-    TESTING = True
 
+class TestingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = "postgresql://matt@localhost/jobcrawler-test"
+    TESTING = True
