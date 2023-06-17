@@ -8,7 +8,7 @@ def test_getting_companies_returns_correct_keys(client):
         assert set(company.keys()) == {"id", "name"}
 
 
-def test_creating_new_company(client):
+def test_creating_new_company(client__logged_in):
     data = {
         "name": "Foo",
         "board_url": "https://bar.com",
@@ -16,7 +16,7 @@ def test_creating_new_company(client):
         "scraping_method": "selenium",
     }
 
-    company = client.post(
+    company = client__logged_in.post(
         "/companies", data=json.dumps(data), content_type="application/json"
     )
 
