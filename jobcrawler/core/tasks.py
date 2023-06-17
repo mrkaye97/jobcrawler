@@ -21,16 +21,6 @@ for company in companies:
         second=random.randint(0, 59),
     )
 
-sched.add_job(
-    id="send_emails",
-    func=run_email_send_job,
-    trigger="cron",
-    hour=0
-)
+sched.add_job(id="send_emails", func=run_email_send_job, trigger="cron", hour=0)
 
-sched.add_job(
-    id="check_dead_links",
-    func=test_for_dead_links,
-    trigger="cron",
-    hour=10
-)
+sched.add_job(id="check_dead_links", func=test_for_dead_links, trigger="cron", hour=10)

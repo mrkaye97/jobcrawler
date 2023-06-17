@@ -100,7 +100,7 @@ def signup_post():
         password_hash=generate_password_hash(password, method="sha256"),
         is_admin=False,
         default_search_regex=default_search_regex,
-        email_frequency_days=email_frequency_days
+        email_frequency_days=email_frequency_days,
     )
 
     db.session.add(new_user)

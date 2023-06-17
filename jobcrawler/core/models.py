@@ -13,6 +13,7 @@ class Companies(db.Model):
     def __repr__(self):
         return "<Company {}>".format(self.name)
 
+
 class Postings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_id = db.Column(db.Integer, db.ForeignKey("companies.id"), index=True)
@@ -24,6 +25,7 @@ class Postings(db.Model):
         return "<Posting {}> Company: {}, link_href: {}, link_text: {}, created_at: {}".format(
             self.id, self.company_id, self.link_href, self.link_text, self.created_at
         )
+
 
 class Searches(db.Model):
     id = db.Column(db.Integer, primary_key=True)
