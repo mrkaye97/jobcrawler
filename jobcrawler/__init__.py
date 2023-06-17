@@ -1,6 +1,5 @@
 ## Flask
 from flask import Flask
-from config import Config
 
 ## Application
 from jobcrawler.core.models import db
@@ -28,7 +27,7 @@ from jobcrawler.extensions.login_manager import login_manager
 from jobcrawler.extensions.sitemap import sitemap
 
 
-def create_app(config_class=Config):
+def create_app(config_class):
     ## Set up Sentry
     if os.environ.get("ENV") == "PROD":
         sentry_sdk.init(
