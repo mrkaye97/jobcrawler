@@ -1,4 +1,4 @@
-from jobcrawler.scraping.boards import *
+from jobcrawler.scraping.postings import *
 from jobcrawler.email.email import *
 from jobcrawler import db
 

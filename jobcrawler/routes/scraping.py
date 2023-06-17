@@ -1,5 +1,5 @@
 ## Application Imports
-from jobcrawler.scraping.boards import create_driver, get_links
+from jobcrawler.scraping.postings import create_driver, get_links
 from jobcrawler.core.models import Companies
 from jobcrawler.core.exceptions import CompanyExistsException, ScrapingException
 
