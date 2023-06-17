@@ -242,7 +242,7 @@ def crawl_for_postings(company: Companies) -> None:
     driver.quit()
 
 
-def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
+def create_scraping_jobs() -> List[Dict[str, str]]:
     with sched.app.app_context():
         companies = Companies.query.all()
 
@@ -252,7 +252,7 @@ def create_scraping_jobs(app: Flask) -> List[Dict[str, str]]:
                 func=crawl_for_postings,
                 kwargs={"company": company},
                 trigger="cron",
-    #            hour=random.randint(0, 22),
-    #            minute=random.randint(0, 59),
+                hour=random.randint(0, 22),
+                minute=random.randint(0, 59),
                 second=random.randint(0, 59),
             )

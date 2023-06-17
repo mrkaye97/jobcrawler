@@ -83,8 +83,7 @@ def create_app(config_class=Config):
     if not os.environ.get("PYTEST_CURRENT_TEST"):
 
         app.logger.info("Creating scraping jobs")
-        with sched.app.app_context():
-            create_scraping_jobs(app=app)
+        create_scraping_jobs()
 
         @sched.task(trigger="cron", hour=0, id="send_emails")
         def send_emails():
