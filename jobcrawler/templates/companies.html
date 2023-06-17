@@ -206,7 +206,7 @@
         }).then(response => response.json())
           .then(company => {
             const companyTable = document.getElementById('company-table');
-            const companyRow = createCompanyRow(company, "{{current_user.is_admin}}");
+            const companyRow = createCompanyRow(company);
             companyTable.querySelector('tbody').appendChild(companyRow);
 
             nameInput.value = '';

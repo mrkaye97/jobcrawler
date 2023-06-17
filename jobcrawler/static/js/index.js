@@ -4,76 +4,17 @@ function createCompanyRow(company, is_admin) {
 
     const nameCell = document.createElement('td');
     const boardUrlCell = document.createElement('td');
-    const jobPostingUrlCell = document.createElement('td');
+    const boardUrlAnchor = document.createElement('a');
 
+    boardUrlAnchor.href = company.board_url;
+    boardUrlAnchor.textContent = company.board_url;
+    boardUrlAnchor.target = '_blank';
+    boardUrlCell.appendChild(boardUrlAnchor);
 
-    const scrapingMethodCell = document.createElement('td');
-    let scrapingMethodSelect;
-
-    if (is_admin) {
-        scrapingMethodSelect = document.createElement('select');
-        const soupOption = document.createElement('option');
-        const seleniumOption = document.createElement('option');
-
-        soupOption.value = 'soup';
-        soupOption.text = 'Soup';
-        seleniumOption.value = 'selenium';
-        seleniumOption.text = 'Selenium';
-
-        scrapingMethodSelect.appendChild(soupOption);
-        scrapingMethodSelect.appendChild(seleniumOption);
-        scrapingMethodSelect.value = company.scraping_method;
-
-        scrapingMethodCell.appendChild(scrapingMethodSelect);
-    } else {
-        const scrapingMethodText = document.createElement('span');
-        scrapingMethodText.innerText = company.scraping_method === 'soup' ? 'Soup' : 'Selenium';
-        scrapingMethodCell.appendChild(scrapingMethodText);
-    }
-
-    if (is_admin) {
-        nameCell.contentEditable = true;
-        boardUrlCell.contentEditable = true;
-        jobPostingUrlCell.contentEditable = true;
-    }
-
-    jobPostingUrlCell.innerText = company.job_posting_url_prefix || '';
     nameCell.innerText = company.name;
-    boardUrlCell.innerText = company.board_url;
 
     row.appendChild(nameCell);
     row.appendChild(boardUrlCell);
-    row.appendChild(jobPostingUrlCell);
-    row.appendChild(scrapingMethodCell);
-
-    if (is_admin) {
-        const actionsCell = document.createElement('td');
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-danger';
-
-        deleteBtn.innerText = 'Delete';
-        deleteBtn.addEventListener('click', function () {
-            fetch(`/companies/${row.dataset.id}`, {
-                method: 'DELETE'
-            }).then(() => {
-                row.remove();
-            });
-        });
-
-        actionsCell.appendChild(deleteBtn);
-        row.appendChild(actionsCell);
-
-        nameCell.addEventListener('blur', autoSaveCompany);
-        nameCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
-        boardUrlCell.addEventListener('blur', autoSaveCompany);
-        boardUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
-        jobPostingUrlCell.addEventListener('blur', autoSaveCompany);
-        jobPostingUrlCell.addEventListener('keydown', handleEnterKey(autoSaveCompany));
-
-        if (scrapingMethodSelect) {
-            scrapingMethodSelect.addEventListener('change', autoSaveCompany);
-        }
-    }
 
     return row;
 }
