@@ -1,6 +1,6 @@
 from jobcrawler.email.email import run_email_send_job
 from jobcrawler.scraping.dead_links import test_for_dead_links
-from jobcrawler.scraping.scraping import crawl_for_postings
+from jobcrawler.scraping.boards import crawl_for_postings
 
 from jobcrawler.core.models import Companies
 from jobcrawler.extensions.scheduler import sched
