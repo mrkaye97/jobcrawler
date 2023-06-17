@@ -12,7 +12,6 @@ create_scraping_jobs()
 def send_emails():
     run_email_send_job()
 
-#@sched.task(trigger="cron", hour=10, id="check_dead_links")
-@sched.task(trigger="interval", seconds=5, id="check_dead_links")
+@sched.task(trigger="cron", hour=10, id="check_dead_links")
 def check_dead_links():
     test_for_dead_links()
