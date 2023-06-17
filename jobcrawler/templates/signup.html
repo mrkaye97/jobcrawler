@@ -20,6 +20,27 @@
                     <input class="login-input" type="password" name="password" placeholder="Password">
                 </div>
             </div>
+            <div class="field">
+                <div class="control">
+                    <input class="login-input" type="text" name="default_search_regex"
+                        placeholder="Default Search (Accepts Regex)">
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <select class="form-select" id="email_frequency_days" name="email_frequency_days" required>
+                        <option disabled selected value="">Email Frequency (in days)</option>
+                        {% for i in range(1, 8) %}
+                        <option value="{{ i }}" {% if current_user.email_frequency_days==i %}selected{% endif %}>{{ i }}
+                        </option>
+                        {% endfor %}
+                        <option value=10000 {% if current_user.email_frequency_days==10000 %}selected{% endif %}>Don't
+                            Send Me Emails
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <br>
             <button class="login-button" type="submit">Submit</button>
             {% with messages = get_flashed_messages() %}
             {% if messages %}
