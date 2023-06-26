@@ -19,9 +19,8 @@ for company in companies:
         func=crawl_for_postings,
         kwargs={"company": company},
         trigger="cron",
-        hour=random.randint(0, 22),
-        minute=random.randint(0, 59),
-        second=random.randint(0, 59),
+        hour=22,
+        jitter = 3600
     )
 
 sched.add_job(id="send_emails", func=run_email_send_job, trigger="cron", hour=0)
